@@ -7,3 +7,6 @@
 [submodule "lib/mockprovider"]
 	path = lib/mockprovider
 	url = https://github.com/cleanunicorn/mockprovider
+[submodule "lib/solmate"]
+	path = lib/solmate
+	url = https://github.com/rari-capital/solmate
