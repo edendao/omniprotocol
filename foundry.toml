@@ -1,6 +1,5 @@
 # Full reference
 # https://onbjerg.github.io/foundry-book/reference/config.html
-
 [default]
 solc_version = "0.8.13"
 optimizer = true

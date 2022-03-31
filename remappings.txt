@@ -1,2 +1,8 @@
-@openzeppelin/=lib/openzeppelin-contracts/
+@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+@rari-capital/solmate/=lib/solmate/src/
+@layerzerolabs/contracts/=lib/LayerZero/contracts/
+@protocol/=src/
 ds-test/=lib/ds-test/src/
+forge-std/=lib/forge-std/src/
+mockprovider/=/lib/mockprovider/src/
