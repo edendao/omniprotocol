@@ -2,17 +2,17 @@
 pragma solidity ^0.8.13;
 
 import { console } from "forge-std/console.sol";
-import { Auth, Authority } from "@rari-capital/solmate/auth/Auth.sol";
 import { ERC20 } from "@rari-capital/solmate/tokens/ERC20.sol";
 
+import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 import { Pausable } from "@protocol/mixins/Pausable.sol";
 import { Omnichain } from "@protocol/mixins/Omnichain.sol";
 
-contract EDN is ERC20, Auth, Omnichain, Pausable {
+contract EDN is ERC20, Authenticated, Omnichain, Pausable {
   constructor(address _authority, address _lzEndpoint)
     ERC20("Eden Dao Note", "EDN", 3)
     Omnichain(_lzEndpoint)
-    Auth(Auth(_authority).owner(), Authority(_authority))
+    Authenticated(_authority)
   {
     this;
   }

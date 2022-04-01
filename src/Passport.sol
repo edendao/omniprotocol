@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-import { Auth, Authority } from "@rari-capital/solmate/auth/Auth.sol";
 import { ERC721 } from "@rari-capital/solmate/tokens/ERC721.sol";
 
+import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 import { Pausable } from "@protocol/mixins/Pausable.sol";
 import { Omnichain } from "@protocol/mixins/Omnichain.sol";
 
-contract Passport is ERC721, Auth, Omnichain, Pausable {
+contract Passport is ERC721, Authenticated, Omnichain, Pausable {
   uint256 public totalSupply;
 
   constructor(address _authority, address _lzEndpoint)
     ERC721("Eden Dao Passport", "PASSPORT")
     Omnichain(_lzEndpoint)
-    Auth(Auth(_authority).owner(), Authority(_authority))
+    Authenticated(_authority)
   {
     _mint(owner, totalSupply++);
   }
@@ -35,7 +35,7 @@ contract Passport is ERC721, Auth, Omnichain, Pausable {
   ) external payable {
     require(
       ownerOf[_id] == msg.sender,
-      "Passport: Can only transfer owned pass"
+      "Passport: Can only transfer owned passport"
     );
     _burn(_id);
 
