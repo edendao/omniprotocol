@@ -7,7 +7,11 @@ import { ILayerZeroReceiver } from "@layerzerolabs/contracts/interfaces/ILayerZe
 
 abstract contract Omnichain is Auth, ILayerZeroReceiver {
   ILayerZeroEndpoint public immutable lzEndpoint;
+
   mapping(uint16 => bytes) public chainContracts;
+
+  mapping(uint16 => uint16) internal chainIdIndex;
+  uint16[] internal chainIds;
 
   constructor(address _lzEndpoint) {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
@@ -33,6 +37,12 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
     requiresAuth
   {
     chainContracts[_dstChainId] = abi.encode(_address);
+
+    uint16 i = 0;
+    for (; i < chainIds.length; i++) if (chainIds[i] == _dstChainId) break;
+    if (i == chainIds.length) chainIds.push(_dstChainId); // If not found
+
+    chainIdIndex[_dstChainId] = i;
   }
 
   function setConfig(

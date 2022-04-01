@@ -14,6 +14,12 @@ contract PassportTest is TestBase {
     assertEq(passport.ownerOf(passport.totalSupply() - 1), _to);
   }
 
+  function testReputation() public {
+    hevm.startPrank(owner);
+    passport.mintTo(address(this));
+    hevm.stopPrank();
+  }
+
   function testFailMintTo(address _to) public {
     passport.mintTo(_to);
   }
