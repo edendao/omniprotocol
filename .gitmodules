@@ -19,3 +19,6 @@
 [submodule "lib/LayerZero"]
 	path = lib/LayerZero
 	url = https://github.com/LayerZero-Labs/LayerZero
+[submodule "lib/shrine"]
+	path = lib/shrine
+	url = https://github.com/astrodrop/shrine
