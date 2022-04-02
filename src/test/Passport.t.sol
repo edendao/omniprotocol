@@ -5,22 +5,17 @@ import { PassportMinter } from "@protocol/actors/PassportMinter.sol";
 import { TestBase } from "@protocol/test/TestBase.sol";
 
 contract PassportTest is TestBase {
-  function testOwnerCanMint(address _to) public {
-    if (_to == address(0)) return;
+  function testOwnerCanMint(address to) public {
+    if (to == address(0) || to == owner) return;
 
     hevm.startPrank(owner);
-    passport.mintTo(_to);
+    passport.mintTo(to);
     hevm.stopPrank();
-    assertEq(passport.ownerOf(passport.totalSupply() - 1), _to);
+    assertEq(passport.balanceOf(address(to)), 1);
+    assertEq(passport.ownerOf(passport.totalSupply()), to);
   }
 
-  function testReputation() public {
-    hevm.startPrank(owner);
-    passport.mintTo(address(this));
-    hevm.stopPrank();
-  }
-
-  function testFailMintTo(address _to) public {
-    passport.mintTo(_to);
+  function testFailMintTo(address to) public {
+    passport.mintTo(to);
   }
 }

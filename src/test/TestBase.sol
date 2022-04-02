@@ -15,5 +15,6 @@ contract TestBase is DSTestPlus {
     new TreasuryAuthority(address(owner), address(0));
 
   EDN internal edn = new EDN(address(authority), address(0));
-  Passport internal passport = new Passport(address(authority), address(0));
+  Passport internal passport =
+    new Passport(uint16(block.chainid), address(authority), address(0));
 }

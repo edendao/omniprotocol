@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-import { console } from "forge-std/console.sol";
 import { EDN } from "@protocol/EDN.sol";
 import { Passport } from "@protocol/Passport.sol";
 
@@ -20,7 +19,9 @@ contract PassportMinter {
   }
 
   receive() external payable {
-    passport.mintTo(msg.sender);
+    if (passport.balanceOf(msg.sender) == 0) {
+      passport.mintTo(msg.sender);
+    }
     edn.mintTo(msg.sender, previewMint(msg.value));
   }
 }

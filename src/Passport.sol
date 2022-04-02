@@ -1,92 +1,130 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-import { ERC721 } from "@rari-capital/solmate/tokens/ERC721.sol";
-
-import { Authenticated } from "@protocol/mixins/Authenticated.sol";
-import { Pausable } from "@protocol/mixins/Pausable.sol";
 import { Omnichain } from "@protocol/mixins/Omnichain.sol";
+import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 
-import { GCounter } from "@protocol/libraries/GCounter.sol";
+/*
+ * The Eden Dao Passport is your cross-chain identity for the omnichain future.
+ *
+ * You can load it up with one of your NFTs and sync its properties across chains.
+ */
+contract Passport is Omnichain, Authenticated {
+  string public constant name = "Eden Dao Passport";
+  string public constant symbol = "PASSPORT";
+  uint16 public immutable primaryChainId;
 
-contract Passport is ERC721, Authenticated, Omnichain, Pausable {
+  event Transfer(address indexed from, address indexed to, uint256 indexed id);
+  error Soulbound();
+
   uint256 public totalSupply;
 
-  mapping(uint256 => uint256[]) internal chainReputationsOf;
+  mapping(uint256 => bytes) internal cachedTokenURI;
 
-  constructor(address _authority, address _lzEndpoint)
-    ERC721("Eden Dao Passport", "PASSPORT")
-    Omnichain(_lzEndpoint)
-    Authenticated(_authority)
-  {
-    _mint(owner, totalSupply++);
+  mapping(uint256 => bytes) public metadata;
+  mapping(uint256 => address) public ownerOf;
+  mapping(address => uint256) internal idOf;
+
+  constructor(
+    uint16 _primaryChainId,
+    address _authority,
+    address _lzEndpoint
+  ) Authenticated(_authority) Omnichain(_lzEndpoint) {
+    primaryChainId = _primaryChainId;
   }
 
-  function reputationOf(uint256 _tokenId) public view returns (uint256) {
-    return GCounter.value(chainReputationsOf[_tokenId]);
-  }
-
-  function addReputation(uint256 _tokenId, uint256 _amount)
-    external
-    requiresAuth
-  {
-    GCounter.incrementBy(
-      chainReputationsOf[_tokenId],
-      chainIdIndex[uint16(block.chainid)],
-      _amount
-    );
-  }
-
-  function mintTo(address _to) external requiresAuth {
-    _mint(_to, totalSupply++);
-  }
-
-  function tokenURI(uint256 _id) public pure override returns (string memory) {
-    return string(abi.encodePacked(_id));
-  }
-
-  function lzSend(
-    uint16 _toChainId,
-    address _toAddress,
-    uint256 _id,
-    address _zroPaymentAddress, // ZRO payment address
-    bytes calldata _adapterParams // txParameters
-  ) external payable {
+  function mintTo(address to) public requiresAuth {
     require(
-      ownerOf[_id] == msg.sender,
-      "Passport: Only owner can sync their passport"
+      primaryChainId == block.chainid,
+      "Passport: Can only mint on primary chain"
     );
+    require(balanceOf(to) == 0, "Passport: Can only have one");
 
+    totalSupply += 1;
+    ownerOf[totalSupply] = to;
+    idOf[to] = totalSupply;
+
+    emit Transfer(address(0), to, totalSupply);
+  }
+
+  function balanceOf(address a) public view returns (uint256) {
+    return idOf[a] != 0 ? 1 : 0;
+  }
+
+  function tokenURI(uint256 id) public view returns (string memory) {
+    return string(cachedTokenURI[id]);
+  }
+
+  function setTokenURI(uint256 id, bytes memory uri) public requiresAuth {
+    cachedTokenURI[id] = uri;
+  }
+
+  function sync(
+    uint16 toChainId,
+    uint256 id,
+    address zroPaymentAddress,
+    bytes calldata adapterParams
+  ) external payable {
     lzEndpoint.send{ value: msg.value }(
-      _toChainId, // destination chainId
-      chainContracts[_toChainId], // destination UA address
-      abi.encode(_toAddress, _id, chainReputationsOf[_id]), // abi.encode()'ed bytes
-      payable(msg.sender), // refund address (LayerZero will refund any extra gas back to caller of send()
-      _zroPaymentAddress, // 'zroPaymentAddress' unused for this mock/example
-      _adapterParams
+      toChainId,
+      chainContracts[toChainId], // destination contract address
+      abi.encode(ownerOf[id], id, tokenURI(id)), // abi.encode()'ed bytes,
+      payable(msg.sender), // refund address (for extra gas)
+      zroPaymentAddress,
+      adapterParams
     );
   }
 
   function lzReceive(
-    uint16 _srcChainId,
-    bytes calldata _callerAddress,
+    uint16 fromChainId,
+    bytes calldata callerAddress,
     uint64, // _nonce
-    bytes memory _payload
+    bytes memory payload
   ) external {
     require(
       msg.sender == address(lzEndpoint) &&
-        _callerAddress.length == chainContracts[_srcChainId].length &&
-        keccak256(_callerAddress) == keccak256(chainContracts[_srcChainId]),
+        callerAddress.length == chainContracts[fromChainId].length &&
+        keccak256(callerAddress) == keccak256(chainContracts[fromChainId]),
       "Passport: Invalid caller for lzReceive"
     );
 
-    (
-      address _receiveAddress,
-      uint256 _id,
-      uint256[] memory _chainReputationsOfToken
-    ) = abi.decode(_payload, (address, uint256, uint256[]));
+    (address passportOwner, uint256 id, bytes memory uri) = abi.decode(
+      payload,
+      (address, uint256, bytes)
+    );
 
-    _mint(_receiveAddress, _id);
-    GCounter.merge(chainReputationsOf[_id], _chainReputationsOfToken);
+    if (ownerOf[id] == address(0)) {
+      ownerOf[id] = passportOwner;
+      idOf[owner] = id;
+
+      emit Transfer(address(0), passportOwner, id);
+    }
+
+    cachedTokenURI[id] = uri;
+  }
+
+  function transferFrom(
+    address, // from
+    address, // to
+    uint256 // id
+  ) external payable {
+    revert Soulbound();
+  }
+
+  function safeTransferFrom(
+    address, // from
+    address, // to
+    uint256 // id
+  ) external payable {
+    revert Soulbound();
+  }
+
+  function safeTransferFrom(
+    address, // from
+    address, // to
+    uint256, // id,
+    bytes calldata // payload
+  ) external payable {
+    revert Soulbound();
   }
 }

@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-import { PassportMinter } from "@protocol/actors/PassportMinter.sol";
+import { console } from "forge-std/console.sol";
+
 import { TestBase } from "@protocol/test/TestBase.sol";
+
+import { PassportMinter } from "@protocol/actors/PassportMinter.sol";
 
 contract PassportMinterTest is TestBase {
   PassportMinter internal minter =
@@ -24,7 +27,7 @@ contract PassportMinterTest is TestBase {
       value: _amountInWei
     }("");
     require(success, string(returndata));
-    assertEq(passport.ownerOf(passport.totalSupply() - 1), address(this));
+    assertEq(passport.ownerOf(passport.totalSupply()), address(this));
     assertEq(edn.balanceOf(address(this)), minter.previewMint(_amountInWei));
   }
 }
