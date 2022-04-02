@@ -10,20 +10,18 @@ import { Authenticated } from "@protocol/mixins/Authenticated.sol";
  * You can load it up with one of your NFTs and sync its properties across chains.
  */
 contract Passport is Omnichain, Authenticated {
-  string public constant name = "Eden Dao Passport";
-  string public constant symbol = "PASSPORT";
-  uint16 public immutable primaryChainId;
-
   event Transfer(address indexed from, address indexed to, uint256 indexed id);
   error Soulbound();
 
+  uint16 public immutable primaryChainId;
   uint256 public totalSupply;
 
-  mapping(uint256 => bytes) internal cachedTokenURI;
+  string public constant name = "Eden Dao Passport";
+  string public constant symbol = "PASSPORT";
 
-  mapping(uint256 => bytes) public metadata;
+  mapping(address => uint256) public idOf;
   mapping(uint256 => address) public ownerOf;
-  mapping(address => uint256) internal idOf;
+  mapping(uint256 => bytes) internal cachedTokenURI;
 
   constructor(
     uint16 _primaryChainId,
@@ -33,18 +31,19 @@ contract Passport is Omnichain, Authenticated {
     primaryChainId = _primaryChainId;
   }
 
-  function mintTo(address to) public requiresAuth {
+  function mintTo(address to, bytes memory uri) public requiresAuth {
     require(
       primaryChainId == block.chainid,
       "Passport: Can only mint on primary chain"
     );
     require(balanceOf(to) == 0, "Passport: Can only have one");
 
-    totalSupply += 1;
-    ownerOf[totalSupply] = to;
-    idOf[to] = totalSupply;
+    uint256 id = ++totalSupply;
+    ownerOf[id] = to;
+    idOf[to] = id;
+    cachedTokenURI[id] = uri;
 
-    emit Transfer(address(0), to, totalSupply);
+    emit Transfer(address(0), to, id);
   }
 
   function balanceOf(address a) public view returns (uint256) {
@@ -56,6 +55,7 @@ contract Passport is Omnichain, Authenticated {
   }
 
   function setTokenURI(uint256 id, bytes memory uri) public requiresAuth {
+    require(ownerOf[id] != address(0), "Passport: Not found");
     cachedTokenURI[id] = uri;
   }
 

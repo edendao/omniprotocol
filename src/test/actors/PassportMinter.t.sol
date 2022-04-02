@@ -9,7 +9,7 @@ import { PassportMinter } from "@protocol/actors/PassportMinter.sol";
 
 contract PassportMinterTest is TestBase {
   PassportMinter internal minter =
-    new PassportMinter(address(edn), address(passport));
+    new PassportMinter(address(authority), address(edn), address(passport));
 
   function setUp() public {
     uint8 minterRole = 0;
@@ -20,14 +20,22 @@ contract PassportMinterTest is TestBase {
     hevm.stopPrank();
   }
 
-  function testPassportMinterCall(uint256 _amountInWei) public {
-    if (address(this).balance < _amountInWei) return;
+  function testPassportMinterPerform(uint256 value, bytes memory uri) public {
+    if (address(this).balance < value) return;
+
+    minter.perform{ value: value }(uri);
+    assertEq(passport.ownerOf(passport.totalSupply()), address(this));
+    assertEq(edn.balanceOf(address(this)), minter.previewMint(value));
+  }
+
+  function testPassportMinterCall(uint256 value) public {
+    if (address(this).balance < value) return;
 
     (bool success, bytes memory returndata) = address(minter).call{
-      value: _amountInWei
+      value: value
     }("");
     require(success, string(returndata));
     assertEq(passport.ownerOf(passport.totalSupply()), address(this));
-    assertEq(edn.balanceOf(address(this)), minter.previewMint(_amountInWei));
+    assertEq(edn.balanceOf(address(this)), minter.previewMint(value));
   }
 }

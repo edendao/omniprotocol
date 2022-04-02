@@ -17,55 +17,55 @@ contract EDN is ERC20, Authenticated, Omnichain, Pausable {
     this;
   }
 
-  function mintTo(address _to, uint256 _amount) external requiresAuth {
-    _mint(_to, _amount);
+  function mintTo(address to, uint256 amount) external requiresAuth {
+    _mint(to, amount);
   }
 
-  function burn(uint256 _amount) external {
-    _burn(msg.sender, _amount);
+  function burn(uint256 amount) external {
+    _burn(msg.sender, amount);
   }
 
-  function burnFrom(address _from, uint256 _amount) external requiresAuth {
-    _burn(_from, _amount);
+  function burnFrom(address _from, uint256 amount) external requiresAuth {
+    _burn(_from, amount);
   }
 
   function lzSend(
-    uint16 _toChainId,
-    address _toAddress,
-    uint256 _amount,
+    uint16 toChainId,
+    address toAddress,
+    uint256 amount,
     address _zroPaymentAddress, // ZRO payment address
     bytes calldata _adapterParams // txParameters
   ) external payable {
-    _burn(msg.sender, _amount);
+    _burn(msg.sender, amount);
 
     lzEndpoint.send{ value: msg.value }(
-      _toChainId, // destination chainId
-      chainContracts[_toChainId], // destination UA address
-      abi.encode(_toAddress, _amount), // abi.encode()'ed bytes
-      payable(msg.sender), // refund address (LayerZero will refund any extra gas back to caller of send()
-      _zroPaymentAddress, // 'zroPaymentAddress' unused for this mock/example
+      toChainId,
+      chainContracts[toChainId], // destination contract address
+      abi.encode(toAddress, amount), // payload
+      payable(msg.sender), // refund unused gas
+      _zroPaymentAddress,
       _adapterParams
     );
   }
 
   function lzReceive(
-    uint16 _srcChainId,
+    uint16 fromChainId,
     bytes calldata _fromAddress,
     uint64, // _nonce
     bytes memory _payload
   ) external {
     require(
       msg.sender == address(lzEndpoint) &&
-        _fromAddress.length == chainContracts[_srcChainId].length &&
-        keccak256(_fromAddress) == keccak256(chainContracts[_srcChainId]),
+        _fromAddress.length == chainContracts[fromChainId].length &&
+        keccak256(_fromAddress) == keccak256(chainContracts[fromChainId]),
       "EDN: Invalid caller for lzReceive"
     );
 
-    (address _toAddress, uint256 _amount) = abi.decode(
+    (address toAddress, uint256 amount) = abi.decode(
       _payload,
       (address, uint256)
     );
 
-    _mint(_toAddress, _amount);
+    _mint(toAddress, amount);
   }
 }

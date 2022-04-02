@@ -9,13 +9,13 @@ contract PassportTest is TestBase {
     if (to == address(0) || to == owner) return;
 
     hevm.startPrank(owner);
-    passport.mintTo(to);
+    passport.mintTo(to, "");
     hevm.stopPrank();
     assertEq(passport.balanceOf(address(to)), 1);
     assertEq(passport.ownerOf(passport.totalSupply()), to);
   }
 
   function testFailMintTo(address to) public {
-    passport.mintTo(to);
+    passport.mintTo(to, "");
   }
 }
