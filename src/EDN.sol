@@ -31,8 +31,8 @@ contract EDN is ERC20, Authenticated, Omnichain {
     uint16 toChainId,
     address toAddress,
     uint256 amount,
-    address _zroPaymentAddress, // ZRO payment address
-    bytes calldata _adapterParams // txParameters
+    address zroPaymentAddress, // ZRO payment address
+    bytes calldata adapterParams // txParameters
   ) external payable {
     _burn(msg.sender, amount);
 
@@ -41,8 +41,8 @@ contract EDN is ERC20, Authenticated, Omnichain {
       chainContracts[toChainId], // destination contract address
       abi.encode(toAddress, amount), // payload
       payable(msg.sender), // refund unused gas
-      _zroPaymentAddress,
-      _adapterParams
+      zroPaymentAddress,
+      adapterParams
     );
   }
 

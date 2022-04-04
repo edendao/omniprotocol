@@ -47,11 +47,7 @@ contract Passport is Omnichain, Authenticated {
   }
 
   function ensureMintedTo(address to) public requiresAuth returns (uint256) {
-    if (balanceOf(to) == 0) {
-      return mintTo(to);
-    } else {
-      return idOf(to);
-    }
+    return balanceOf(to) == 0 ? mintTo(to) : idOf(to);
   }
 
   function mintTo(address to) public requiresAuth returns (uint256) {
