@@ -4,6 +4,8 @@ pragma solidity ^0.8.13;
 import { Omnichain } from "@protocol/mixins/Omnichain.sol";
 import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 
+import { GCounter } from "@protocol/libraries/GCounter.sol";
+
 /*
  * The Eden Dao Passport is your cross-chain identity for the omnichain future.
  *
@@ -13,41 +15,26 @@ contract Passport is Omnichain, Authenticated {
   event Transfer(address indexed from, address indexed to, uint256 indexed id);
   error Soulbound();
 
-  uint16 public immutable primaryChainId;
-  uint256 public totalSupply;
-
   string public constant name = "Eden Dao Passport";
   string public constant symbol = "PASSPORT";
 
-  mapping(address => uint256) public idOf;
   mapping(uint256 => address) public ownerOf;
+
   mapping(uint256 => bytes) internal cachedTokenURI;
 
-  constructor(
-    uint16 _primaryChainId,
-    address _authority,
-    address _lzEndpoint
-  ) Authenticated(_authority) Omnichain(_lzEndpoint) {
-    primaryChainId = _primaryChainId;
+  constructor(address _authority, address _lzEndpoint)
+    Authenticated(_authority)
+    Omnichain(_lzEndpoint)
+  {
+    this;
   }
 
-  function mintTo(address to, bytes memory uri) public requiresAuth {
-    require(
-      primaryChainId == block.chainid,
-      "Passport: Can only mint on primary chain"
-    );
-    require(balanceOf(to) == 0, "Passport: Can only have one");
-
-    uint256 id = ++totalSupply;
-    ownerOf[id] = to;
-    idOf[to] = id;
-    cachedTokenURI[id] = uri;
-
-    emit Transfer(address(0), to, id);
+  function idOf(address to) public pure returns (uint256) {
+    return uint256(uint160(to));
   }
 
   function balanceOf(address a) public view returns (uint256) {
-    return idOf[a] != 0 ? 1 : 0;
+    return ownerOf[idOf(a)] == address(0) ? 0 : 1;
   }
 
   function tokenURI(uint256 id) public view returns (string memory) {
@@ -59,16 +46,34 @@ contract Passport is Omnichain, Authenticated {
     cachedTokenURI[id] = uri;
   }
 
+  function ensureMintedTo(address to) public requiresAuth returns (uint256) {
+    if (balanceOf(to) == 0) {
+      return mintTo(to);
+    } else {
+      return idOf(to);
+    }
+  }
+
+  function mintTo(address to) public requiresAuth returns (uint256) {
+    uint256 id = idOf(to);
+    require(ownerOf[id] == address(0), "Passport: Already exists");
+
+    ownerOf[id] = to;
+    emit Transfer(address(0), to, id);
+
+    return id;
+  }
+
   function sync(
     uint16 toChainId,
-    uint256 id,
+    address owner,
     address zroPaymentAddress,
     bytes calldata adapterParams
   ) external payable {
     lzEndpoint.send{ value: msg.value }(
       toChainId,
       chainContracts[toChainId], // destination contract address
-      abi.encode(ownerOf[id], id, tokenURI(id)), // abi.encode()'ed bytes,
+      abi.encode(owner, tokenURI(idOf(owner))),
       payable(msg.sender), // refund address (for extra gas)
       zroPaymentAddress,
       adapterParams
@@ -77,30 +82,19 @@ contract Passport is Omnichain, Authenticated {
 
   function lzReceive(
     uint16 fromChainId,
-    bytes calldata callerAddress,
+    bytes calldata fromContractAddress,
     uint64, // _nonce
     bytes memory payload
-  ) external {
-    require(
-      msg.sender == address(lzEndpoint) &&
-        callerAddress.length == chainContracts[fromChainId].length &&
-        keccak256(callerAddress) == keccak256(chainContracts[fromChainId]),
-      "Passport: Invalid caller for lzReceive"
-    );
+  ) external onlyRelayer(fromChainId, fromContractAddress) {
+    (address owner, bytes memory uri) = abi.decode(payload, (address, bytes));
 
-    (address passportOwner, uint256 id, bytes memory uri) = abi.decode(
-      payload,
-      (address, uint256, bytes)
-    );
-
-    if (ownerOf[id] == address(0)) {
-      ownerOf[id] = passportOwner;
-      idOf[owner] = id;
-
-      emit Transfer(address(0), passportOwner, id);
-    }
-
+    uint256 id = idOf(owner);
     cachedTokenURI[id] = uri;
+
+    if (ownerOf[id] != owner) {
+      ownerOf[id] = owner;
+      emit Transfer(address(0), owner, id);
+    }
   }
 
   function transferFrom(

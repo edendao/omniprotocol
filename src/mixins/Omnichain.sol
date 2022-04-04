@@ -7,51 +7,68 @@ import { ILayerZeroReceiver } from "@layerzerolabs/contracts/interfaces/ILayerZe
 
 abstract contract Omnichain is Auth, ILayerZeroReceiver {
   ILayerZeroEndpoint public immutable lzEndpoint;
-
   mapping(uint16 => bytes) public chainContracts;
 
-  mapping(uint16 => uint16) internal chainIdIndex;
+  mapping(uint16 => uint16) internal chainSlot;
   uint16[] internal chainIds;
 
   constructor(address _lzEndpoint) {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
+
+    uint16 chainId = uint16(block.chainid);
+    chainIds.push(chainId);
+    chainSlot[chainId] = 0;
+  }
+
+  modifier onlyRelayer(uint16 fromChainId, bytes calldata fromContractAddress) {
+    require(
+      msg.sender == address(lzEndpoint) &&
+        fromContractAddress.length == chainContracts[fromChainId].length &&
+        keccak256(fromContractAddress) ==
+        keccak256(chainContracts[fromChainId]),
+      "Omnichain: Invalid caller for lzReceive"
+    );
+    _;
   }
 
   function estimateSendFee(
-    uint16 _toChainId,
-    bool _useZro,
+    uint16 toChainId,
+    bool useZro,
     bytes calldata txParameters
-  ) external view returns (uint256 nativeFee, uint256 zroFee) {
+  ) public view returns (uint256 nativeFee, uint256 zroFee) {
     return
       lzEndpoint.estimateFees(
-        _toChainId,
+        toChainId,
         address(this),
         bytes(""),
-        _useZro,
+        useZro,
         txParameters
       );
   }
 
-  function setChainContract(uint16 _dstChainId, address _address)
+  function setChainContract(uint16 toChainId, address contractAddress)
     external
     requiresAuth
   {
-    chainContracts[_dstChainId] = abi.encode(_address);
+    require(
+      toChainId != block.chainid,
+      "Omnichain: Cannot set contract for deployed chain"
+    );
+    chainContracts[toChainId] = abi.encode(contractAddress);
 
-    uint16 i = 0;
-    for (; i < chainIds.length; i++) if (chainIds[i] == _dstChainId) break;
-    if (i == chainIds.length) chainIds.push(_dstChainId); // If not found
-
-    chainIdIndex[_dstChainId] = i;
+    if (chainSlot[toChainId] == 0) {
+      chainSlot[toChainId] = uint16(chainIds.length);
+      chainIds.push(toChainId);
+    }
   }
 
   function setConfig(
-    uint16 _version,
-    uint16 _chainId,
-    uint256 _configType,
-    bytes calldata _config
+    uint16 version,
+    uint16 chainId,
+    uint256 configType,
+    bytes calldata config
   ) external requiresAuth {
-    lzEndpoint.setConfig(_version, _chainId, _configType, _config);
+    lzEndpoint.setConfig(version, chainId, configType, config);
   }
 
   function setSendVersion(uint16 version) external requiresAuth {
@@ -62,10 +79,10 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
     lzEndpoint.setReceiveVersion(version);
   }
 
-  function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress)
+  function forceResumeReceive(uint16 srcChainId, bytes calldata srcAddress)
     external
     requiresAuth
   {
-    lzEndpoint.forceResumeReceive(_srcChainId, _srcAddress);
+    lzEndpoint.forceResumeReceive(srcChainId, srcAddress);
   }
 }

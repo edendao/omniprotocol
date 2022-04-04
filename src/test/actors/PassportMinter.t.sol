@@ -11,31 +11,35 @@ contract PassportMinterTest is TestBase {
   PassportMinter internal minter =
     new PassportMinter(address(authority), address(edn), address(passport));
 
+  address internal myAddress = address(this);
+
   function setUp() public {
-    uint8 minterRole = 0;
     hevm.startPrank(owner);
-    authority.setRoleCapability(minterRole, edn.mintTo.selector, true);
-    authority.setRoleCapability(minterRole, passport.mintTo.selector, true);
-    authority.setUserRole(address(minter), minterRole, true);
+
+    uint8 actor = 0;
+    authority.setRoleCapability(actor, edn.mintTo.selector, true);
+    authority.setRoleCapability(actor, passport.ensureMintedTo.selector, true);
+    authority.setRoleCapability(actor, passport.setTokenURI.selector, true);
+    authority.setUserRole(address(minter), actor, true);
+
     hevm.stopPrank();
   }
 
-  function testPassportMinterPerform(uint256 value, bytes memory uri) public {
-    if (address(this).balance < value) return;
+  function testPassportMinterPerform(uint256 value) public {
+    hevm.assume(myAddress.balance > value);
 
-    minter.perform{ value: value }(uri);
-    assertEq(passport.ownerOf(passport.totalSupply()), address(this));
-    assertEq(edn.balanceOf(address(this)), minter.previewMint(value));
+    minter.perform{ value: value }("");
+    assertEq(passport.ownerOf(passport.idOf(myAddress)), myAddress);
+    assertEq(edn.balanceOf(myAddress), minter.preview(value));
   }
 
   function testPassportMinterCall(uint256 value) public {
-    if (address(this).balance < value) return;
+    hevm.assume(myAddress.balance > value);
 
-    (bool success, bytes memory returndata) = address(minter).call{
-      value: value
-    }("");
-    require(success, string(returndata));
-    assertEq(passport.ownerOf(passport.totalSupply()), address(this));
-    assertEq(edn.balanceOf(address(this)), minter.previewMint(value));
+    (bool ok, bytes memory res) = address(minter).call{ value: value }("");
+    require(ok, string(res));
+
+    assertEq(passport.ownerOf(passport.idOf(myAddress)), myAddress);
+    assertEq(edn.balanceOf(myAddress), minter.preview(value));
   }
 }

@@ -5,14 +5,17 @@ import { PassportMinter } from "@protocol/actors/PassportMinter.sol";
 import { TestBase } from "@protocol/test/TestBase.sol";
 
 contract EDNTest is TestBase {
-  function testOwnerCanMint(address _to, uint256 _amount) public {
+  function testOwnerCanMint(address to, uint256 amount) public {
+    hevm.assume(to != address(0) && to != owner);
+
     hevm.startPrank(owner);
-    edn.mintTo(_to, _amount);
+    edn.mintTo(to, amount);
     hevm.stopPrank();
-    assertEq(edn.balanceOf(_to), _amount);
+
+    assertEq(edn.balanceOf(to), amount);
   }
 
-  function testFailMintTo(address _to, uint256 _amount) public {
-    edn.mintTo(_to, _amount);
+  function testFailMintTo(address to, uint256 amount) public {
+    edn.mintTo(to, amount);
   }
 }

@@ -6,6 +6,11 @@ import "@rari-capital/solmate/auth/Auth.sol";
 abstract contract Pausable is Auth {
   bool public isPaused;
 
+  modifier whenNotPaused() {
+    require(!isPaused, "Pausable: Paused");
+    _;
+  }
+
   function pause() external requiresAuth {
     isPaused = true;
   }

@@ -6,16 +6,17 @@ import { TestBase } from "@protocol/test/TestBase.sol";
 
 contract PassportTest is TestBase {
   function testOwnerCanMint(address to) public {
-    if (to == address(0) || to == owner) return;
+    hevm.assume(to != address(0) && to != owner);
 
     hevm.startPrank(owner);
-    passport.mintTo(to, "");
+    passport.mintTo(to);
     hevm.stopPrank();
-    assertEq(passport.balanceOf(address(to)), 1);
-    assertEq(passport.ownerOf(passport.totalSupply()), to);
+
+    assertEq(passport.balanceOf(to), 1);
+    assertEq(passport.ownerOf(passport.idOf(to)), to);
   }
 
   function testFailMintTo(address to) public {
-    passport.mintTo(to, "");
+    passport.mintTo(to);
   }
 }

@@ -1,7 +1,7 @@
 {
     "solidity.packageDefaultDependenciesContractsDirectory": "src",
     "solidity.packageDefaultDependenciesDirectory": "lib",
-    "solidity.compileUsingRemoteVersion": "v0.8.13",
+    "solidity.compileUsingRemoteVersion": "v0.8.13+commit.abaa5c0e",
     "files.exclude": {
         "**/.git": true,
         "**/.svn": true,
@@ -12,5 +12,5 @@
         "node_modules": true,
         "cache": true,
         "out": true
-    }
+    },
 }

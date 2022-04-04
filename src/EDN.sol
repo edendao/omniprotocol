@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-import { console } from "forge-std/console.sol";
 import { ERC20 } from "@rari-capital/solmate/tokens/ERC20.sol";
 
 import { Authenticated } from "@protocol/mixins/Authenticated.sol";
-import { Pausable } from "@protocol/mixins/Pausable.sol";
 import { Omnichain } from "@protocol/mixins/Omnichain.sol";
 
-contract EDN is ERC20, Authenticated, Omnichain, Pausable {
+contract EDN is ERC20, Authenticated, Omnichain {
   constructor(address _authority, address _lzEndpoint)
     ERC20("Eden Dao Note", "EDN", 3)
-    Omnichain(_lzEndpoint)
     Authenticated(_authority)
+    Omnichain(_lzEndpoint)
   {
     this;
   }
@@ -50,22 +48,11 @@ contract EDN is ERC20, Authenticated, Omnichain, Pausable {
 
   function lzReceive(
     uint16 fromChainId,
-    bytes calldata _fromAddress,
+    bytes calldata fromContractAddress,
     uint64, // _nonce
-    bytes memory _payload
-  ) external {
-    require(
-      msg.sender == address(lzEndpoint) &&
-        _fromAddress.length == chainContracts[fromChainId].length &&
-        keccak256(_fromAddress) == keccak256(chainContracts[fromChainId]),
-      "EDN: Invalid caller for lzReceive"
-    );
-
-    (address toAddress, uint256 amount) = abi.decode(
-      _payload,
-      (address, uint256)
-    );
-
-    _mint(toAddress, amount);
+    bytes memory payload
+  ) external onlyRelayer(fromChainId, fromContractAddress) {
+    (address addr, uint256 amount) = abi.decode(payload, (address, uint256));
+    _mint(addr, amount);
   }
 }
