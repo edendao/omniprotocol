@@ -3,6 +3,8 @@ pragma solidity ^0.8.13;
 
 import { ERC20 } from "@rari-capital/solmate/tokens/ERC20.sol";
 
+import { IMasterContract } from "@boring/interfaces/IMasterContract.sol";
+
 import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 import { Omnichain } from "@protocol/mixins/Omnichain.sol";
 

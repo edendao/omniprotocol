@@ -9,15 +9,8 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
   ILayerZeroEndpoint public immutable lzEndpoint;
   mapping(uint16 => bytes) public chainContracts;
 
-  mapping(uint16 => uint16) internal chainSlot;
-  uint16[] internal chainIds;
-
   constructor(address _lzEndpoint) {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
-
-    uint16 chainId = uint16(block.chainid);
-    chainIds.push(chainId);
-    chainSlot[chainId] = 0;
   }
 
   modifier onlyRelayer(uint16 fromChainId, bytes calldata fromContractAddress) {
@@ -55,11 +48,6 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
       "Omnichain: Cannot set contract for deployed chain"
     );
     chainContracts[toChainId] = abi.encode(contractAddress);
-
-    if (chainSlot[toChainId] == 0) {
-      chainSlot[toChainId] = uint16(chainIds.length);
-      chainIds.push(toChainId);
-    }
   }
 
   function setConfig(

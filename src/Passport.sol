@@ -75,9 +75,7 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
   function findOrMintFor(address to) public returns (uint256) {
     uint256 id = idOf(to);
 
-    if (ownerOf[id] != address(0)) {
-      return id;
-    }
+    if (ownerOf[id] != address(0)) return id;
 
     ownerOf[id] = to;
     emit Transfer(address(0), to, id);
@@ -85,6 +83,9 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
     return id;
   }
 
+  /* ==============================
+   * LayerZero
+   * ============================== */
   function lzSync(
     uint16 toChainId,
     address owner,
@@ -122,9 +123,9 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
     emit Sync(fromChainId, currentChainId, id);
   }
 
-  /* ==============================
-   * IERC721
-   * ============================== */
+  /* ===================
+   * IERC721 Boilerplate
+   * =================== */
   function approve(address, uint256) external payable {
     revert Soulbound();
   }
