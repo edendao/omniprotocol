@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-import { EDN } from "@protocol/EDN.sol";
-import { Passport } from "@protocol/Passport.sol";
-
 import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 
-contract PassportMinter is Authenticated {
+import { Passport, PassportToken } from "@protocol/Passport.sol";
+import { EDN } from "@protocol/EDN.sol";
+
+contract ManifestDestiny is Authenticated {
   EDN public immutable edn;
   Passport public immutable passport;
 
@@ -24,14 +24,16 @@ contract PassportMinter is Authenticated {
     return valueInWei / 10**12;
   }
 
-  function perform(bytes memory uri) external payable {
-    passport.ensureMintedTo(msg.sender);
-    passport.setTokenURI(passport.idOf(msg.sender), uri);
+  function cast(string calldata uri) external payable {
+    uint256 passportId = passport.findOrMintFor(msg.sender);
+    PassportToken memory t;
+    t.uri = uri;
+    passport.setToken(passportId, t);
     edn.mintTo(msg.sender, preview(msg.value));
   }
 
   receive() external payable {
-    passport.ensureMintedTo(msg.sender);
+    passport.findOrMintFor(msg.sender);
     edn.mintTo(msg.sender, preview(msg.value));
   }
 

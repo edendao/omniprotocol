@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-import { PassportMinter } from "@protocol/actors/PassportMinter.sol";
 import { TestBase } from "@protocol/test/TestBase.sol";
 
 contract EDNTest is TestBase {

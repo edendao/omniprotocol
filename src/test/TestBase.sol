@@ -9,11 +9,18 @@ import { EDN } from "@protocol/EDN.sol";
 import { Passport } from "@protocol/Passport.sol";
 
 contract TestBase is DSTestPlus {
+  address internal myAddress = address(this);
   address internal owner = hevm.addr(42);
 
   TreasuryAuthority internal authority =
     new TreasuryAuthority(address(owner), address(0));
 
   EDN internal edn = new EDN(address(authority), address(0));
-  Passport internal passport = new Passport(address(authority), address(0));
+  Passport internal passport =
+    new Passport(
+      address(authority),
+      address(0),
+      "Eden Dao Passport",
+      "PASSPORT"
+    );
 }

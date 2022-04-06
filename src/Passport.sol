@@ -1,32 +1,45 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-import { Omnichain } from "@protocol/mixins/Omnichain.sol";
-import { Authenticated } from "@protocol/mixins/Authenticated.sol";
+import { console } from "forge-std/console.sol";
+import { IERC721, IERC721Metadata } from "@boring/interfaces/IERC721.sol";
 
-import { GCounter } from "@protocol/libraries/GCounter.sol";
+import { Authenticated } from "@protocol/mixins/Authenticated.sol";
+import { Omnichain } from "@protocol/mixins/Omnichain.sol";
+
+struct PassportToken {
+  string uri;
+  bytes metadata;
+}
 
 /*
- * The Eden Dao Passport is your cross-chain identity for the omnichain future.
- *
- * You can load it up with one of your NFTs and sync its properties across chains.
+ * The Passport is your cross-chain identity for the omnichain future.
  */
-contract Passport is Omnichain, Authenticated {
-  event Transfer(address indexed from, address indexed to, uint256 indexed id);
+contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
+  event Sync(
+    uint16 indexed fromChainId,
+    uint16 indexed toChainId,
+    uint256 indexed id
+  );
   error Soulbound();
 
-  string public constant name = "Eden Dao Passport";
-  string public constant symbol = "PASSPORT";
+  string public name;
+  string public symbol;
 
   mapping(uint256 => address) public ownerOf;
+  mapping(uint256 => PassportToken) public token;
 
-  mapping(uint256 => bytes) internal cachedTokenURI;
+  uint16 public immutable currentChainId;
 
-  constructor(address _authority, address _lzEndpoint)
-    Authenticated(_authority)
-    Omnichain(_lzEndpoint)
-  {
-    this;
+  constructor(
+    address _authority,
+    address _lzEndpoint,
+    string memory _name,
+    string memory _symbol
+  ) Authenticated(_authority) Omnichain(_lzEndpoint) {
+    currentChainId = uint16(block.chainid);
+    name = _name;
+    symbol = _symbol;
   }
 
   function idOf(address to) public pure returns (uint256) {
@@ -38,21 +51,28 @@ contract Passport is Omnichain, Authenticated {
   }
 
   function tokenURI(uint256 id) public view returns (string memory) {
-    return string(cachedTokenURI[id]);
+    return token[id].uri;
   }
 
-  function setTokenURI(uint256 id, bytes memory uri) public requiresAuth {
+  function tokenMetadata(uint256 id) public view returns (bytes memory) {
+    return token[id].metadata;
+  }
+
+  function setToken(uint256 id, PassportToken calldata data) external {
+    require(
+      idOf(msg.sender) == id || isAuthorized(msg.sender, msg.sig),
+      "UNAUTHORIZED"
+    );
     require(ownerOf[id] != address(0), "Passport: Not found");
-    cachedTokenURI[id] = uri;
+    token[id] = data;
   }
 
-  function ensureMintedTo(address to) public requiresAuth returns (uint256) {
-    return balanceOf(to) == 0 ? mintTo(to) : idOf(to);
-  }
-
-  function mintTo(address to) public requiresAuth returns (uint256) {
+  function findOrMintFor(address to) public returns (uint256) {
     uint256 id = idOf(to);
-    require(ownerOf[id] == address(0), "Passport: Already exists");
+
+    if (ownerOf[id] != address(0)) {
+      return id;
+    }
 
     ownerOf[id] = to;
     emit Transfer(address(0), to, id);
@@ -60,20 +80,24 @@ contract Passport is Omnichain, Authenticated {
     return id;
   }
 
-  function sync(
+  function lzSync(
     uint16 toChainId,
     address owner,
     address zroPaymentAddress,
     bytes calldata adapterParams
   ) external payable {
+    uint256 id = idOf(owner);
+
     lzEndpoint.send{ value: msg.value }(
       toChainId,
       chainContracts[toChainId], // destination contract address
-      abi.encode(owner, tokenURI(idOf(owner))),
+      abi.encode(owner, token[id]),
       payable(msg.sender), // refund address (for extra gas)
       zroPaymentAddress,
       adapterParams
     );
+
+    emit Sync(currentChainId, toChainId, id);
   }
 
   function lzReceive(
@@ -82,15 +106,34 @@ contract Passport is Omnichain, Authenticated {
     uint64, // _nonce
     bytes memory payload
   ) external onlyRelayer(fromChainId, fromContractAddress) {
-    (address owner, bytes memory uri) = abi.decode(payload, (address, bytes));
+    (address owner, PassportToken memory data) = abi.decode(
+      payload,
+      (address, PassportToken)
+    );
 
-    uint256 id = idOf(owner);
-    cachedTokenURI[id] = uri;
+    uint256 id = findOrMintFor(owner);
+    token[id] = data;
 
-    if (ownerOf[id] != owner) {
-      ownerOf[id] = owner;
-      emit Transfer(address(0), owner, id);
-    }
+    emit Sync(fromChainId, currentChainId, id);
+  }
+
+  /* ==============================
+   * IERC721
+   * ============================== */
+  function approve(address, uint256) external payable {
+    revert Soulbound();
+  }
+
+  function setApprovalForAll(address, bool) external pure {
+    revert Soulbound();
+  }
+
+  function getApproved(uint256) external pure returns (address) {
+    return address(0);
+  }
+
+  function isApprovedForAll(address, address) external pure returns (bool) {
+    return false;
   }
 
   function transferFrom(
