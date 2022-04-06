@@ -22,12 +22,12 @@ contract ManifestDestinyTest is TestBase {
     hevm.stopPrank();
   }
 
-  function testCast(uint256 value, string memory uri) public {
+  function testCast(uint256 value, bytes memory uri) public {
     hevm.assume(myAddress.balance > value);
 
     manifest.cast{ value: value }(uri);
 
-    assertEq(passport.tokenURI(passport.idOf(myAddress)), uri);
+    assertEq(passport.tokenURI(passport.idOf(myAddress)), string(uri));
     assertEq(passport.ownerOf(passport.idOf(myAddress)), myAddress);
     assertEq(edn.balanceOf(myAddress), manifest.preview(value));
   }

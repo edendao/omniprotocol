@@ -8,7 +8,7 @@ import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 import { Omnichain } from "@protocol/mixins/Omnichain.sol";
 
 struct PassportToken {
-  string uri;
+  bytes uri;
   bytes metadata;
 }
 
@@ -51,7 +51,7 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
   }
 
   function tokenURI(uint256 id) public view returns (string memory) {
-    return token[id].uri;
+    return string(token[id].uri);
   }
 
   function tokenMetadata(uint256 id) public view returns (bytes memory) {
@@ -60,7 +60,7 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
 
   function setToken(
     uint256 id,
-    string memory uri,
+    bytes memory uri,
     bytes memory metadata
   ) external {
     require(

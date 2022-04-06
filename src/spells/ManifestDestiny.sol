@@ -24,7 +24,7 @@ contract ManifestDestiny is Authenticated {
     return valueInWei / 10**12;
   }
 
-  function cast(string calldata uri) external payable {
+  function cast(bytes calldata uri) external payable {
     passport.setToken(passport.findOrMintFor(msg.sender), uri, "");
     edn.mintTo(msg.sender, preview(msg.value));
   }
