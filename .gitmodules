@@ -22,3 +22,6 @@
 [submodule "lib/shrine"]
 	path = lib/shrine
 	url = https://github.com/astrodrop/shrine
+[submodule "lib/BoringSolidity"]
+	path = lib/BoringSolidity
+	url = https://github.com/boringcrypto/BoringSolidity
