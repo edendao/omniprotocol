@@ -25,10 +25,7 @@ contract ManifestDestiny is Authenticated {
   }
 
   function cast(string calldata uri) external payable {
-    uint256 passportId = passport.findOrMintFor(msg.sender);
-    PassportToken memory t;
-    t.uri = uri;
-    passport.setToken(passportId, t);
+    passport.setToken(passport.findOrMintFor(msg.sender), uri, "");
     edn.mintTo(msg.sender, preview(msg.value));
   }
 

@@ -58,13 +58,18 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
     return token[id].metadata;
   }
 
-  function setToken(uint256 id, PassportToken calldata data) external {
+  function setToken(
+    uint256 id,
+    string memory uri,
+    bytes memory metadata
+  ) external {
     require(
       idOf(msg.sender) == id || isAuthorized(msg.sender, msg.sig),
       "UNAUTHORIZED"
     );
     require(ownerOf[id] != address(0), "Passport: Not found");
-    token[id] = data;
+    token[id].uri = uri;
+    token[id].metadata = metadata;
   }
 
   function findOrMintFor(address to) public returns (uint256) {

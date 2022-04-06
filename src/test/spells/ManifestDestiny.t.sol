@@ -16,7 +16,6 @@ contract ManifestDestinyTest is TestBase {
 
     uint8 actor = 0;
     authority.setRoleCapability(actor, edn.mintTo.selector, true);
-    authority.setRoleCapability(actor, passport.findOrMintFor.selector, true);
     authority.setRoleCapability(actor, passport.setToken.selector, true);
     authority.setUserRole(address(manifest), actor, true);
 
