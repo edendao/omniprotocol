@@ -19,11 +19,13 @@ contract ConjureDeus is Spell {
   }
 
   function cast(uint256 tld) external payable returns (uint256) {
-    return _mint(msg.sender, tld, msg.value);
+    _mint(msg.sender, tld, msg.value);
+    return earnXP(msg.sender, msg.value);
   }
 
   receive() external payable {
     _mint(msg.sender, uint256(uint160(msg.sender)), msg.value);
+    earnXP(msg.sender, msg.value);
   }
 
   function _mint(
@@ -31,10 +33,9 @@ contract ConjureDeus is Spell {
     uint256 domainId,
     uint256 giftInWei
   ) private returns (uint256) {
-    require(msg.value >= 0.01 ether, "ConjureDeus: Minting needs >=0.01 ETH");
+    require(giftInWei >= 0.01 ether, "ConjureDeus: Minting needs >=0.01 ETH");
     require(dns.balanceOf(to) < 8, "ConjureDeus: Max 8 per address");
 
     dns.mintTo(to, domainId);
-    return earnXP(to, giftInWei);
   }
 }
