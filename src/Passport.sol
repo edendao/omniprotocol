@@ -19,8 +19,7 @@ contract Passport is
   Soulbound,
   Authenticated
 {
-  uint256 public constant TOKEN_URI_DOMAIN = 0;
-  Domain public domain;
+  Domain public dns;
 
   event Sync(
     uint16 indexed fromChainId,
@@ -38,10 +37,10 @@ contract Passport is
 
   constructor(
     address _authority,
-    address _lzEndpoint,
+    address _layerZeroEndpoint,
     address _domain
-  ) Authenticated(_authority) Omnichain(_lzEndpoint) {
-    domain = Domain(_domain);
+  ) Authenticated(_authority) Omnichain(_layerZeroEndpoint) {
+    dns = Domain(_domain);
   }
 
   function idOf(address to) public pure returns (uint256) {
@@ -64,19 +63,27 @@ contract Passport is
   }
 
   function tokenURI(uint256 id) public view returns (string memory) {
-    return string(dataOf[id][TOKEN_URI_DOMAIN]);
+    return string(dataOf[id][dns.TOKEN_URI_DOMAIN()]);
+  }
+
+  function setTokenURI(uint256 id, bytes memory data) public {
+    setData(id, dns.TOKEN_URI_DOMAIN(), data);
+  }
+
+  modifier canWriteData(uint256 passportId, uint256 domainId) {
+    require(
+      ownerOf[passportId] == msg.sender || dns.ownerOf(domainId) == msg.sender,
+      "Passport: UNAUTHORIZED"
+    );
+    _;
   }
 
   function setData(
-    uint256 id,
+    uint256 passportId,
     uint256 domainId,
     bytes memory data
-  ) external {
-    require(
-      ownerOf[id] == msg.sender || domain.ownerOf(domainId) == msg.sender,
-      "Passport: UNAUTHORIZED"
-    );
-    dataOf[id][domainId] = data;
+  ) public canWriteData(passportId, domainId) {
+    dataOf[passportId][domainId] = data;
   }
 
   /* ==============================
@@ -84,17 +91,11 @@ contract Passport is
    * ============================== */
   function syncData(
     uint16 toChainId,
-    address owner,
+    uint256 passportId,
     uint256 domainId,
     address zroPaymentAddress,
     bytes calldata adapterParams
-  ) external payable {
-    require(
-      owner == msg.sender || domain.ownerOf(domainId) == msg.sender,
-      "Passport: UNAUTHORIZED"
-    );
-    uint256 passportId = findOrMintFor(owner);
-
+  ) external payable canWriteData(passportId, domainId) {
     lzSend(
       toChainId,
       abi.encode(owner, domainId, dataOf[passportId][domainId]),

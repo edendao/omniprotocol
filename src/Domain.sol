@@ -7,6 +7,7 @@ import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 import { Omnichain } from "@protocol/mixins/Omnichain.sol";
 
 contract Domain is ERC721, Omnichain, Authenticated {
+  uint8 public constant TOKEN_URI_DOMAIN = 0;
   uint16 public primaryChainId;
 
   constructor(

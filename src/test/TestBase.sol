@@ -16,8 +16,8 @@ contract TestBase is DSTestPlus {
   Comptroller internal authority = new Comptroller(address(owner));
 
   Note internal edn = new Note(address(authority), address(0));
-  Domain internal domain =
+  Domain internal dns =
     new Domain(address(authority), address(0), uint16(block.chainid));
-  Passport internal passport =
-    new Passport(address(authority), address(0), address(domain));
+  Passport internal pass =
+    new Passport(address(authority), address(0), address(dns));
 }

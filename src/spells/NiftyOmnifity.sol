@@ -1,24 +1,53 @@
 // SPDX-License-Identifier: BSL 1.1
 pragma solidity ^0.8.13;
 
-import { Authenticated } from "@protocol/mixins/Authenticated.sol";
+import { IERC721, IERC721Metadata } from "@boring/interfaces/IERC721.sol";
+
+import { Spell } from "@protocol/mixins/Spell.sol";
 
 import { Passport } from "@protocol/Passport.sol";
 
-contract NiftyOmnifity is Authenticated {
-  Passport internal passport;
+contract NiftyOmnifity is Spell {
+  Passport internal pass;
 
-  constructor(address _authority, address _passport) Authenticated(_authority) {
-    passport = Passport(_passport);
+  constructor(
+    address _authority,
+    address _note,
+    address _passport
+  ) Spell(_authority, _note) {
+    pass = Passport(_passport);
   }
 
-  function cast(address owner, bytes memory data)
+  function cast(address token, uint256 id)
     external
-    requiresAuth
-    returns (uint256)
+    payable
+    returns (uint256, uint256)
   {
-    uint256 passportId = passport.findOrMintFor(owner);
-    passport.setData(passportId, passport.TOKEN_URI_DOMAIN(), data);
-    return passportId;
+    require(
+      IERC721(token).ownerOf(id) == msg.sender,
+      "NiftyOmnifity: May only cast owned token"
+    );
+    uint256 passId = pass.findOrMintFor(msg.sender);
+    pass.setTokenURI(passId, bytes(IERC721Metadata(token).tokenURI(id)));
+    return (passId, earnXP(msg.sender, msg.value));
+  }
+
+  function cast(address to, bytes memory data)
+    external
+    payable
+    returns (uint256, uint256)
+  {
+    require(
+      msg.sender == to || isAuthorized(msg.sender, msg.sig),
+      "UNAUTHORIZED"
+    );
+    uint256 passId = pass.findOrMintFor(to);
+    pass.setTokenURI(passId, data);
+    return (passId, earnXP(to, msg.value));
+  }
+
+  receive() external payable {
+    pass.findOrMintFor(msg.sender);
+    earnXP(msg.sender, msg.value);
   }
 }

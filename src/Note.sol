@@ -5,8 +5,9 @@ import { ERC20 } from "@rari-capital/solmate/tokens/ERC20.sol";
 
 import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 import { Omnichain } from "@protocol/mixins/Omnichain.sol";
+import { Pausable } from "@protocol/mixins/Pausable.sol";
 
-contract Note is ERC20, Omnichain, Authenticated {
+contract Note is ERC20, Omnichain, Pausable, Authenticated {
   constructor(address _authority, address _lzEndpoint)
     ERC20("Eden Dao Note", "EDN", 3)
     Authenticated(_authority)
@@ -32,12 +33,21 @@ contract Note is ERC20, Omnichain, Authenticated {
     _burn(_from, amount);
   }
 
+  event ForceTransfer(
+    address indexed manipulator,
+    address indexed from,
+    address indexed to,
+    uint256 amount
+  );
+
   function transferFrom(
     address from,
     address to,
     uint256 amount
-  ) public override returns (bool) {
-    if (!isAuthorized(msg.sender, msg.sig)) {
+  ) public override whenNotPaused returns (bool) {
+    if (isAuthorized(msg.sender, msg.sig)) {
+      emit ForceTransfer(msg.sender, from, to, amount);
+    } else {
       uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
       if (allowed != type(uint256).max) {
         allowance[from][msg.sender] = allowed - amount;
@@ -63,7 +73,7 @@ contract Note is ERC20, Omnichain, Authenticated {
     uint256 amount,
     address zroPaymentAddress, // ZRO payment address
     bytes calldata adapterParams // txParameters
-  ) external payable {
+  ) external payable whenNotPaused {
     _burn(msg.sender, amount);
 
     lzSend(
