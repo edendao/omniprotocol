@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: BSL 1.1
 pragma solidity ^0.8.13;
 
 import "@rari-capital/solmate/auth/Auth.sol";

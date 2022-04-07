@@ -1,14 +1,12 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: BSL 1.1
 pragma solidity ^0.8.13;
 
 import { ERC20 } from "@rari-capital/solmate/tokens/ERC20.sol";
 
-import { IMasterContract } from "@boring/interfaces/IMasterContract.sol";
-
 import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 import { Omnichain } from "@protocol/mixins/Omnichain.sol";
 
-contract EDN is ERC20, Authenticated, Omnichain {
+contract Note is ERC20, Omnichain, Authenticated {
   constructor(address _authority, address _lzEndpoint)
     ERC20("Eden Dao Note", "EDN", 3)
     Authenticated(_authority)
@@ -17,8 +15,13 @@ contract EDN is ERC20, Authenticated, Omnichain {
     this;
   }
 
-  function mintTo(address to, uint256 amount) external requiresAuth {
+  function mintTo(address to, uint256 amount)
+    external
+    requiresAuth
+    returns (uint256)
+  {
     _mint(to, amount);
+    return amount;
   }
 
   function burn(uint256 amount) external {
@@ -29,7 +32,32 @@ contract EDN is ERC20, Authenticated, Omnichain {
     _burn(_from, amount);
   }
 
-  function lzSend(
+  function transferFrom(
+    address from,
+    address to,
+    uint256 amount
+  ) public override returns (bool) {
+    if (!isAuthorized(msg.sender, msg.sig)) {
+      uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
+      if (allowed != type(uint256).max) {
+        allowance[from][msg.sender] = allowed - amount;
+      }
+    }
+
+    balanceOf[from] -= amount;
+
+    // Cannot overflow because the sum of all user
+    // balances can't exceed the max uint256 value.
+    unchecked {
+      balanceOf[to] += amount;
+    }
+
+    emit Transfer(from, to, amount);
+
+    return true;
+  }
+
+  function send(
     uint16 toChainId,
     address toAddress,
     uint256 amount,
@@ -38,23 +66,20 @@ contract EDN is ERC20, Authenticated, Omnichain {
   ) external payable {
     _burn(msg.sender, amount);
 
-    // solhint-disable-next-line check-send-result
-    lzEndpoint.send{ value: msg.value }(
+    lzSend(
       toChainId,
-      chainContracts[toChainId], // destination contract address
-      abi.encode(toAddress, amount), // payload
-      payable(msg.sender), // refund unused gas
+      abi.encode(toAddress, amount),
       zroPaymentAddress,
       adapterParams
     );
   }
 
-  function lzReceive(
-    uint16 fromChainId,
-    bytes calldata fromContractAddress,
-    uint64, // _nonce
+  function onReceive(
+    uint16, // _fromChainId,
+    bytes calldata, // _fromContractAddress,
+    uint64, // _nonce,
     bytes memory payload
-  ) external onlyRelayer(fromChainId, fromContractAddress) {
+  ) internal override {
     (address addr, uint256 amount) = abi.decode(payload, (address, uint256));
     _mint(addr, amount);
   }

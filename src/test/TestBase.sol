@@ -1,12 +1,13 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: BSL 1.1
 pragma solidity ^0.8.13;
 
 import { console } from "forge-std/console.sol";
 import { DSTestPlus } from "@rari-capital/solmate/test/utils/DSTestPlus.sol";
 
 import { Comptroller } from "@protocol/Comptroller.sol";
-import { EDN } from "@protocol/EDN.sol";
+import { Note } from "@protocol/Note.sol";
 import { Passport } from "@protocol/Passport.sol";
+import { Domain } from "@protocol/Domain.sol";
 
 contract TestBase is DSTestPlus {
   address internal myAddress = address(this);
@@ -14,6 +15,9 @@ contract TestBase is DSTestPlus {
 
   Comptroller internal authority = new Comptroller(address(owner));
 
-  EDN internal edn = new EDN(address(authority), address(0));
-  Passport internal passport = new Passport(address(authority), address(0));
+  Note internal edn = new Note(address(authority), address(0));
+  Domain internal domain =
+    new Domain(address(authority), address(0), uint16(block.chainid));
+  Passport internal passport =
+    new Passport(address(authority), address(0), address(domain));
 }

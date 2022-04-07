@@ -1,22 +1,33 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: BSL 1.1
 pragma solidity ^0.8.13;
 
 import { IERC721, IERC721Metadata } from "@boring/interfaces/IERC721.sol";
 
 import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 import { Omnichain } from "@protocol/mixins/Omnichain.sol";
+import { Soulbound, Immovable } from "@protocol/mixins/Soulbound.sol";
+
+import { Domain } from "./Domain.sol";
 
 /*
  * A Passport is your cross-chain identity for the future.
  */
-contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
+contract Passport is
+  IERC721,
+  IERC721Metadata,
+  Omnichain,
+  Soulbound,
+  Authenticated
+{
+  uint256 public constant TOKEN_URI_DOMAIN = 0;
+  Domain public domain;
+
   event Sync(
     uint16 indexed fromChainId,
     uint16 indexed toChainId,
     uint256 indexed id,
     uint256 domainId
   );
-  error Soulbound();
 
   string public constant name = "Eden Dao Passport";
   string public constant symbol = "DAO PASS";
@@ -24,13 +35,13 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
   mapping(uint256 => address) public ownerOf;
   // tokenId => domainId => data
   mapping(uint256 => mapping(uint256 => bytes)) public dataOf;
-  uint256 public constant TOKEN_URI_DOMAIN = 0;
 
-  constructor(address _authority, address _lzEndpoint)
-    Authenticated(_authority)
-    Omnichain(_lzEndpoint)
-  {
-    this;
+  constructor(
+    address _authority,
+    address _lzEndpoint,
+    address _domain
+  ) Authenticated(_authority) Omnichain(_lzEndpoint) {
+    domain = Domain(_domain);
   }
 
   function idOf(address to) public pure returns (uint256) {
@@ -62,8 +73,8 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
     bytes memory data
   ) external {
     require(
-      ownerOf[id] == msg.sender || isAuthorized(msg.sender, msg.sig),
-      "UNAUTHORIZED"
+      ownerOf[id] == msg.sender || domain.ownerOf(domainId) == msg.sender,
+      "Passport: UNAUTHORIZED"
     );
     dataOf[id][domainId] = data;
   }
@@ -71,21 +82,18 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
   /* ==============================
    * LayerZero
    * ============================== */
-  function lzSend(
+  function syncData(
+    uint16 toChainId,
     address owner,
     uint256 domainId,
-    uint16 toChainId,
     address zroPaymentAddress,
     bytes calldata adapterParams
   ) external payable {
     uint256 passportId = findOrMintFor(owner);
 
-    // solhint-disable-next-line check-send-result
-    lzEndpoint.send{ value: msg.value }(
+    lzSend(
       toChainId,
-      chainContracts[toChainId], // destination contract address
       abi.encode(owner, domainId, dataOf[passportId][domainId]),
-      payable(msg.sender), // refund address (for extra gas)
       zroPaymentAddress,
       adapterParams
     );
@@ -93,12 +101,12 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
     emit Sync(currentChainId, toChainId, passportId, domainId);
   }
 
-  function lzReceive(
+  function onReceive(
     uint16 fromChainId,
-    bytes calldata fromContractAddress,
+    bytes calldata, // _fromContractAddress,
     uint64, // _nonce
     bytes memory payload
-  ) external onlyRelayer(fromChainId, fromContractAddress) {
+  ) internal override {
     (address owner, uint256 domainId, bytes memory data) = abi.decode(
       payload,
       (address, uint256, bytes)
@@ -111,14 +119,14 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
   }
 
   /* ===================
-   * IERC721 Boilerplate
+   * IERC721
    * =================== */
   function approve(address, uint256) external payable {
-    revert Soulbound();
+    revert Immovable();
   }
 
   function setApprovalForAll(address, bool) external pure {
-    revert Soulbound();
+    revert Immovable();
   }
 
   function getApproved(uint256) external pure returns (address) {
@@ -127,30 +135,5 @@ contract Passport is Authenticated, Omnichain, IERC721, IERC721Metadata {
 
   function isApprovedForAll(address, address) external pure returns (bool) {
     return false;
-  }
-
-  function transferFrom(
-    address, // from
-    address, // to
-    uint256 // id
-  ) external payable {
-    revert Soulbound();
-  }
-
-  function safeTransferFrom(
-    address, // from
-    address, // to
-    uint256 // id
-  ) external payable {
-    revert Soulbound();
-  }
-
-  function safeTransferFrom(
-    address, // from
-    address, // to
-    uint256, // id,
-    bytes calldata // payload
-  ) external payable {
-    revert Soulbound();
   }
 }

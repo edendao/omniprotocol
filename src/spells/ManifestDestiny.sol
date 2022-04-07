@@ -1,43 +1,46 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: BSL 1.1
 pragma solidity ^0.8.13;
+
+import { console } from "forge-std/console.sol";
 
 import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 
-import { Passport } from "@protocol/Passport.sol";
-import { EDN } from "@protocol/EDN.sol";
+import { NiftyOmnifity } from "@protocol/spells/NiftyOmnifity.sol";
+import { Note } from "@protocol/Note.sol";
 
 contract ManifestDestiny is Authenticated {
-  EDN public immutable edn;
-  Passport public immutable passport;
+  Note public immutable edn;
+  NiftyOmnifity public immutable nifty;
 
   constructor(
     address _authority,
     address _edn,
-    address _passport
+    address _nifty
   ) Authenticated(_authority) {
-    edn = EDN(_edn);
-    passport = Passport(_passport);
+    edn = Note(_edn);
+    nifty = NiftyOmnifity(_nifty);
   }
 
   function preview(uint256 valueInWei) public pure returns (uint256) {
-    // 10**12 = 10**3 / 10**18 * 10**12 = exchangeRate() / ETH.decimals() * EDN.decimals()
+    // 10**12 = 10**3 / 10**18 * 10**12 = exchangeRate() / ETH.decimals() * Note.decimals()
     return valueInWei / 10**12;
   }
 
-  function cast(bytes calldata uri) external payable {
-    edn.mintTo(msg.sender, preview(msg.value));
-
-    passport.setData(
-      passport.findOrMintFor(msg.sender),
-      passport.TOKEN_URI_DOMAIN(),
-      uri
-    );
+  function cast(bytes calldata uri)
+    external
+    payable
+    returns (uint256, uint256)
+  {
+    console.log("Casting NiftyOmnifity");
+    uint256 passportId = nifty.cast(msg.sender, uri);
+    console.log("Minting EDN");
+    uint256 notesReceived = edn.mintTo(msg.sender, preview(msg.value));
+    return (passportId, notesReceived);
   }
 
   receive() external payable {
+    nifty.cast(msg.sender, "");
     edn.mintTo(msg.sender, preview(msg.value));
-
-    passport.findOrMintFor(msg.sender);
   }
 
   function withdraw() external {

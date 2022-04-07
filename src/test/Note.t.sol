@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: BSL 1.1
 pragma solidity ^0.8.13;
 
 import { TestBase } from "@protocol/test/TestBase.sol";
 
-contract EDNTest is TestBase {
+contract NoteTest is TestBase {
   function testOwnerCanMint(address to, uint256 amount) public {
     hevm.assume(to != address(0) && to != owner);
 
