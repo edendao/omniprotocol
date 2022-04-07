@@ -16,7 +16,7 @@ contract ManifestDestinyTest is TestBase {
 
     uint8 actor = 0;
     authority.setRoleCapability(actor, edn.mintTo.selector, true);
-    authority.setRoleCapability(actor, passport.setToken.selector, true);
+    authority.setRoleCapability(actor, passport.setData.selector, true);
     authority.setUserRole(address(manifest), actor, true);
 
     hevm.stopPrank();

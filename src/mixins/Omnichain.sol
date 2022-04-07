@@ -8,9 +8,11 @@ import { ILayerZeroReceiver } from "@layerzerolabs/contracts/interfaces/ILayerZe
 abstract contract Omnichain is Auth, ILayerZeroReceiver {
   ILayerZeroEndpoint public immutable lzEndpoint;
   mapping(uint16 => bytes) public chainContracts;
+  uint16 public immutable currentChainId;
 
   constructor(address _lzEndpoint) {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
+    currentChainId = uint16(block.chainid);
   }
 
   modifier onlyRelayer(uint16 fromChainId, bytes calldata fromContractAddress) {

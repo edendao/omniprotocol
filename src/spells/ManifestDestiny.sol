@@ -25,13 +25,19 @@ contract ManifestDestiny is Authenticated {
   }
 
   function cast(bytes calldata uri) external payable {
-    passport.setToken(passport.findOrMintFor(msg.sender), uri, "");
     edn.mintTo(msg.sender, preview(msg.value));
+
+    passport.setData(
+      passport.findOrMintFor(msg.sender),
+      passport.TOKEN_URI_DOMAIN(),
+      uri
+    );
   }
 
   receive() external payable {
-    passport.findOrMintFor(msg.sender);
     edn.mintTo(msg.sender, preview(msg.value));
+
+    passport.findOrMintFor(msg.sender);
   }
 
   function withdraw() external {
