@@ -29,16 +29,15 @@ contract ManifestDestiny is Authenticated {
   function cast(bytes calldata uri)
     external
     payable
+    virtual
     returns (uint256, uint256)
   {
-    console.log("Casting NiftyOmnifity");
     uint256 passportId = nifty.cast(msg.sender, uri);
-    console.log("Minting EDN");
     uint256 notesReceived = edn.mintTo(msg.sender, preview(msg.value));
     return (passportId, notesReceived);
   }
 
-  receive() external payable {
+  receive() external payable virtual {
     nifty.cast(msg.sender, "");
     edn.mintTo(msg.sender, preview(msg.value));
   }

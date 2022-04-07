@@ -89,6 +89,10 @@ contract Passport is
     address zroPaymentAddress,
     bytes calldata adapterParams
   ) external payable {
+    require(
+      owner == msg.sender || domain.ownerOf(domainId) == msg.sender,
+      "Passport: UNAUTHORIZED"
+    );
     uint256 passportId = findOrMintFor(owner);
 
     lzSend(
@@ -118,9 +122,9 @@ contract Passport is
     emit Sync(fromChainId, currentChainId, passportId, domainId);
   }
 
-  /* ===================
-   * IERC721
-   * =================== */
+  // ===================
+  // ===== IERC721 =====
+  // ===================
   function approve(address, uint256) external payable {
     revert Immovable();
   }

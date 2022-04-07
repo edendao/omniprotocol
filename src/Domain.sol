@@ -20,7 +20,7 @@ contract Domain is ERC721, Omnichain, Authenticated {
     Authenticated(_authority)
   {
     primaryChainId = _primaryChainId;
-    uint16[26] memory premint = [
+    uint72[32] memory premint = [
       0,
       1,
       2,
@@ -42,11 +42,17 @@ contract Domain is ERC721, Omnichain, Authenticated {
       81,
       222,
       365,
-      443,
       420,
+      443,
+      1337,
       1998,
       2001,
-      4242
+      4242,
+      662607015, // Planck's Constant
+      12345667890,
+      12345667890987654321,
+      2718281828459045235360, // Euler's number
+      3141592653589793238462 // π
     ];
     for (uint256 i = 0; i < premint.length; i++) {
       _mint(owner, premint[i]);
@@ -56,7 +62,7 @@ contract Domain is ERC721, Omnichain, Authenticated {
   // ===================================
   // == SETTING AND READING TOKEN URI ==
   // ===================================
-  mapping(uint256 => string) internal _tokenURI;
+  mapping(uint256 => bytes) internal _tokenURI;
 
   function tokenURI(uint256 domainId)
     public
@@ -64,10 +70,10 @@ contract Domain is ERC721, Omnichain, Authenticated {
     override
     returns (string memory)
   {
-    return _tokenURI[domainId];
+    return string(_tokenURI[domainId]);
   }
 
-  function setTokenURI(uint256 domainId, string memory uri)
+  function setTokenURI(uint256 domainId, bytes memory uri)
     external
     onlyOwnerOf(domainId)
   {
@@ -75,22 +81,11 @@ contract Domain is ERC721, Omnichain, Authenticated {
   }
 
   // ===================================
-  // ======== COMPTROLLER POWERS =======
-  // ===================================
-  function withdraw() public {
-    payable(owner).transfer(address(this).balance);
-  }
-
-  // ===================================
   // ===== MINTS, BURNS, TRANSFERS =====
   // ===================================
-  event Gift(address indexed giver, uint256 indexed amount);
-
-  function mintTo(address to, uint256 domainId) external payable {
+  function mintTo(address to, uint256 domainId) external requiresAuth {
     require(currentChainId == primaryChainId, "Domains: Not on primary chain");
-    require(msg.value >= 0.01 ether, "Domains: Mint price is >=0.01 ETH");
     _mint(to, domainId);
-    emit Gift(msg.sender, msg.value);
   }
 
   modifier onlyOwnerOf(uint256 domainId) {
@@ -131,7 +126,7 @@ contract Domain is ERC721, Omnichain, Authenticated {
     emit Transfer(from, to, id);
   }
 
-  function send(
+  function bridge(
     uint16 toChainId,
     address toAddress,
     uint256 domainId,

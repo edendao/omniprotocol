@@ -1,9 +1,9 @@
 {
-  "name": "magnus",
-  "author": "Daniel Luca (@CleanUnicorn)",
-  "license": "Apache-2.0",
+  "name": "@edendao/protocol",
+  "author": "Cyrus of Eden (@CyrusOfEden)",
+  "license": "BSL 1.1",
   "version": "1.0.0",
-  "description": "Sweeper contracts",
+  "description": "Welcome to omnispace",
   "files": [
     "*.sol"
   ],
