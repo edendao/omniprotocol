@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import { Authenticated } from "@protocol/mixins/Authenticated.sol";
 
-import { Passport, PassportToken } from "@protocol/Passport.sol";
+import { Passport } from "@protocol/Passport.sol";
 import { EDN } from "@protocol/EDN.sol";
 
 contract ManifestDestiny is Authenticated {

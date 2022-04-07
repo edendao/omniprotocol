@@ -38,6 +38,7 @@ contract EDN is ERC20, Authenticated, Omnichain {
   ) external payable {
     _burn(msg.sender, amount);
 
+    // solhint-disable-next-line check-send-result
     lzEndpoint.send{ value: msg.value }(
       toChainId,
       chainContracts[toChainId], // destination contract address

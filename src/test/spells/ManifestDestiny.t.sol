@@ -23,7 +23,7 @@ contract ManifestDestinyTest is TestBase {
   }
 
   function testCast(uint256 value, bytes memory uri) public {
-    hevm.assume(myAddress.balance > value);
+    hevm.assume(value < myAddress.balance);
 
     manifest.cast{ value: value }(uri);
 
@@ -33,8 +33,9 @@ contract ManifestDestinyTest is TestBase {
   }
 
   function testCall(uint256 value) public {
-    hevm.assume(myAddress.balance > value);
+    hevm.assume(value < myAddress.balance);
 
+    // solhint-disable-next-line avoid-low-level-calls
     (bool ok, bytes memory res) = address(manifest).call{ value: value }("");
     require(ok, string(res));
 
