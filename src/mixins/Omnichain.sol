@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: BSL 1.1
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import { Auth } from "@rari-capital/solmate/auth/Auth.sol";
-import { ILayerZeroEndpoint } from "@layerzerolabs/contracts/interfaces/ILayerZeroEndpoint.sol";
-import { ILayerZeroReceiver } from "@layerzerolabs/contracts/interfaces/ILayerZeroReceiver.sol";
+import {Auth} from "@rari-capital/solmate/auth/Auth.sol";
+import {ILayerZeroEndpoint} from "@layerzerolabs/contracts/interfaces/ILayerZeroEndpoint.sol";
+import {ILayerZeroReceiver} from "@layerzerolabs/contracts/interfaces/ILayerZeroReceiver.sol";
 
 abstract contract Omnichain is Auth, ILayerZeroReceiver {
   ILayerZeroEndpoint public immutable lzEndpoint;
@@ -85,7 +85,7 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
     bytes memory adapterParams
   ) internal {
     // solhint-disable-next-line
-    lzEndpoint.send{ value: msg.value }(
+    lzEndpoint.send{value: msg.value}(
       toChainId,
       remoteContracts[toChainId],
       payload,

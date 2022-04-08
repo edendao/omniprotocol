@@ -1,10 +1,10 @@
-// SPDX-License-Identifier: BSL 1.1
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import { Pausable } from "@protocol/mixins/Pausable.sol";
-import { Payable } from "@protocol/mixins/Payable.sol";
+import {Pausable} from "@protocol/mixins/Pausable.sol";
+import {Payable} from "@protocol/mixins/Payable.sol";
 
-import { Note } from "@protocol/Note.sol";
+import {Note} from "@protocol/Note.sol";
 
 contract Meditation is Pausable, Payable {
   event InsightAchieved(address indexed actor, uint256 indexed amount);

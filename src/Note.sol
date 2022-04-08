@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: BSL 1.1
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import { ERC20 } from "@rari-capital/solmate/tokens/ERC20.sol";
+import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
 
-import { Authenticated } from "@protocol/mixins/Authenticated.sol";
-import { Omnichain } from "@protocol/mixins/Omnichain.sol";
-import { Pausable } from "@protocol/mixins/Pausable.sol";
+import {Authenticated} from "@protocol/mixins/Authenticated.sol";
+import {Omnichain} from "@protocol/mixins/Omnichain.sol";
+import {Pausable} from "@protocol/mixins/Pausable.sol";
 
 contract Note is ERC20, Omnichain, Pausable, Authenticated {
   constructor(address _authority, address _lzEndpoint)

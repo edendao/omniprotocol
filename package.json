@@ -1,7 +1,7 @@
 {
   "name": "@edendao/protocol",
   "author": "Cyrus of Eden (@CyrusOfEden)",
-  "license": "BSL 1.1",
+  "license": "BUSL-1.1",
   "version": "1.0.0",
   "description": "Welcome to omnispace",
   "files": [
@@ -16,11 +16,11 @@
     "solhint-plugin-prettier": "^0.0.5"
   },
   "scripts": {
-    "lint": "yarn prettier && yarn solhint",
+    "lint:fix": "yarn prettier:fix && yarn solhint:fix",
     "lint:check": "yarn prettier:check && yarn solhint:check",
-    "prettier": "yarn prettier:check --write",
-    "prettier:check": "prettier --check \"src/**/*.sol\"",
-    "solhint": "yarn solhint:check --fix",
-    "solhint:check": "solhint --config ./.solhint.json \"src/**/*.sol\""
+    "prettier:fix": "yarn prettier --write",
+    "prettier:check": "yarn prettier --check \"src/**/*.sol\"",
+    "solhint:fix": "yarn solhint:check --fix",
+    "solhint:check": "yarn solhint --config ./.solhint.json \"src/**/*.sol\""
   }
 }

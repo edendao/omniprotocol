@@ -1,10 +1,10 @@
-// SPDX-License-Identifier: BSL 1.1
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import { ERC721 } from "@rari-capital/solmate/tokens/ERC721.sol";
+import {ERC721} from "@rari-capital/solmate/tokens/ERC721.sol";
 
-import { Authenticated } from "@protocol/mixins/Authenticated.sol";
-import { Omnichain } from "@protocol/mixins/Omnichain.sol";
+import {Authenticated} from "@protocol/mixins/Authenticated.sol";
+import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 
 contract Domain is ERC721, Omnichain, Authenticated {
   uint8 public constant TOKEN_URI_DOMAIN = 0;

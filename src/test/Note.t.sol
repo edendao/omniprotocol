@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: BSL 1.1
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import { TestBase } from "@protocol/test/TestBase.sol";
+import {TestBase} from "@protocol/test/TestBase.sol";
 
 contract NoteTest is TestBase {
   function testOwnerCanMint(address to, uint256 amount) public {

@@ -1,12 +1,12 @@
-// SPDX-License-Identifier: BSL 1.1
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import { console } from "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 
-import { TestBase } from "@protocol/test/TestBase.sol";
+import {TestBase} from "@protocol/test/TestBase.sol";
 
-import { NiftyOmnifity } from "@protocol/meditations/NiftyOmnifity.sol";
-import { ConjureDeus } from "@protocol/meditations/ConjureDeus.sol";
+import {NiftyOmnifity} from "@protocol/meditations/NiftyOmnifity.sol";
+import {ConjureDeus} from "@protocol/meditations/ConjureDeus.sol";
 
 contract ConjureDeusTest is TestBase {
   ConjureDeus internal meditation =
@@ -35,7 +35,7 @@ contract ConjureDeusTest is TestBase {
     hevm.deal(from, value);
     hevm.startPrank(from);
 
-    uint256 xp = meditation.perform{ value: value }(id);
+    uint256 xp = meditation.perform{value: value}(id);
 
     assertEq(dns.ownerOf(id), from);
     assertEq(xp, meditation.previewXP(value));
@@ -54,7 +54,7 @@ contract ConjureDeusTest is TestBase {
     hevm.startPrank(from);
 
     // solhint-disable-next-line avoid-low-level-calls
-    (bool ok, bytes memory res) = address(meditation).call{ value: value }("");
+    (bool ok, bytes memory res) = address(meditation).call{value: value}("");
     require(ok, string(res));
 
     assertEq(dns.ownerOf(id), from);

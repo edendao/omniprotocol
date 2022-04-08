@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: BSL 1.1
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import { Meditation } from "@protocol/mixins/Meditation.sol";
+import {Meditation} from "@protocol/mixins/Meditation.sol";
 
 contract Metta is Meditation {
   constructor(address _authority, address _note) Meditation(_authority, _note) {

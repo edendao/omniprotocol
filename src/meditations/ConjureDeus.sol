@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: BSL 1.1
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import { Meditation } from "@protocol/mixins/Meditation.sol";
+import {Meditation} from "@protocol/mixins/Meditation.sol";
 
-import { Domain } from "@protocol/Domain.sol";
+import {Domain} from "@protocol/Domain.sol";
 
 contract ConjureDeus is Meditation {
   Domain public immutable dns;

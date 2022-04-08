@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: BSL 1.1
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import { IERC721, IERC721Metadata } from "@boring/interfaces/IERC721.sol";
+import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";
 
-import { Meditation } from "@protocol/mixins/Meditation.sol";
+import {Meditation} from "@protocol/mixins/Meditation.sol";
 
-import { Passport } from "@protocol/Passport.sol";
+import {Passport} from "@protocol/Passport.sol";
 
 contract NiftyOmnifity is Meditation {
   Passport internal pass;

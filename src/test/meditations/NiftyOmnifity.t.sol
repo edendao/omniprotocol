@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: BSL 1.1
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import { console } from "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 
-import { TestBase } from "@protocol/test/TestBase.sol";
+import {TestBase} from "@protocol/test/TestBase.sol";
 
-import { NiftyOmnifity } from "@protocol/meditations/NiftyOmnifity.sol";
+import {NiftyOmnifity} from "@protocol/meditations/NiftyOmnifity.sol";
 
 contract NiftyOmnifityTest is TestBase {
   NiftyOmnifity internal meditation =
@@ -36,7 +36,7 @@ contract NiftyOmnifityTest is TestBase {
     hevm.deal(from, concentration);
     hevm.startPrank(from);
 
-    (uint256 passId, uint256 xp) = meditation.perform{ value: concentration }(
+    (uint256 passId, uint256 xp) = meditation.perform{value: concentration}(
       from,
       uri
     );
