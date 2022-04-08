@@ -10,6 +10,21 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
   mapping(uint16 => bytes) public remoteContracts;
   uint16 public immutable currentChainId;
 
+  mapping(uint16 => mapping(bytes => mapping(uint256 => FailedMessages)))
+    public failedMessages;
+
+  struct FailedMessages {
+    uint256 payloadLength;
+    bytes32 payloadHash;
+  }
+
+  event LayerZeroReceiveFailed(
+    uint16 fromChainId,
+    bytes fromContractAddress,
+    uint64 nonce,
+    bytes payload
+  );
+
   constructor(address _lzEndpoint) {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
     currentChainId = uint16(block.chainid);
@@ -17,7 +32,7 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
 
   function estimateLayerZeroSendFee(
     uint16 toChainId,
-    bool useZro,
+    bool useZRO,
     bytes calldata payload,
     bytes calldata adapterParams
   ) public view returns (uint256 nativeFee, uint256 zroFee) {
@@ -26,7 +41,7 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
         toChainId,
         address(this),
         payload,
-        useZro,
+        useZRO,
         adapterParams
       );
   }
@@ -79,21 +94,6 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
       adapterParams
     );
   }
-
-  struct FailedMessages {
-    uint256 payloadLength;
-    bytes32 payloadHash;
-  }
-
-  mapping(uint16 => mapping(bytes => mapping(uint256 => FailedMessages)))
-    public failedMessages;
-
-  event LayerZeroReceiveFailed(
-    uint16 fromChainId,
-    bytes fromContractAddress,
-    uint64 nonce,
-    bytes payload
-  );
 
   function lzReceive(
     uint16 fromChainId,

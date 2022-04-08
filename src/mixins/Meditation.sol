@@ -6,7 +6,8 @@ import { Payable } from "@protocol/mixins/Payable.sol";
 
 import { Note } from "@protocol/Note.sol";
 
-contract Spell is Pausable, Payable {
+contract Meditation is Pausable, Payable {
+  event InsightAchieved(address indexed actor, uint256 indexed amount);
   Note public immutable edn;
 
   constructor(address _authority, address _note) Payable(_authority) {
@@ -23,6 +24,10 @@ contract Spell is Pausable, Payable {
     whenNotPaused
     returns (uint256)
   {
-    return edn.mintTo(to, previewXP(amountInWei));
+    uint256 insight = previewXP(amountInWei);
+
+    emit InsightAchieved(to, insight);
+
+    return edn.mintTo(to, insight);
   }
 }

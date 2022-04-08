@@ -75,6 +75,6 @@ function syncData(
 
 Just imagine how you could sync reputation, badges, achievements, and more across chains with your protocol! It is up to you how you pack your bytes into your domain, and how you interpret them.
 
-Conjure up your own domain by sending ETH to the ConjureDeus contract at ``. This will reserve a domain id inferred from the message sender, your wallet address, mint you your domain NFT, mint you your own Eden Dao Passport, and for every ETH you gift, you will receive 1000 EDN tokens.
+Conjure up your own domain by sending ETH to the ConjureDeus contract at ``. This will reserve a domain id inferred your wallet address, mint you your domain NFT, and for every ETH you gift, you will receive 1000 EDN tokens.
 
-If you want to have more control over the domain id you mint, head on over to the Etherscan and `cast(uint256 domainId, bytes memory tokenURI) payable` with the params of your choice. But do make sure to send along more than 0.01 ETH!
+If you want to have more control over the domain id you mint, head on over to the Etherscan and `cast(uint256 domainId) payable` with the params of your choice. But do make sure to send along more than 0.01 ETH!

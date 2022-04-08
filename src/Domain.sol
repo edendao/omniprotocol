@@ -21,12 +21,14 @@ contract Domain is ERC721, Omnichain, Authenticated {
     Authenticated(_authority)
   {
     primaryChainId = _primaryChainId;
-    uint72[32] memory premint = [
+    uint72[34] memory premint = [
       0,
       1,
       2,
       3,
       5,
+      6,
+      7,
       8,
       10,
       13,

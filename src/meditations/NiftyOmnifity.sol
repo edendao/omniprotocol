@@ -3,22 +3,22 @@ pragma solidity ^0.8.13;
 
 import { IERC721, IERC721Metadata } from "@boring/interfaces/IERC721.sol";
 
-import { Spell } from "@protocol/mixins/Spell.sol";
+import { Meditation } from "@protocol/mixins/Meditation.sol";
 
 import { Passport } from "@protocol/Passport.sol";
 
-contract NiftyOmnifity is Spell {
+contract NiftyOmnifity is Meditation {
   Passport internal pass;
 
   constructor(
     address _authority,
     address _note,
     address _passport
-  ) Spell(_authority, _note) {
+  ) Meditation(_authority, _note) {
     pass = Passport(_passport);
   }
 
-  function cast(address token, uint256 id)
+  function perform(address token, uint256 id)
     external
     payable
     returns (uint256, uint256)
@@ -32,7 +32,7 @@ contract NiftyOmnifity is Spell {
     return (passId, earnXP(msg.sender, msg.value));
   }
 
-  function cast(address to, bytes memory data)
+  function perform(address to, bytes memory data)
     external
     payable
     returns (uint256, uint256)

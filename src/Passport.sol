@@ -31,10 +31,6 @@ contract Passport is
   string public constant name = "Eden Dao Passport";
   string public constant symbol = "DAO PASS";
 
-  mapping(uint256 => address) public ownerOf;
-  // tokenId => domainId => data
-  mapping(uint256 => mapping(uint256 => bytes)) public dataOf;
-
   constructor(
     address _authority,
     address _layerZeroEndpoint,
@@ -42,6 +38,10 @@ contract Passport is
   ) Authenticated(_authority) Omnichain(_layerZeroEndpoint) {
     dns = Domain(_domain);
   }
+
+  mapping(uint256 => address) public ownerOf;
+  // tokenId => domainId => data
+  mapping(uint256 => mapping(uint256 => bytes)) public dataOf;
 
   function idOf(address to) public pure returns (uint256) {
     return uint256(uint160(to));

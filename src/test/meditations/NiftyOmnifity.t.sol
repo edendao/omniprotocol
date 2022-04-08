@@ -5,10 +5,10 @@ import { console } from "forge-std/console.sol";
 
 import { TestBase } from "@protocol/test/TestBase.sol";
 
-import { NiftyOmnifity } from "@protocol/spells/NiftyOmnifity.sol";
+import { NiftyOmnifity } from "@protocol/meditations/NiftyOmnifity.sol";
 
 contract NiftyOmnifityTest is TestBase {
-  NiftyOmnifity internal spell =
+  NiftyOmnifity internal meditation =
     new NiftyOmnifity(address(authority), address(edn), address(pass));
 
   function setUp() public {
@@ -16,14 +16,18 @@ contract NiftyOmnifityTest is TestBase {
 
     uint8 mintXP = 0;
     authority.setRoleCapability(mintXP, edn.mintTo.selector, true);
-    authority.setUserRole(address(spell), mintXP, true);
+    authority.setUserRole(address(meditation), mintXP, true);
 
-    dns.transferFrom(address(this), address(spell), dns.TOKEN_URI_DOMAIN());
+    dns.transferFrom(
+      address(this),
+      address(meditation),
+      dns.TOKEN_URI_DOMAIN()
+    );
 
     hevm.stopPrank();
   }
 
-  function testCast(
+  function testPerform(
     address from,
     uint256 concentration,
     bytes memory uri
@@ -32,14 +36,14 @@ contract NiftyOmnifityTest is TestBase {
     hevm.deal(from, concentration);
     hevm.startPrank(from);
 
-    (uint256 passId, uint256 xp) = spell.cast{ value: concentration }(
+    (uint256 passId, uint256 xp) = meditation.perform{ value: concentration }(
       from,
       uri
     );
 
     assertEq(pass.tokenURI(passId), string(uri));
     assertEq(pass.ownerOf(passId), from);
-    assertEq(xp, spell.previewXP(concentration));
+    assertEq(xp, meditation.previewXP(concentration));
 
     hevm.stopPrank();
   }
@@ -50,13 +54,13 @@ contract NiftyOmnifityTest is TestBase {
     hevm.startPrank(from);
 
     // solhint-disable-next-line avoid-low-level-calls
-    (bool ok, bytes memory res) = address(spell).call{ value: concentration }(
-      ""
-    );
+    (bool ok, bytes memory res) = address(meditation).call{
+      value: concentration
+    }("");
     require(ok, string(res));
 
     assertEq(pass.ownerOf(pass.idOf(from)), from);
-    assertEq(edn.balanceOf(from), spell.previewXP(concentration));
+    assertEq(edn.balanceOf(from), meditation.previewXP(concentration));
 
     hevm.stopPrank();
   }

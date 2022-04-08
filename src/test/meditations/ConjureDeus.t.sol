@@ -5,11 +5,11 @@ import { console } from "forge-std/console.sol";
 
 import { TestBase } from "@protocol/test/TestBase.sol";
 
-import { NiftyOmnifity } from "@protocol/spells/NiftyOmnifity.sol";
-import { ConjureDeus } from "@protocol/spells/ConjureDeus.sol";
+import { NiftyOmnifity } from "@protocol/meditations/NiftyOmnifity.sol";
+import { ConjureDeus } from "@protocol/meditations/ConjureDeus.sol";
 
 contract ConjureDeusTest is TestBase {
-  ConjureDeus internal spell =
+  ConjureDeus internal meditation =
     new ConjureDeus(address(authority), address(edn), address(dns));
 
   function setUp() public {
@@ -17,7 +17,7 @@ contract ConjureDeusTest is TestBase {
 
     uint8 mintXP = 0;
     authority.setRoleCapability(mintXP, edn.mintTo.selector, true);
-    authority.setUserRole(address(spell), mintXP, true);
+    authority.setUserRole(address(meditation), mintXP, true);
 
     hevm.stopPrank();
   }
@@ -28,15 +28,17 @@ contract ConjureDeusTest is TestBase {
     uint256 value
   ) public {
     hevm.assume(
-      0.01 ether <= value && from != address(0) && dns.ownerOf(id) == address(0)
+      meditation.minimumResonance() <= value &&
+        from != address(0) &&
+        dns.ownerOf(id) == address(0)
     );
     hevm.deal(from, value);
     hevm.startPrank(from);
 
-    uint256 xp = spell.cast{ value: value }(id);
+    uint256 xp = meditation.perform{ value: value }(id);
 
     assertEq(dns.ownerOf(id), from);
-    assertEq(xp, spell.previewXP(value));
+    assertEq(xp, meditation.previewXP(value));
 
     hevm.stopPrank();
   }
@@ -44,17 +46,19 @@ contract ConjureDeusTest is TestBase {
   function testCall(address from, uint256 value) public {
     uint256 id = uint256(uint160(from));
     hevm.assume(
-      0.01 ether <= value && from != address(0) && dns.ownerOf(id) == address(0)
+      meditation.minimumResonance() <= value &&
+        from != address(0) &&
+        dns.ownerOf(id) == address(0)
     );
     hevm.deal(from, value);
     hevm.startPrank(from);
 
     // solhint-disable-next-line avoid-low-level-calls
-    (bool ok, bytes memory res) = address(spell).call{ value: value }("");
+    (bool ok, bytes memory res) = address(meditation).call{ value: value }("");
     require(ok, string(res));
 
     assertEq(dns.ownerOf(id), from);
-    assertEq(edn.balanceOf(from), spell.previewXP(value));
+    assertEq(edn.balanceOf(from), meditation.previewXP(value));
 
     hevm.stopPrank();
   }
