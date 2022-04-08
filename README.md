@@ -4,15 +4,15 @@ Eden Dao is on a mission to bootstrap the regenerative economy.
 
 As is often the case in crypto, we needed infrastructure that hadn't been built yet. We've spent months laboring over which chain to launch on, as many do.
 
-This is too slow.
+This is too slow. 
 
-Eden Dao Protocol is a series of protocols designed to harmonize value and identity across the omnispace — the space on, between, and around the chains.
+Eden Dao Protocol is a series of protocols designed to harmonize value and identity across the omnispace — the space on, between, and around the chains. They empower users, DAOs, and protocols with powers never seen before, and we're excited to see how people build on them.
 
-We build upon LayerZero Protocol. In the coming weeks, we will have support for: Ethereum, Polygon, Arbitrum, Avalanche, Optimism, and Celo.
+Very soon, we will have support for: Ethereum, Polygon, Arbitrum, Avalanche, Optimism, and Celo.
 
 1. **Passport** is an omnichain identity protocol built around a synchronizable, soulbound NFT
-2. **Domain** is how users and builders can securely write to space on _Passport_.
-3. **Note** is the omnichain token with fast, no-slippage bridging.
+2. **Domain** NFT token holders enable securely write and syncing _Passport_ data.
+3. **Note** is an omnichain ERC20 symbolizing our optimism for humankind with fast, no-slippage bridging.
 
 ## Welcome to Omnispace
 
