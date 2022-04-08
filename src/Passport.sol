@@ -140,4 +140,29 @@ contract Passport is
   function isApprovedForAll(address, address) external pure returns (bool) {
     return false;
   }
+
+  function transferFrom(
+    address from,
+    address to,
+    uint256 id
+  ) public payable override(IERC721, Soulbound) {
+    super.transferFrom(from, to, id);
+  }
+
+  function safeTransferFrom(
+    address from,
+    address to,
+    uint256 id
+  ) public payable override(IERC721, Soulbound) {
+    super.safeTransferFrom(from, to, id);
+  }
+
+  function safeTransferFrom(
+    address from,
+    address to,
+    uint256 id,
+    bytes calldata data
+  ) public payable override(IERC721, Soulbound) {
+    super.safeTransferFrom(from, to, id, data);
+  }
 }

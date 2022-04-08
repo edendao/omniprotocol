@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
+import {IERC721} from "@boring/interfaces/IERC721.sol";
+import {IERC20} from "@boring/interfaces/IERC20.sol";
+
 error Immovable();
 
 abstract contract Soulbound {
@@ -8,7 +11,7 @@ abstract contract Soulbound {
     address, // from
     address, // to
     uint256 // id
-  ) external payable {
+  ) public payable virtual {
     revert Immovable();
   }
 
@@ -16,7 +19,7 @@ abstract contract Soulbound {
     address, // from
     address, // to
     uint256 // id
-  ) external payable {
+  ) public payable virtual {
     revert Immovable();
   }
 
@@ -25,7 +28,7 @@ abstract contract Soulbound {
     address, // to
     uint256, // id,
     bytes calldata // payload
-  ) external payable {
+  ) public payable virtual {
     revert Immovable();
   }
 }
