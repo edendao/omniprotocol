@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";
-
 error Immovable();
 
-abstract contract Soulbound is IERC721 {
+abstract contract Soulbound {
   function transferFrom(
     address, // from
     address, // to

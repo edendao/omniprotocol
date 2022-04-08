@@ -44,18 +44,18 @@ For you, dear reader, starting today you can mint your own **Domain** NFT. These
 
 You can mint your first Domain by sending at least 0.05 ETH to the ConjureDeus Spell contract here: `0xADDY`. This will register the domain uniquely associated with your wallet address. For more control, head on over to Etherscan and call the `cast(uint256 domainId) payable` to mint a specific domain. At this point, every address may mint up to 5 domains.
 
-## Eden Dao **Note** (EDN) is the omnichain token
+## Eden Dao **Note** (EDN) is the omnichain token for the public good
 
-EDN is the foundation for a new wave of omnichain value communication. As you interact with our protocol, you will have many opportunities to call `payable` contracts. For every ETH you gift, these contracts will honor you with 1,000 EDN tokens.
+EDN is a powerful new social token for public goods. As you interact with our protocol, you will have many opportunities to call `payable` contracts. For every ETH you gift, these contracts will honor you with 1,000 EDN tokens.
 
-EDN is a powerful new social primitive for public goods. It can be bridged across the omnichains quickly and with no slippage, burning at the source to mint on the destination. Across omnispace, app developers can check the public goods reputation of a user.
+EDN is the foundation for a new wave of omnichain value communication. It can be bridged across the chains quickly and with no slippage, burning at the source to mint on the destination. We're really excited to see what people build with this. If you're a DAO that's interested in rewarding their users with EDN tokens, slide into our DMs!
 
-## Funding the Public Good
+We've got a lot in store for EDN in the future, this is only the beginning.
 
-The omnichain space overflows beyond blockchains and into our world. For but a brief moment, we ask that you take a moment to tune into the energy of our world, feel its pain, and suffering as we derail the natural cycles of our climate and head into biosphere collapse.
+## Note for the Public Good
+
+The omnichain space overflows beyond blockchains and into our world. For but a brief moment, we ask that you take a moment to tune into the energy of our world, feel its pain, and suffering as we watch derailed natural cycles plunging us towards biosphere collapse.
 
 What is supremely valuable is our civilization's continued dignified flourishing in the world. We infuse our optimism for the future in the EDN token. Take these tokens of gratitude for your donation. We will use donations to fund the development of carbon removal projects for the public good of humankind.
-
-If you're a DAO that's interested in rewarding their users with EDN tokens, we'd be excited to chat with you!
 
 We're working with Endaoment.org to ensure this is tax-deductible. Which is why we have to make it absolutely clear that by making a contribution to the Eden Dao through its payable contract methods, you, the Contributor, donate Ethereum tokens (ETH) in order to receive EDN tokens solely for the Contributor’s own benefit and account, for the purposes of personal consumption and utilization of EDN tokens on the Omnichains and not for any speculative purpose or with an expectation of profit, and not with a view to, or for resale in connection with, a public offering or other distribution of EDN tokens, whether in exchange for other any other digital asset, any currency, any security or otherwise, and all of the foregoing remains true, accurate and complete on and as of the date of the contribution.
