@@ -12,4 +12,4 @@
 	url = https://github.com/boringcrypto/BoringSolidity
 [submodule "lib/solmate"]
 	path = lib/solmate
-	url = https://github.com/DaoDeCyrus/solmate
+	url = https://github.com/Rari-Capital/solmate
