@@ -4,7 +4,7 @@ Eden Dao is on a mission to bootstrap the regenerative economy.
 
 As is often the case in crypto, we needed infrastructure that hadn't been built yet. We've spent months laboring over which chain to launch on, as many do.
 
-This is too slow. 
+This is too slow.
 
 Eden Dao Protocol is a series of protocols designed to harmonize value and identity across the omnispace — the space on, between, and around the chains. They empower users, DAOs, and protocols with powers never seen before, and we're excited to see how people build on them.
 
@@ -15,8 +15,6 @@ Very soon, we will have support for: Ethereum, Polygon, Arbitrum, Avalanche, Opt
 3. **Note** is an omnichain ERC20 symbolizing our optimism for humankind with fast, no-slippage bridging.
 
 ## Welcome to Omnispace
-
-**A letter from Cyrus**
 
 To my fellow Eden Daoists,
 
