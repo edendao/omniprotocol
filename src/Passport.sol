@@ -98,7 +98,7 @@ contract Passport is
   ) external payable canWriteData(passportId, domainId) {
     lzSend(
       toChainId,
-      abi.encode(owner, domainId, dataOf[passportId][domainId]),
+      abi.encode(ownerOf[passportId], domainId, dataOf[passportId][domainId]),
       zroPaymentAddress,
       adapterParams
     );
@@ -112,12 +112,11 @@ contract Passport is
     uint64, // _nonce
     bytes memory payload
   ) internal override {
-    (address owner, uint256 domainId, bytes memory data) = abi.decode(
+    (address passportOwner, uint256 domainId, bytes memory data) = abi.decode(
       payload,
       (address, uint256, bytes)
     );
-
-    uint256 passportId = findOrMintFor(owner);
+    uint256 passportId = findOrMintFor(passportOwner);
 
     dataOf[passportId][domainId] = data;
     emit Sync(fromChainId, currentChainId, passportId, domainId);
