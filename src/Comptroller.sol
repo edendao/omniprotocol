@@ -10,7 +10,8 @@ contract Comptroller is MultiRolesAuthority {
     this;
   }
 
-  function withdraw(address to) public requiresAuth {
-    payable(to).transfer(address(this).balance);
+  function withdrawTo(address to, uint256 amount) public requiresAuth {
+    require(address(this).balance < amount, "Comptroller: INSUFFICIENT_WEI");
+    payable(to).transfer(amount);
   }
 }

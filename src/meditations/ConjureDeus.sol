@@ -33,7 +33,7 @@ contract ConjureDeus is Meditation {
   ) private returns (uint256) {
     require(
       giftInWei >= minimumResonance,
-      "ConjureDeus: Minting needs >=0.05 ETH"
+      "ConjureDeus: >=0.05 ETH" // minimumResonance
     );
     require(dns.balanceOf(forAddress) < 5, "ConjureDeus: Max 5 per address");
 

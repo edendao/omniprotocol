@@ -18,6 +18,5 @@ contract TestBase is DSTestPlus {
   Note internal edn = new Note(address(authority), address(0));
   Domain internal dns =
     new Domain(address(authority), address(0), uint16(block.chainid));
-  Passport internal pass =
-    new Passport(address(authority), address(0), address(dns));
+  Passport internal pass = new Passport(address(authority), address(0));
 }

@@ -133,7 +133,7 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
     uint64 nonce,
     bytes memory payload
   ) public {
-    require(msg.sender == address(this), "UNAUTHENTICATED");
+    require(msg.sender == address(this), "Omnichain: ONLY_SELF");
     onReceive(fromChainId, fromContractAddress, nonce, payload);
   }
 
@@ -154,14 +154,11 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
     FailedMessages storage message = failedMessages[fromChainId][
       fromContractAddress
     ][nonce];
-    require(
-      message.payloadHash != bytes32(0),
-      "NonblockingReceiver: no stored message"
-    );
+    require(message.payloadHash != bytes32(0), "Omnichain: MESSAGE_NOT_FOUND");
     require(
       payload.length == message.payloadLength &&
         keccak256(payload) == message.payloadHash,
-      "LayerZero: Invalid Payload"
+      "LayerZero: INVALID PAYLOAD"
     );
     // clear the stored message
     message.payloadLength = 0;

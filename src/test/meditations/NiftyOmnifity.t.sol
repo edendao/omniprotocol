@@ -14,9 +14,10 @@ contract NiftyOmnifityTest is TestBase {
   function setUp() public {
     hevm.startPrank(owner);
 
-    uint8 mintXP = 0;
-    authority.setRoleCapability(mintXP, edn.mintTo.selector, true);
-    authority.setUserRole(address(meditation), mintXP, true);
+    uint8 niftyRole = 0;
+    authority.setRoleCapability(niftyRole, edn.mintTo.selector, true);
+    authority.setRoleCapability(niftyRole, pass.setTokenURI.selector, true);
+    authority.setUserRole(address(meditation), niftyRole, true);
 
     dns.transferFrom(
       address(this),

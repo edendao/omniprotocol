@@ -3,10 +3,10 @@ pragma solidity ^0.8.13;
 
 import {ERC721} from "@rari-capital/solmate/tokens/ERC721.sol";
 
-import {Authenticated} from "@protocol/mixins/Authenticated.sol";
+import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 
-contract Domain is ERC721, Omnichain, Authenticated {
+contract Domain is ERC721, Omnichain, Comptrolled {
   uint8 public constant TOKEN_URI_DOMAIN = 0;
   uint16 public primaryChainId;
 
@@ -18,7 +18,7 @@ contract Domain is ERC721, Omnichain, Authenticated {
     // Eden Dao Domain Service = Eden Dao DS = Eden Dao Deus = DAO DEUS
     ERC721("Eden Dao Domain", "DAO DEUS")
     Omnichain(_lzEndpoint)
-    Authenticated(_authority)
+    Comptrolled(_authority)
   {
     primaryChainId = _primaryChainId;
     uint72[34] memory premint = [
@@ -87,7 +87,7 @@ contract Domain is ERC721, Omnichain, Authenticated {
   // ===== MINTS, BURNS, TRANSFERS =====
   // ===================================
   function mintTo(address to, uint256 domainId) external requiresAuth {
-    require(currentChainId == primaryChainId, "Domains: Not on primary chain");
+    require(currentChainId == primaryChainId, "Domains: WRONG_CHAIN");
     _mint(to, domainId);
   }
 
@@ -113,7 +113,7 @@ contract Domain is ERC721, Omnichain, Authenticated {
       "Domain: UNAUTHORIZED"
     );
 
-    require(to != address(0), "Domain: Invalid Recipient");
+    require(to != address(0), "Domain: INVALID_RECIPIENT");
 
     // Underflow of the sender's balance is impossible because we check for
     // ownership above and the recipient's balance can't realistically overflow.

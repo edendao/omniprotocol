@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";
 
-import {Authenticated} from "@protocol/mixins/Authenticated.sol";
+import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {Soulbound, Immovable} from "@protocol/mixins/Soulbound.sol";
 
@@ -17,10 +17,8 @@ contract Passport is
   IERC721Metadata,
   Omnichain,
   Soulbound,
-  Authenticated
+  Comptrolled
 {
-  Domain public dns;
-
   event Sync(
     uint16 indexed fromChainId,
     uint16 indexed toChainId,
@@ -31,12 +29,11 @@ contract Passport is
   string public constant name = "Eden Dao Passport";
   string public constant symbol = "DAO PASS";
 
-  constructor(
-    address _authority,
-    address _layerZeroEndpoint,
-    address _domain
-  ) Authenticated(_authority) Omnichain(_layerZeroEndpoint) {
-    dns = Domain(_domain);
+  constructor(address _authority, address _layerZeroEndpoint)
+    Comptrolled(_authority)
+    Omnichain(_layerZeroEndpoint)
+  {
+    this;
   }
 
   mapping(uint256 => address) public ownerOf;
@@ -63,26 +60,18 @@ contract Passport is
   }
 
   function tokenURI(uint256 id) public view returns (string memory) {
-    return string(dataOf[id][dns.TOKEN_URI_DOMAIN()]);
+    return string(dataOf[id][0]);
   }
 
   function setTokenURI(uint256 id, bytes memory data) public {
-    setData(id, dns.TOKEN_URI_DOMAIN(), data);
-  }
-
-  modifier canWriteData(uint256 passportId, uint256 domainId) {
-    require(
-      ownerOf[passportId] == msg.sender || dns.ownerOf(domainId) == msg.sender,
-      "Passport: UNAUTHORIZED"
-    );
-    _;
+    setData(id, 0, data);
   }
 
   function setData(
     uint256 passportId,
     uint256 domainId,
     bytes memory data
-  ) public canWriteData(passportId, domainId) {
+  ) public requiresAuth {
     dataOf[passportId][domainId] = data;
   }
 
@@ -95,7 +84,7 @@ contract Passport is
     uint256 domainId,
     address zroPaymentAddress,
     bytes calldata adapterParams
-  ) external payable canWriteData(passportId, domainId) {
+  ) external payable requiresAuth {
     lzSend(
       toChainId,
       abi.encode(ownerOf[passportId], domainId, dataOf[passportId][domainId]),

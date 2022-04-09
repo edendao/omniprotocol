@@ -3,14 +3,14 @@ pragma solidity ^0.8.13;
 
 import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
 
-import {Authenticated} from "@protocol/mixins/Authenticated.sol";
+import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
 
-contract Note is ERC20, Omnichain, Pausable, Authenticated {
+contract Note is ERC20, Omnichain, Comptrolled, Pausable {
   constructor(address _authority, address _lzEndpoint)
     ERC20("Eden Dao Note", "EDN", 3)
-    Authenticated(_authority)
+    Comptrolled(_authority)
     Omnichain(_lzEndpoint)
   {
     this;
@@ -19,18 +19,23 @@ contract Note is ERC20, Omnichain, Pausable, Authenticated {
   function mintTo(address to, uint256 amount)
     external
     requiresAuth
+    whenNotPaused
     returns (uint256)
   {
     _mint(to, amount);
     return amount;
   }
 
-  function burn(uint256 amount) external {
-    _burn(msg.sender, amount);
+  function burnFrom(address _from, uint256 amount)
+    external
+    requiresAuth
+    whenNotPaused
+  {
+    _burn(_from, amount);
   }
 
-  function burnFrom(address _from, uint256 amount) external requiresAuth {
-    _burn(_from, amount);
+  function burn(uint256 amount) external {
+    _burn(msg.sender, amount);
   }
 
   event ForceTransfer(
@@ -89,7 +94,7 @@ contract Note is ERC20, Omnichain, Pausable, Authenticated {
     bytes calldata, // _fromContractAddress,
     uint64, // _nonce,
     bytes memory payload
-  ) internal override {
+  ) internal override whenNotPaused {
     (address addr, uint256 amount) = abi.decode(payload, (address, uint256));
     _mint(addr, amount);
   }

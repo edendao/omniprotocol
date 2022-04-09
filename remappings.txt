@@ -1,7 +1,6 @@
-@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
-@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
 @rari-capital/solmate/=lib/solmate/src/
 @layerzerolabs/contracts/=lib/LayerZero/contracts/
+@ensdomains/ens-contracts/=lib/ens-contracts/contracts/
 @protocol/=src/
 @boring/=lib/BoringSolidity/contracts/
 ds-test/=lib/ds-test/src/
