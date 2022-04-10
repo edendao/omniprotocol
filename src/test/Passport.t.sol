@@ -6,11 +6,11 @@ import {TestBase} from "@protocol/test/TestBase.sol";
 contract PassportTest is TestBase {
   function testFindOrMintFor(address to) public {
     hevm.assume(to != address(0));
-
-    pass.findOrMintFor(to);
-    pass.findOrMintFor(to); // tests idempotency
-
+    // Referential Transparency
+    assertEq(pass.findOrMintFor(to), pass.findOrMintFor(to));
+    // Idempotency
     assertEq(pass.balanceOf(to), 1);
+    // Ownership
     assertEq(pass.ownerOf(pass.idOf(to)), to);
   }
 }

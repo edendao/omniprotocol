@@ -1,18 +1,28 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {Meditation} from "@protocol/mixins/Meditation.sol";
+import {Pausable} from "@protocol/mixins/Pausable.sol";
+import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 
-contract Metta is Meditation {
-  constructor(address _authority, address _note) Meditation(_authority, _note) {
-    this;
+import {Note} from "@protocol/Note.sol";
+
+contract Metta is Comptrolled, Pausable {
+  Note public immutable edn;
+
+  constructor(address _authority, address _note) Comptrolled(_authority) {
+    edn = Note(_note);
   }
 
-  function perform() external payable returns (uint256) {
-    return earnXP(msg.sender, msg.value);
+  function previewEDN(uint256 valueInWei) public pure returns (uint256) {
+    // 10**12 = 10**3 / 10**18 * 10**12 = exchangeRate() / ETH.decimals() * Note.decimals()
+    return valueInWei / 10**12;
   }
 
-  receive() external payable {
-    earnXP(msg.sender, msg.value);
+  function earnEDN(address to, uint256 amountInWei)
+    internal
+    whenNotPaused
+    returns (uint256)
+  {
+    return edn.mintTo(to, previewEDN(amountInWei));
   }
 }

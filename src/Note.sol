@@ -3,19 +3,19 @@ pragma solidity ^0.8.13;
 
 import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
 
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
 
-contract Note is ERC20, Omnichain, Comptrolled, Pausable {
+contract Note is ERC20, Omnichain, Pausable {
   constructor(address _authority, address _lzEndpoint)
     ERC20("Eden Dao Note", "EDN", 3)
-    Comptrolled(_authority)
-    Omnichain(_lzEndpoint)
+    Omnichain(_authority, _lzEndpoint)
   {
     this;
   }
 
+  // ===================
+  // ====== TOKEN ======
   function mintTo(address to, uint256 amount)
     external
     requiresAuth
@@ -60,7 +60,6 @@ contract Note is ERC20, Omnichain, Comptrolled, Pausable {
     }
 
     balanceOf[from] -= amount;
-
     // Cannot overflow because the sum of all user
     // balances can't exceed the max uint256 value.
     unchecked {
@@ -68,16 +67,32 @@ contract Note is ERC20, Omnichain, Comptrolled, Pausable {
     }
 
     emit Transfer(from, to, amount);
-
     return true;
   }
 
-  function send(
+  // ===================
+  // ==== LayerZero ====
+  // ===================
+  event SendTokens(
+    uint16 indexed toChainId,
+    address indexed sender,
+    address indexed recipient,
+    uint256 amount
+  );
+
+  event ReceiveTokens(
+    uint16 indexed fromChainId,
+    address indexed sender,
+    address indexed receiver,
+    uint256 amount
+  );
+
+  function sendTokens(
     uint16 toChainId,
     address toAddress,
     uint256 amount,
-    address zroPaymentAddress, // ZRO payment address
-    bytes calldata adapterParams // txParameters
+    address zroPaymentAddress,
+    bytes calldata adapterParams
   ) external payable whenNotPaused {
     _burn(msg.sender, amount);
 
@@ -87,15 +102,22 @@ contract Note is ERC20, Omnichain, Comptrolled, Pausable {
       zroPaymentAddress,
       adapterParams
     );
+
+    emit SendTokens(toChainId, msg.sender, toAddress, amount);
   }
 
   function onReceive(
-    uint16, // _fromChainId,
+    uint16 fromChainId,
     bytes calldata, // _fromContractAddress,
     uint64, // _nonce,
     bytes memory payload
   ) internal override whenNotPaused {
-    (address addr, uint256 amount) = abi.decode(payload, (address, uint256));
-    _mint(addr, amount);
+    (address toAddress, uint256 amount) = abi.decode(
+      payload,
+      (address, uint256)
+    );
+
+    _mint(toAddress, amount);
+    emit ReceiveTokens(fromChainId, msg.sender, toAddress, amount);
   }
 }

@@ -1,114 +1,128 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
+import {IERC721TokenReceiver} from "@boring/interfaces/IERC721TokenReceiver.sol";
 import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";
 
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
+import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {Soulbound, Immovable} from "@protocol/mixins/Soulbound.sol";
 
-import {Domain} from "./Domain.sol";
+import {Channel} from "./Channel.sol";
 
 /*
  * A Passport is your cross-chain identity for the future.
  */
-contract Passport is
-  IERC721,
-  IERC721Metadata,
-  Omnichain,
-  Soulbound,
-  Comptrolled
-{
-  event Sync(
-    uint16 indexed fromChainId,
-    uint16 indexed toChainId,
-    uint256 indexed id,
-    uint256 domainId
-  );
-
+contract Passport is IERC721, IERC721Metadata, Omnichain, Pausable, Soulbound {
   string public constant name = "Eden Dao Passport";
   string public constant symbol = "DAO PASS";
 
   constructor(address _authority, address _layerZeroEndpoint)
-    Comptrolled(_authority)
-    Omnichain(_layerZeroEndpoint)
+    Omnichain(_authority, _layerZeroEndpoint)
   {
     this;
   }
 
-  mapping(uint256 => address) public ownerOf;
-  // tokenId => domainId => data
-  mapping(uint256 => mapping(uint256 => bytes)) public dataOf;
+  mapping(uint256 => address) public ownerOf; // unset if not minted
 
   function idOf(address to) public pure returns (uint256) {
     return uint256(uint160(to));
-  }
-
-  function findOrMintFor(address to) public returns (uint256) {
-    uint256 id = idOf(to);
-
-    if (ownerOf[id] != address(0)) return id;
-
-    ownerOf[id] = to;
-    emit Transfer(address(0), to, id);
-
-    return id;
   }
 
   function balanceOf(address a) public view returns (uint256) {
     return ownerOf[idOf(a)] == address(0) ? 0 : 1;
   }
 
-  function tokenURI(uint256 id) public view returns (string memory) {
-    return string(dataOf[id][0]);
+  // Anyone can mint a passport for their address
+  function findOrMintFor(address to) public returns (uint256 passportId) {
+    passportId = idOf(to);
+
+    if (ownerOf[passportId] == address(0)) {
+      ownerOf[passportId] = to;
+      emit Transfer(address(0), to, passportId);
+    }
   }
 
-  function setTokenURI(uint256 id, bytes memory data) public {
-    setData(id, 0, data);
+  // ========================================
+  // Data & Channel Layer
+  // ========================================
+
+  // On-chain data (tokenId => channelId => data)
+  mapping(uint256 => mapping(uint256 => bytes)) public dataOf;
+
+  uint256 public constant TOKENURI_CHANNEL = (
+    0x1de324d049794c1e40480a9129c30e42d9ada5968d6e81df7b8b9c0fa838251f
+  ); // tokenuri.eden.dao
+
+  function tokenURI(uint256 passportId) public view returns (string memory) {
+    return string(dataOf[passportId][TOKENURI_CHANNEL]);
   }
 
-  function setData(
-    uint256 passportId,
-    uint256 domainId,
-    bytes memory data
-  ) public requiresAuth {
-    dataOf[passportId][domainId] = data;
+  // Token Channel is the name associated with your passport
+  uint256 public constant PASSPORT_CHANNEL = (
+    0x02dae9de41f5b412ce8d65c69e825802e5cfc0bb85d707c53c94e30d4ddd56d2
+  ); // channel.eden.dao
+
+  function fusedChannelOf(uint256 passportId)
+    public
+    view
+    returns (uint256, string memory)
+  {
+    return abi.decode(dataOf[passportId][PASSPORT_CHANNEL], (uint256, string));
   }
 
-  /* ==============================
-   * LayerZero
-   * ============================== */
-  function syncData(
+  // ============================
+  // ======== Data Layer ========
+  // ============================
+  event SendData(
+    uint256 indexed toChainId,
+    uint256 indexed passportId,
+    uint256 indexed channelId,
+    bytes data
+  );
+
+  function sendData(
     uint16 toChainId,
     uint256 passportId,
-    uint256 domainId,
+    uint256 channelId,
+    bytes memory data,
     address zroPaymentAddress,
     bytes calldata adapterParams
-  ) external payable requiresAuth {
-    lzSend(
-      toChainId,
-      abi.encode(ownerOf[passportId], domainId, dataOf[passportId][domainId]),
-      zroPaymentAddress,
-      adapterParams
+  ) external payable whenNotPaused {
+    require(
+      (msg.sender == ownerOf[passportId] || isAuthorized(msg.sender, msg.sig)),
+      "Passport: UNAUTHORIZED"
     );
 
-    emit Sync(currentChainId, toChainId, passportId, domainId);
+    if (toChainId == currentChainId) {
+      dataOf[passportId][channelId] = data;
+    } else {
+      lzSend(
+        toChainId,
+        abi.encode(passportId, channelId, data),
+        zroPaymentAddress,
+        adapterParams
+      );
+    }
+
+    emit SendData(toChainId, passportId, channelId, data);
   }
 
+  // on receive lzSend from target chain
   function onReceive(
-    uint16 fromChainId,
-    bytes calldata, // _fromContractAddress,
-    uint64, // _nonce
+    uint16, // fromChainId
+    bytes calldata, // fromContractAddress,
+    uint64, // nonce
     bytes memory payload
   ) internal override {
-    (address passportOwner, uint256 domainId, bytes memory data) = abi.decode(
+    (uint256 passportId, uint256 channelId, bytes memory data) = abi.decode(
       payload,
-      (address, uint256, bytes)
+      (uint256, uint256, bytes)
     );
-    uint256 passportId = findOrMintFor(passportOwner);
 
-    dataOf[passportId][domainId] = data;
-    emit Sync(fromChainId, currentChainId, passportId, domainId);
+    dataOf[passportId][channelId] = data;
+
+    emit SendData(currentChainId, passportId, channelId, data);
   }
 
   // ===================

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {Auth} from "@rari-capital/solmate/auth/Auth.sol";
 import {ILayerZeroEndpoint} from "@layerzerolabs/contracts/interfaces/ILayerZeroEndpoint.sol";
 import {ILayerZeroReceiver} from "@layerzerolabs/contracts/interfaces/ILayerZeroReceiver.sol";
 
-abstract contract Omnichain is Auth, ILayerZeroReceiver {
+import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+
+abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
   ILayerZeroEndpoint public immutable lzEndpoint;
   mapping(uint16 => bytes) public remoteContracts;
   uint16 public immutable currentChainId;
@@ -25,7 +26,7 @@ abstract contract Omnichain is Auth, ILayerZeroReceiver {
     bytes payload
   );
 
-  constructor(address _lzEndpoint) {
+  constructor(address _authority, address _lzEndpoint) Comptrolled(_authority) {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
     currentChainId = uint16(block.chainid);
   }
