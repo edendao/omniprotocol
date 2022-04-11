@@ -67,7 +67,7 @@ contract Omnicast is
   // ======== Messaging Layer =========
   // =======================================
 
-  // On-chain data (myOmnicastId => onChannelId => data)
+  // On-chain data (myOmnicastId => onOmnichannelId => data)
   mapping(uint256 => mapping(uint256 => bytes)) public readMessage;
 
   uint256 public constant NAME_CHANNEL = (
@@ -120,23 +120,23 @@ contract Omnicast is
   function sendMessage(
     uint16 toChainId,
     uint256 toOmnicastId,
-    uint256 onChannelId,
+    uint256 onOmnichannelId,
     bytes memory payload
   ) public payable whenNotPaused {
     require(
       (msg.sender == ownerOf[toOmnicastId] ||
-        onChannelId == idOf(msg.sender) ||
-        msg.sender == channel.ownerOf(onChannelId)),
+        onOmnichannelId == idOf(msg.sender) ||
+        msg.sender == channel.ownerOf(onOmnichannelId)),
       "Omnicast: UNAUTHORIZED_CHANNEL"
     );
 
     if (toChainId == currentChainId) {
-      readMessage[toOmnicastId][onChannelId] = payload;
+      readMessage[toOmnicastId][onOmnichannelId] = payload;
     } else {
-      lzSend(toChainId, abi.encode(toOmnicastId, onChannelId, payload));
+      lzSend(toChainId, abi.encode(toOmnicastId, onOmnichannelId, payload));
     }
 
-    emit Message(toChainId, toOmnicastId, onChannelId, payload);
+    emit Message(toChainId, toOmnicastId, onOmnichannelId, payload);
   }
 
   function receiveMessage(

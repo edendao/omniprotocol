@@ -7,7 +7,7 @@ import {DSTestPlus} from "@rari-capital/solmate/test/utils/DSTestPlus.sol";
 import {Comptroller} from "@protocol/Comptroller.sol";
 import {Note} from "@protocol/Note.sol";
 import {Omnicast} from "@protocol/Omnicast.sol";
-import {Channel} from "@protocol/Channel.sol";
+import {Omnichannel} from "@protocol/Omnichannel.sol";
 
 import {LayerZeroEndpointMock} from "./mocks/LayerZeroEndpointMock.sol";
 
@@ -22,8 +22,8 @@ contract TestBase is DSTestPlus {
 
   Note internal edn = new Note(address(authority), address(lz));
 
-  Channel internal channel =
-    new Channel(
+  Omnichannel internal channel =
+    new Omnichannel(
       address(authority),
       address(lz),
       address(edn),

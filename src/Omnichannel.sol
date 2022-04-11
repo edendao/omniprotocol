@@ -9,7 +9,7 @@ import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {Metta} from "@protocol/mixins/Metta.sol";
 
-contract Channel is ERC721, Omnichain, Metta {
+contract Omnichannel is ERC721, Omnichain, Metta {
   uint16 public primaryChainId;
 
   constructor(
@@ -18,7 +18,7 @@ contract Channel is ERC721, Omnichain, Metta {
     address _edn,
     uint16 _primaryChainId
   )
-    ERC721("Eden Dao OmniChannel", "OMNICHANNEL")
+    ERC721("Eden Dao OmniOmnichannel", "OMNICHANNEL")
     Omnichain(_authority, _lzEndpoint)
     Metta(_edn)
   {
@@ -44,12 +44,15 @@ contract Channel is ERC721, Omnichain, Metta {
   // ====== MODIFIERS =======
   // ========================
   modifier onlyPrimaryChain() {
-    require(currentChainId == primaryChainId, "Channel: ONLY_PRIMARY_CHAIN");
+    require(
+      currentChainId == primaryChainId,
+      "Omnichannel: ONLY_PRIMARY_CHAIN"
+    );
     _;
   }
 
   modifier onlyOwnerOf(uint256 channelId) {
-    require(msg.sender == ownerOf[channelId], "Channel: ONLY_OWNER");
+    require(msg.sender == ownerOf[channelId], "Omnichannel: ONLY_OWNER");
     _;
   }
 
@@ -64,7 +67,7 @@ contract Channel is ERC721, Omnichain, Metta {
     override
     returns (string memory)
   {
-    require(ownerOf[channelId] != address(0), "Channel: INVALID_CHANNEL");
+    require(ownerOf[channelId] != address(0), "Omnichannel: INVALID_CHANNEL");
     return string(_tokenURI[channelId]);
   }
 
@@ -87,14 +90,14 @@ contract Channel is ERC721, Omnichain, Metta {
     returns (uint256, uint256)
   {
     uint256 mints = mintsOf[msg.sender];
-    require(mints < 10, "Channel: MINT_LIMIT");
+    require(mints < 10, "Omnichannel: MINT_LIMIT");
     require(
       msg.value >= (mints + 1) * 0.05 ether,
-      "Channel: INSUFFICIENT_VALUE"
+      "Omnichannel: INSUFFICIENT_VALUE"
     );
 
     uint256 channelId = EdenDaoNS.namehash(node);
-    require(channelId > type(uint160).max, "Channel: RESERVED_SPACE");
+    require(channelId > type(uint160).max, "Omnichannel: RESERVED_SPACE");
 
     _mint(msg.sender, channelId);
     return (channelId, edn.mintTo(msg.sender, previewEDN(msg.value)));
@@ -116,7 +119,7 @@ contract Channel is ERC721, Omnichain, Metta {
     address to,
     uint256 id
   ) public override {
-    require(to != address(0), "Channel: INVALID_RECIPIENT");
+    require(to != address(0), "Omnichannel: INVALID_RECIPIENT");
 
     if (
       msg.sender != from &&
@@ -126,7 +129,7 @@ contract Channel is ERC721, Omnichain, Metta {
       if (isAuthorized(msg.sender, msg.sig)) {
         emit ForceTransfer(msg.sender, from, to, id);
       } else {
-        revert("Channel: UNAUTHORIZED");
+        revert("Omnichannel: UNAUTHORIZED");
       }
     }
 
