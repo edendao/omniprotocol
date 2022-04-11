@@ -11,10 +11,10 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
   mapping(uint16 => bytes) public remoteContracts;
   uint16 public immutable currentChainId;
 
-  mapping(uint16 => mapping(bytes => mapping(uint256 => FailedMessages)))
+  mapping(uint16 => mapping(bytes => mapping(uint256 => FailedMessage)))
     public failedMessages;
 
-  struct FailedMessages {
+  struct FailedMessage {
     uint256 payloadLength;
     bytes32 payloadHash;
   }
@@ -51,7 +51,7 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     external
     requiresAuth
   {
-    require(onChainId != currentChainId, "Omnichain: Current Chain");
+    require(onChainId != currentChainId, "Omnichain: INVALID_CHAIN");
     remoteContracts[onChainId] = abi.encode(contractAddress);
   }
 
@@ -79,6 +79,21 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     lzEndpoint.forceResumeReceive(srcChainId, srcAddress);
   }
 
+  function lzSend(uint16 toChainId, bytes memory payload) internal {
+    (uint256 nativeFee, ) = estimateLzSendGas(toChainId, payload, false, "");
+    require(msg.value >= nativeFee, "Omnichain: INSUFFICIENT_VALUE");
+
+    // solhint-disable-next-line check-send-result
+    lzEndpoint.send{value: msg.value}(
+      toChainId,
+      remoteContracts[toChainId],
+      payload,
+      payable(msg.sender),
+      comptrollerAddress(),
+      comptroller().layerZeroTransactionParams()
+    );
+  }
+
   function lzReceive(
     uint16 fromChainId,
     bytes calldata fromContractAddress,
@@ -90,7 +105,7 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
         fromContractAddress.length == remoteContracts[fromChainId].length &&
         keccak256(fromContractAddress) ==
         keccak256(remoteContracts[fromChainId]),
-      "Omnichain: Invalid caller for lzReceive"
+      "Omnichain: INVALID_LZ_RECEIVE_CALLER"
     );
 
     // solhint-disable-next-line no-empty-blocks
@@ -98,7 +113,7 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
       // do nothing
     } catch {
       // error / exception
-      failedMessages[fromChainId][fromContractAddress][nonce] = FailedMessages(
+      failedMessages[fromChainId][fromContractAddress][nonce] = FailedMessage(
         payload.length,
         keccak256(payload)
       );
@@ -119,10 +134,10 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     bytes memory payload
   ) public {
     require(msg.sender == address(this), "Omnichain: ONLY_SELF");
-    onMessage(fromChainId, fromContractAddress, nonce, payload);
+    receiveMessage(fromChainId, fromContractAddress, nonce, payload);
   }
 
-  function onMessage(
+  function receiveMessage(
     uint16 fromChainId,
     bytes memory fromContractAddress,
     uint64 nonce,
@@ -136,14 +151,14 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     bytes calldata payload
   ) external payable {
     // assert there is message to retry
-    FailedMessages storage message = failedMessages[fromChainId][
+    FailedMessage storage message = failedMessages[fromChainId][
       fromContractAddress
     ][nonce];
     require(message.payloadHash != bytes32(0), "Omnichain: MESSAGE_NOT_FOUND");
     require(
       payload.length == message.payloadLength &&
         keccak256(payload) == message.payloadHash,
-      "LayerZero: INVALID PAYLOAD"
+      "LayerZero: INVALID_PAYLOAD"
     );
     // clear the stored message
     message.payloadLength = 0;

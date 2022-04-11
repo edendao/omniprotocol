@@ -16,8 +16,4 @@ abstract contract Metta is Comptrolled {
     // 10**12 = 10**3 / 10**18 * 10**12 = exchangeRate() / ETH.decimals() * Note.decimals()
     return valueInWei / 10**12;
   }
-
-  function channelEDN() internal returns (uint256) {
-    return edn.mintTo(msg.sender, previewEDN(msg.value));
-  }
 }

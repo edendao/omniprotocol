@@ -86,26 +86,14 @@ contract Note is ERC20, Omnichain, Pausable {
     address toAddress,
     uint256 amount
   ) external payable whenNotPaused {
-    bytes memory data = abi.encode(toAddress, amount);
-    (uint256 nativeFee, ) = estimateLzSendGas(toChainId, data, false, "");
-    require(msg.value >= nativeFee, "Note: INSUFFICIENT_SEND_VALUE");
-
     _burn(msg.sender, amount);
 
-    // solhint-disable-next-line check-send-result
-    lzEndpoint.send{value: msg.value}(
-      toChainId,
-      remoteContracts[toChainId],
-      data,
-      payable(msg.sender),
-      comptrollerAddress(),
-      ""
-    );
+    lzSend(toChainId, abi.encode(toAddress, amount));
 
     emit Noted(toChainId, msg.sender, toAddress, amount);
   }
 
-  function onMessage(
+  function receiveMessage(
     uint16 fromChainId,
     bytes calldata, // _fromContractAddress,
     uint64, // _nonce,

@@ -18,7 +18,7 @@ contract Channel is ERC721, Omnichain, Metta {
     address _edn,
     uint16 _primaryChainId
   )
-    ERC721("Eden Dao Omnicast Channels", "OMNICHANNEL")
+    ERC721("Eden Dao OmniChannel", "OMNICHANNEL")
     Omnichain(_authority, _lzEndpoint)
     Metta(_edn)
   {
@@ -64,6 +64,7 @@ contract Channel is ERC721, Omnichain, Metta {
     override
     returns (string memory)
   {
+    require(ownerOf[channelId] != address(0), "Channel: INVALID_CHANNEL");
     return string(_tokenURI[channelId]);
   }
 
@@ -83,20 +84,20 @@ contract Channel is ERC721, Omnichain, Metta {
     external
     payable
     onlyPrimaryChain
-    returns (uint256)
+    returns (uint256, uint256)
   {
     uint256 mints = mintsOf[msg.sender];
+    require(mints < 10, "Channel: MINT_LIMIT");
     require(
-      mints < 10 && msg.value >= (mints + 1) * 0.05 ether,
-      "Channel: INVALID_MINT"
+      msg.value >= (mints + 1) * 0.05 ether,
+      "Channel: INSUFFICIENT_VALUE"
     );
 
     uint256 channelId = EdenDaoNS.namehash(node);
     require(channelId > type(uint160).max, "Channel: RESERVED_SPACE");
 
     _mint(msg.sender, channelId);
-
-    return channelId;
+    return (channelId, edn.mintTo(msg.sender, previewEDN(msg.value)));
   }
 
   function burn(uint256 channelId) external onlyOwnerOf(channelId) {
@@ -150,24 +151,12 @@ contract Channel is ERC721, Omnichain, Metta {
     address toAddress,
     uint256 channelId
   ) external payable onlyOwnerOf(channelId) {
-    bytes memory data = abi.encode(toAddress, channelId, _tokenURI[channelId]);
-    (uint256 nativeFee, ) = estimateLzSendGas(toChainId, data, false, "");
-    require(msg.value >= nativeFee, "Channel: INSUFFICIENT_SEND_VALUE");
-
     _burn(channelId);
 
-    // solhint-disable-next-line check-send-result
-    lzEndpoint.send{value: msg.value}(
-      toChainId,
-      remoteContracts[toChainId],
-      data,
-      payable(msg.sender),
-      comptrollerAddress(),
-      ""
-    );
+    lzSend(toChainId, abi.encode(toAddress, channelId, _tokenURI[channelId]));
   }
 
-  function onMessage(
+  function receiveMessage(
     uint16, // _fromChainId
     bytes calldata, // _fromContractAddress
     uint64, // _nonce

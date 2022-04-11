@@ -48,22 +48,27 @@ contract Omnicast is
   // Owner is unset if not minted
   mapping(uint256 => address) public ownerOf;
 
-  function mintTo(address to) public returns (uint256) {
+  function mint() public payable returns (uint256, uint256) {
+    return mintTo(msg.sender);
+  }
+
+  function mintTo(address to) public payable returns (uint256, uint256) {
+    require(msg.value >= 0.025 ether, "Omnicast: INSUFFICIENT_VALUE");
     uint256 omnicastId = uint256(uint160(to));
     require(ownerOf[omnicastId] == address(0), "Omnicast: NOT_AVAILABLE");
 
     ownerOf[omnicastId] = to;
     emit Transfer(address(0), to, omnicastId);
 
-    return omnicastId;
+    return (omnicastId, edn.mintTo(msg.sender, previewEDN(msg.value)));
   }
 
   // =======================================
   // ======== Messaging Layer =========
   // =======================================
 
-  // On-chain data (myOmnicastId => senderOmnicastId => data)
-  mapping(uint256 => mapping(uint256 => bytes)) public lastMessageOf;
+  // On-chain data (myOmnicastId => onChannelId => data)
+  mapping(uint256 => mapping(uint256 => bytes)) public readMessage;
 
   uint256 public constant NAME_CHANNEL = (
     0x5390756d6822bfddf4c057851c400cc27c97960f67128fa42a6d838b35584b8c
@@ -74,11 +79,11 @@ contract Omnicast is
   ); // tokenuri.eden.dao
 
   function nameOf(uint256 omnicastId) public view returns (string memory) {
-    return string(lastMessageOf[omnicastId][NAME_CHANNEL]);
+    return string(readMessage[omnicastId][NAME_CHANNEL]);
   }
 
   function tokenURI(uint256 omnicastId) public view returns (string memory) {
-    return string(lastMessageOf[omnicastId][TOKENURI_CHANNEL]);
+    return string(readMessage[omnicastId][TOKENURI_CHANNEL]);
   }
 
   // ===========================
@@ -91,72 +96,68 @@ contract Omnicast is
     bytes data
   );
 
-  function tryCallMessage(uint256 channelId, bytes memory message) private {
-    address omnicastAddress = address(uint160(channelId));
-    if (BoringAddress.isContract(omnicastAddress)) {
-      // solhint-disable-next-line avoid-low-level-calls
-      (bool ok, bytes memory data) = omnicastAddress.call{value: msg.value}(
-        message
-      );
-      require(ok, string(data));
-    }
+  function readMessageFrom(address fromAddress)
+    public
+    view
+    returns (bytes memory)
+  {
+    return readMessage[idOf(msg.sender)][idOf(fromAddress)];
   }
 
   function sendMessage(
     uint16 toChainId,
-    uint256 omnicastId,
-    uint256 channelId,
-    bytes memory message
-  ) external payable whenNotPaused {
+    address toAddress,
+    bytes memory payload
+  ) public payable {
+    sendMessage(
+      toChainId,
+      uint256(uint160(toAddress)),
+      idOf(msg.sender),
+      payload
+    );
+  }
+
+  function sendMessage(
+    uint16 toChainId,
+    uint256 toOmnicastId,
+    uint256 onChannelId,
+    bytes memory payload
+  ) public payable whenNotPaused {
     require(
-      (msg.sender == ownerOf[omnicastId] ||
-        channelId == idOf(msg.sender) ||
-        msg.sender == channel.ownerOf(channelId)),
+      (msg.sender == ownerOf[toOmnicastId] ||
+        onChannelId == idOf(msg.sender) ||
+        msg.sender == channel.ownerOf(onChannelId)),
       "Omnicast: UNAUTHORIZED_CHANNEL"
     );
 
     if (toChainId == currentChainId) {
-      lastMessageOf[omnicastId][channelId] = message;
-      tryCallMessage(channelId, message);
+      readMessage[toOmnicastId][onChannelId] = payload;
     } else {
-      bytes memory data = abi.encode(omnicastId, channelId, message);
-      (uint256 nativeFee, ) = estimateLzSendGas(toChainId, data, false, "");
-      require(msg.value >= nativeFee, "Omnicast: INSUFFICIENT_SEND_VALUE");
-
-      // solhint-disable-next-line check-send-result
-      lzEndpoint.send{value: msg.value}(
-        toChainId,
-        remoteContracts[toChainId],
-        data,
-        payable(msg.sender),
-        comptrollerAddress(),
-        ""
-      );
+      lzSend(toChainId, abi.encode(toOmnicastId, onChannelId, payload));
     }
 
-    emit Message(toChainId, omnicastId, channelId, message);
+    emit Message(toChainId, toOmnicastId, onChannelId, payload);
   }
 
-  function onMessage(
+  function receiveMessage(
     uint16, // fromChainId
     bytes calldata, // fromContractAddress,
     uint64, // nonce
-    bytes memory payload
+    bytes memory data
   ) internal override {
     (uint256 omnicastId, uint256 channelId, bytes memory message) = abi.decode(
-      payload,
+      data,
       (uint256, uint256, bytes)
     );
 
-    lastMessageOf[omnicastId][channelId] = message;
-    tryCallMessage(channelId, message);
+    readMessage[omnicastId][channelId] = message;
 
     emit Message(currentChainId, omnicastId, channelId, message);
   }
 
-  // ===================
-  // ===== IERC721 =====
-  // ===================
+  // =====================
+  // ====== IERC721 ======
+  // =====================
   function approve(address, uint256) external payable {
     revert Immovable();
   }
