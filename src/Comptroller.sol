@@ -5,7 +5,11 @@ import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {MultiRolesAuthority, Authority} from "@rari-capital/solmate/auth/authorities/MultiRolesAuthority.sol";
 
 interface TransferrableToken {
-  function transfer(address to, uint256 idOrAmount) external;
+  function transferFrom(
+    address from,
+    address to,
+    uint256 idOrAmount
+  ) external;
 }
 
 contract Comptroller is MultiRolesAuthority {
@@ -24,6 +28,6 @@ contract Comptroller is MultiRolesAuthority {
     address to,
     uint256 amount
   ) public requiresAuth {
-    TransferrableToken(token).transfer(to, amount);
+    TransferrableToken(token).transferFrom(address(this), to, amount);
   }
 }

@@ -98,7 +98,7 @@ contract Note is ERC20, Omnichain, Pausable {
       remoteContracts[toChainId],
       data,
       payable(msg.sender),
-      address(comptroller()),
+      comptrollerAddress(),
       ""
     );
 

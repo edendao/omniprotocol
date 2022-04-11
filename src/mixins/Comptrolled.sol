@@ -14,8 +14,8 @@ contract Comptrolled is Auth {
     this;
   }
 
-  function comptroller() public view returns (Authority) {
-    return authority;
+  function comptrollerAddress() public view returns (address) {
+    return address(authority);
   }
 
   function withdrawTo(address to, uint256 amount) public requiresAuth {

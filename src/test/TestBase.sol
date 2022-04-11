@@ -23,8 +23,18 @@ contract TestBase is DSTestPlus {
   Note internal edn = new Note(address(authority), address(lz));
 
   Channel internal channel =
-    new Channel(address(authority), address(lz), uint16(block.chainid));
+    new Channel(
+      address(authority),
+      address(lz),
+      address(edn),
+      uint16(block.chainid)
+    );
 
   Omnicast internal omnicast =
-    new Omnicast(address(authority), address(lz), address(channel));
+    new Omnicast(
+      address(authority),
+      address(lz),
+      address(edn),
+      address(channel)
+    );
 }

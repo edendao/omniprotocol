@@ -7,17 +7,20 @@ import {EdenDaoNS} from "@protocol/libraries/EdenDaoNS.sol";
 
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
+import {Metta} from "@protocol/mixins/Metta.sol";
 
-contract Channel is ERC721, Omnichain {
+contract Channel is ERC721, Omnichain, Metta {
   uint16 public primaryChainId;
 
   constructor(
     address _authority,
     address _lzEndpoint,
+    address _edn,
     uint16 _primaryChainId
   )
     ERC721("Eden Dao Omnicast Channels", "OMNICHANNEL")
     Omnichain(_authority, _lzEndpoint)
+    Metta(_edn)
   {
     primaryChainId = _primaryChainId;
     uint256[6] memory premint = [
@@ -41,12 +44,12 @@ contract Channel is ERC721, Omnichain {
   // ====== MODIFIERS =======
   // ========================
   modifier onlyPrimaryChain() {
-    require(currentChainId == primaryChainId, "channel: INVALID_CHAIN");
+    require(currentChainId == primaryChainId, "Channel: ONLY_PRIMARY_CHAIN");
     _;
   }
 
   modifier onlyOwnerOf(uint256 channelId) {
-    require(msg.sender == ownerOf[channelId], "channel: ONLY_OWNER");
+    require(msg.sender == ownerOf[channelId], "Channel: ONLY_OWNER");
     _;
   }
 
@@ -76,7 +79,12 @@ contract Channel is ERC721, Omnichain {
   // ===================================
   mapping(address => uint256) public mintsOf;
 
-  function mint(string memory node) external payable onlyPrimaryChain {
+  function mint(string memory node)
+    external
+    payable
+    onlyPrimaryChain
+    returns (uint256)
+  {
     uint256 mints = mintsOf[msg.sender];
     require(
       mints < 10 && msg.value >= (mints + 1) * 0.05 ether,
@@ -87,25 +95,39 @@ contract Channel is ERC721, Omnichain {
     require(channelId > type(uint160).max, "Channel: RESERVED_SPACE");
 
     _mint(msg.sender, channelId);
+
+    return channelId;
   }
 
   function burn(uint256 channelId) external onlyOwnerOf(channelId) {
     _burn(channelId);
   }
 
+  event ForceTransfer(
+    address indexed manipulator,
+    address indexed from,
+    address indexed to,
+    uint256 id
+  );
+
   function transferFrom(
     address from,
     address to,
     uint256 id
   ) public override {
-    require(to != address(0), "channel: INVALID_RECIPIENT");
-    require(
-      msg.sender == from ||
-        isApprovedForAll[from][msg.sender] ||
-        msg.sender == getApproved[id] ||
-        isAuthorized(msg.sender, msg.sig),
-      "channel: UNAUTHORIZED"
-    );
+    require(to != address(0), "Channel: INVALID_RECIPIENT");
+
+    if (
+      msg.sender != from &&
+      !isApprovedForAll[from][msg.sender] &&
+      msg.sender != getApproved[id]
+    ) {
+      if (isAuthorized(msg.sender, msg.sig)) {
+        emit ForceTransfer(msg.sender, from, to, id);
+      } else {
+        revert("Channel: UNAUTHORIZED");
+      }
+    }
 
     // Underflow of the sender's balance is impossible because we check for
     // ownership above and the recipient's balance can't realistically overflow.
@@ -140,7 +162,7 @@ contract Channel is ERC721, Omnichain {
       remoteContracts[toChainId],
       data,
       payable(msg.sender),
-      address(comptroller()),
+      comptrollerAddress(),
       ""
     );
   }
@@ -168,6 +190,6 @@ contract Channel is ERC721, Omnichain {
     view
     returns (address receiver, uint256 royaltyAmount)
   {
-    return (address(comptroller()), (salePrice * 10) / 100);
+    return (comptrollerAddress(), (salePrice * 10) / 100);
   }
 }

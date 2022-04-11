@@ -6,13 +6,21 @@ import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";
 import {BoringAddress} from "@boring/libraries/BoringAddress.sol";
 
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
+import {Metta} from "@protocol/mixins/Metta.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {Soulbound, Immovable} from "@protocol/mixins/Soulbound.sol";
 
 /*
  * An Omnicast is your cross-chain identity for the future.
  */
-contract Omnicast is IERC721, IERC721Metadata, Omnichain, Pausable, Soulbound {
+contract Omnicast is
+  IERC721,
+  IERC721Metadata,
+  Omnichain,
+  Metta,
+  Pausable,
+  Soulbound
+{
   string public constant name = "Eden Dao Omnicast";
   string public constant symbol = "OMNICAST";
 
@@ -21,18 +29,15 @@ contract Omnicast is IERC721, IERC721Metadata, Omnichain, Pausable, Soulbound {
   constructor(
     address _authority,
     address _layerZeroEndpoint,
+    address _edn,
     address _channel
-  ) Omnichain(_authority, _layerZeroEndpoint) {
+  ) Omnichain(_authority, _layerZeroEndpoint) Metta(_edn) {
     channel = IERC721(_channel);
   }
 
   // Every address maps deterministically to a uint256
   function idOf(address to) public pure returns (uint256) {
     return uint256(uint160(to));
-  }
-
-  function addressOf(uint256 id) public pure returns (address) {
-    return address(uint160(id));
   }
 
   // Every address can only have one
@@ -44,11 +49,7 @@ contract Omnicast is IERC721, IERC721Metadata, Omnichain, Pausable, Soulbound {
   mapping(uint256 => address) public ownerOf;
 
   function mintTo(address to) public returns (uint256) {
-    return _mintTo(to, idOf(to));
-  }
-
-  // Helper
-  function _mintTo(address to, uint256 omnicastId) private returns (uint256) {
+    uint256 omnicastId = uint256(uint160(to));
     require(ownerOf[omnicastId] == address(0), "Omnicast: NOT_AVAILABLE");
 
     ownerOf[omnicastId] = to;
@@ -91,7 +92,7 @@ contract Omnicast is IERC721, IERC721Metadata, Omnichain, Pausable, Soulbound {
   );
 
   function tryCallMessage(uint256 channelId, bytes memory message) private {
-    address omnicastAddress = addressOf(channelId);
+    address omnicastAddress = address(uint160(channelId));
     if (BoringAddress.isContract(omnicastAddress)) {
       // solhint-disable-next-line avoid-low-level-calls
       (bool ok, bytes memory data) = omnicastAddress.call{value: msg.value}(
@@ -128,7 +129,7 @@ contract Omnicast is IERC721, IERC721Metadata, Omnichain, Pausable, Soulbound {
         remoteContracts[toChainId],
         data,
         payable(msg.sender),
-        address(comptroller()),
+        comptrollerAddress(),
         ""
       );
     }

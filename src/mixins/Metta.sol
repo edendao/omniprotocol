@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 
 import {Note} from "@protocol/Note.sol";
 
-abstract contract Metta is Comptrolled, Pausable {
+abstract contract Metta is Comptrolled {
   Note public immutable edn;
 
   constructor(address _note) {
@@ -18,11 +17,7 @@ abstract contract Metta is Comptrolled, Pausable {
     return valueInWei / 10**12;
   }
 
-  function channelEDN(address to, uint256 giftInWei)
-    internal
-    whenNotPaused
-    returns (uint256)
-  {
-    return edn.mintTo(to, previewEDN(giftInWei));
+  function channelEDN() internal returns (uint256) {
+    return edn.mintTo(msg.sender, previewEDN(msg.value));
   }
 }
