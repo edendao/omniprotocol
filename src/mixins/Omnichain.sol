@@ -31,11 +31,11 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     currentChainId = uint16(block.chainid);
   }
 
-  function estimateLayerZeroSendFee(
+  function estimateLzSendGas(
     uint16 toChainId,
+    bytes memory payload,
     bool useZRO,
-    bytes calldata payload,
-    bytes calldata adapterParams
+    bytes memory adapterParams
   ) public view returns (uint256 nativeFee, uint256 zroFee) {
     return
       lzEndpoint.estimateFees(
@@ -79,23 +79,6 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     lzEndpoint.forceResumeReceive(srcChainId, srcAddress);
   }
 
-  function lzSend(
-    uint16 toChainId,
-    bytes memory payload,
-    address zroPaymentAddress,
-    bytes memory adapterParams
-  ) internal {
-    // solhint-disable-next-line
-    lzEndpoint.send{value: msg.value}(
-      toChainId,
-      remoteContracts[toChainId],
-      payload,
-      payable(address(authority)),
-      zroPaymentAddress,
-      adapterParams
-    );
-  }
-
   function lzReceive(
     uint16 fromChainId,
     bytes calldata fromContractAddress,
@@ -128,6 +111,7 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     }
   }
 
+  // Try can only be used with external function calls
   function selfReceive(
     uint16 fromChainId,
     bytes memory fromContractAddress,
@@ -135,10 +119,10 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     bytes memory payload
   ) public {
     require(msg.sender == address(this), "Omnichain: ONLY_SELF");
-    onReceive(fromChainId, fromContractAddress, nonce, payload);
+    onMessage(fromChainId, fromContractAddress, nonce, payload);
   }
 
-  function onReceive(
+  function onMessage(
     uint16 fromChainId,
     bytes memory fromContractAddress,
     uint64 nonce,

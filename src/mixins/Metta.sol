@@ -6,10 +6,10 @@ import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 
 import {Note} from "@protocol/Note.sol";
 
-contract Metta is Comptrolled, Pausable {
+abstract contract Metta is Comptrolled, Pausable {
   Note public immutable edn;
 
-  constructor(address _authority, address _note) Comptrolled(_authority) {
+  constructor(address _note) {
     edn = Note(_note);
   }
 
@@ -18,11 +18,11 @@ contract Metta is Comptrolled, Pausable {
     return valueInWei / 10**12;
   }
 
-  function earnEDN(address to, uint256 amountInWei)
+  function channelEDN(address to, uint256 giftInWei)
     internal
     whenNotPaused
     returns (uint256)
   {
-    return edn.mintTo(to, previewEDN(amountInWei));
+    return edn.mintTo(to, previewEDN(giftInWei));
   }
 }

@@ -11,26 +11,30 @@ import {NiftyOmnifity} from "@protocol/meditations/NiftyOmnifity.sol";
 
 contract NiftyOmnifityTest is TestBase {
   NiftyOmnifity internal meditation =
-    new NiftyOmnifity(address(authority), address(edn), address(pass));
+    new NiftyOmnifity(address(authority), address(edn), address(omnicast));
 
   MockBoringMultipleNFT internal bayc = new MockBoringMultipleNFT();
 
   function setUp() public {
     hevm.startPrank(owner);
 
-    dns.transferFrom(
+    channel.transferFrom(
       address(this),
       address(meditation),
-      pass.TOKENURI_CHANNEL()
+      omnicast.TOKENURI_CHANNEL()
     );
 
     uint8 noteMinter = 0;
     authority.setRoleCapability(noteMinter, edn.mintTo.selector, true);
     authority.setUserRole(address(meditation), noteMinter, true);
 
-    uint8 passportWriter = 2;
-    authority.setRoleCapability(passportWriter, pass.sendData.selector, true);
-    authority.setUserRole(address(meditation), passportWriter, true);
+    uint8 omnicastWriter = 2;
+    authority.setRoleCapability(
+      omnicastWriter,
+      omnicast.sendMessage.selector,
+      true
+    );
+    authority.setUserRole(address(meditation), omnicastWriter, true);
 
     hevm.stopPrank();
   }
@@ -43,13 +47,13 @@ contract NiftyOmnifityTest is TestBase {
     uint256 baycId = bayc.totalSupply();
     bayc.mint(from);
 
-    (uint256 passId, uint256 xp) = meditation.perform{value: value}(
+    (uint256 omnicastId, uint256 xp) = meditation.perform{value: value}(
       address(bayc),
       baycId
     );
 
-    assertEq(pass.tokenURI(passId), bayc.tokenURI(baycId));
-    assertEq(pass.ownerOf(passId), from);
+    assertEq(omnicast.tokenURI(omnicastId), bayc.tokenURI(baycId));
+    assertEq(omnicast.ownerOf(omnicastId), from);
     assertEq(xp, meditation.previewEDN(value));
 
     hevm.stopPrank();

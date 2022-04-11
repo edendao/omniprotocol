@@ -14,8 +14,9 @@ contract Note is ERC20, Omnichain, Pausable {
     this;
   }
 
-  // ===================
-  // ====== TOKEN ======
+  // =========================
+  // ========= TOKEN =========
+  // =========================
   function mintTo(address to, uint256 amount)
     external
     requiresAuth
@@ -70,43 +71,41 @@ contract Note is ERC20, Omnichain, Pausable {
     return true;
   }
 
-  // ===================
-  // ==== LayerZero ====
-  // ===================
-  event SendTokens(
-    uint16 indexed toChainId,
+  // ===========================
+  // ======== Omnichain ========
+  // ===========================
+  event Noted(
+    uint16 indexed chainId,
     address indexed sender,
     address indexed recipient,
     uint256 amount
   );
 
-  event ReceiveTokens(
-    uint16 indexed fromChainId,
-    address indexed sender,
-    address indexed receiver,
-    uint256 amount
-  );
-
-  function sendTokens(
+  function omniTransfer(
     uint16 toChainId,
     address toAddress,
-    uint256 amount,
-    address zroPaymentAddress,
-    bytes calldata adapterParams
+    uint256 amount
   ) external payable whenNotPaused {
+    bytes memory data = abi.encode(toAddress, amount);
+    (uint256 nativeFee, ) = estimateLzSendGas(toChainId, data, false, "");
+    require(msg.value >= nativeFee, "Note: INSUFFICIENT_SEND_VALUE");
+
     _burn(msg.sender, amount);
 
-    lzSend(
+    // solhint-disable-next-line check-send-result
+    lzEndpoint.send{value: msg.value}(
       toChainId,
-      abi.encode(toAddress, amount),
-      zroPaymentAddress,
-      adapterParams
+      remoteContracts[toChainId],
+      data,
+      payable(msg.sender),
+      address(comptroller()),
+      ""
     );
 
-    emit SendTokens(toChainId, msg.sender, toAddress, amount);
+    emit Noted(toChainId, msg.sender, toAddress, amount);
   }
 
-  function onReceive(
+  function onMessage(
     uint16 fromChainId,
     bytes calldata, // _fromContractAddress,
     uint64, // _nonce,
@@ -118,6 +117,6 @@ contract Note is ERC20, Omnichain, Pausable {
     );
 
     _mint(toAddress, amount);
-    emit ReceiveTokens(fromChainId, msg.sender, toAddress, amount);
+    emit Noted(fromChainId, msg.sender, toAddress, amount);
   }
 }

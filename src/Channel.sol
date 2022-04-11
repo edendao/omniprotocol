@@ -16,46 +16,11 @@ contract Channel is ERC721, Omnichain {
     address _lzEndpoint,
     uint16 _primaryChainId
   )
-    // Eden Dao Channel Service = Eden Dao DS = Eden Dao Deus = DAO DEUS
-    ERC721("Eden Dao Channel", "OMNISPACE")
+    ERC721("Eden Dao Omnicast Channels", "OMNICHANNEL")
     Omnichain(_authority, _lzEndpoint)
   {
     primaryChainId = _primaryChainId;
-    uint256[40] memory premint = [
-      0,
-      1,
-      2,
-      3,
-      5,
-      6,
-      7,
-      8,
-      10,
-      13,
-      21,
-      22,
-      28,
-      29,
-      30,
-      31,
-      34,
-      42,
-      69,
-      80,
-      81,
-      222,
-      365,
-      420,
-      443,
-      1337,
-      1998,
-      2001,
-      4242,
-      662607015, // Planck's Constant
-      12345667890,
-      12345667890987654321,
-      2718281828459045235360, // Euler's number
-      3141592653589793238462, // π
+    uint256[6] memory premint = [
       0x02dae9de41f5b412ce8d65c69e825802e5cfc0bb85d707c53c94e30d4ddd56d2,
       0x1de324d049794c1e40480a9129c30e42d9ada5968d6e81df7b8b9c0fa838251f,
       0xea8fba367ad6b69c052c234a59bf5699ab50fa270606dbafe9a4ce0980c9c7aa,
@@ -76,12 +41,12 @@ contract Channel is ERC721, Omnichain {
   // ====== MODIFIERS =======
   // ========================
   modifier onlyPrimaryChain() {
-    require(currentChainId == primaryChainId, "Channel: INVALID_CHAIN");
+    require(currentChainId == primaryChainId, "channel: INVALID_CHAIN");
     _;
   }
 
   modifier onlyOwnerOf(uint256 channelId) {
-    require(msg.sender == ownerOf[channelId], "Channel: ONLY_OWNER");
+    require(msg.sender == ownerOf[channelId], "channel: ONLY_OWNER");
     _;
   }
 
@@ -109,19 +74,22 @@ contract Channel is ERC721, Omnichain {
   // ===================================
   // ===== MINTS, BURNS, TRANSFERS =====
   // ===================================
-  function mintTo(address to, uint256 channelId)
-    external
-    requiresAuth
-    onlyPrimaryChain
-  {
-    _mint(to, channelId);
+  mapping(address => uint256) public mintsOf;
+
+  function mint(string memory node) external payable onlyPrimaryChain {
+    uint256 mints = mintsOf[msg.sender];
+    require(
+      mints < 10 && msg.value >= (mints + 1) * 0.05 ether,
+      "Channel: INVALID_MINT"
+    );
+
+    uint256 channelId = EdenDaoNS.namehash(node);
+    require(channelId > type(uint160).max, "Channel: RESERVED_SPACE");
+
+    _mint(msg.sender, channelId);
   }
 
-  function burn(uint256 channelId)
-    external
-    onlyPrimaryChain
-    onlyOwnerOf(channelId)
-  {
+  function burn(uint256 channelId) external onlyOwnerOf(channelId) {
     _burn(channelId);
   }
 
@@ -130,13 +98,13 @@ contract Channel is ERC721, Omnichain {
     address to,
     uint256 id
   ) public override {
-    require(to != address(0), "Channel: INVALID_RECIPIENT");
+    require(to != address(0), "channel: INVALID_RECIPIENT");
     require(
       msg.sender == from ||
         isApprovedForAll[from][msg.sender] ||
         msg.sender == getApproved[id] ||
-        isAuthorized(msg.sender, msg.sig), // for DAO control, later
-      "Channel: UNAUTHORIZED"
+        isAuthorized(msg.sender, msg.sig),
+      "channel: UNAUTHORIZED"
     );
 
     // Underflow of the sender's balance is impossible because we check for
@@ -155,23 +123,29 @@ contract Channel is ERC721, Omnichain {
   // =======================
   // ====== LayerZero ======
   // =======================
-  function sendToken(
+  function omniTransfer(
     uint16 toChainId,
     address toAddress,
-    uint256 channelId,
-    address zroPaymentAddress,
-    bytes calldata adapterParams
+    uint256 channelId
   ) external payable onlyOwnerOf(channelId) {
+    bytes memory data = abi.encode(toAddress, channelId, _tokenURI[channelId]);
+    (uint256 nativeFee, ) = estimateLzSendGas(toChainId, data, false, "");
+    require(msg.value >= nativeFee, "Channel: INSUFFICIENT_SEND_VALUE");
+
     _burn(channelId);
-    lzSend(
+
+    // solhint-disable-next-line check-send-result
+    lzEndpoint.send{value: msg.value}(
       toChainId,
-      abi.encode(toAddress, channelId, _tokenURI[channelId]),
-      zroPaymentAddress,
-      adapterParams
+      remoteContracts[toChainId],
+      data,
+      payable(msg.sender),
+      address(comptroller()),
+      ""
     );
   }
 
-  function onReceive(
+  function onMessage(
     uint16, // _fromChainId
     bytes calldata, // _fromContractAddress
     uint64, // _nonce
