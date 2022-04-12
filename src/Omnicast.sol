@@ -6,12 +6,12 @@ import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";
 
 import {Soulbound, Immovable} from "@protocol/mixins/Soulbound.sol";
 import {Metta} from "@protocol/mixins/Metta.sol";
-import {Omnimessenger} from "@protocol/mixins/Omnimessenger.sol";
+import {Omnicaster} from "@protocol/mixins/Omnicaster.sol";
 
 // ===================================================
 // An Omnicast is your on-chain identity in omnispace.
 // ===================================================
-contract Omnicast is IERC721, IERC721Metadata, Omnimessenger, Metta, Soulbound {
+contract Omnicast is IERC721, IERC721Metadata, Omnicaster, Metta, Soulbound {
   string public constant name = "Eden Dao Omnicast";
   string public constant symbol = "OMNICAST";
   mapping(uint256 => address) public ownerOf;
@@ -21,7 +21,7 @@ contract Omnicast is IERC721, IERC721Metadata, Omnimessenger, Metta, Soulbound {
     address _layerZeroEndpoint,
     address _omnichannel,
     address _note
-  ) Omnimessenger(_comptroller, _layerZeroEndpoint, _omnichannel) Metta(_note) {
+  ) Omnicaster(_comptroller, _layerZeroEndpoint, _omnichannel) Metta(_note) {
     this;
   }
 

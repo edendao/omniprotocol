@@ -50,7 +50,7 @@ contract OmnicastTest is BaseProtocolDeployerTest {
 
     uint256 receiverId = omnicast.idOf(omnicastAddress);
     uint256 channelId = omnicast.idOf(omnicastChannel);
-    hevm.expectRevert("Omnimessenger: UNAUTHORIZED_CHANNEL");
+    hevm.expectRevert("Omnicaster: UNAUTHORIZED_CHANNEL");
     omnicast.sendMessage(
       uint16(block.chainid),
       receiverId,

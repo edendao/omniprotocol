@@ -6,7 +6,9 @@ import {Pausable} from "@protocol/mixins/Pausable.sol";
 
 import {Omnichannel} from "@protocol/Omnichannel.sol";
 
-contract Omnimessenger is Omnichain, Pausable {
+import {IOmnicast} from "@protocol/interfaces/IOmnicast.sol";
+
+contract Omnicaster is IOmnicast, Omnichain, Pausable {
   Omnichannel internal omnichannel;
 
   constructor(
@@ -32,7 +34,7 @@ contract Omnimessenger is Omnichain, Pausable {
     bytes data
   );
 
-  // (myOmnimessengerId => onOmnichannelId => data)
+  // (myOmnicasterId => onOmnichannelId => data)
   mapping(uint256 => mapping(uint256 => bytes)) public readMessage;
 
   // Base utility — read and write cross-chain identified by the address of the writer
@@ -101,7 +103,7 @@ contract Omnimessenger is Omnichain, Pausable {
       (msg.sender == address(uint160(toOmnireceiverId)) ||
         onOmnichannelId == idOf(msg.sender) ||
         msg.sender == omnichannel.ownerOf(onOmnichannelId)),
-      "Omnimessenger: UNAUTHORIZED_CHANNEL"
+      "Omnicaster: UNAUTHORIZED_CHANNEL"
     );
 
     if (toChainId == currentChainId) {
