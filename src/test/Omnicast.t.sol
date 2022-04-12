@@ -32,9 +32,30 @@ contract OmnicastTest is BaseProtocolDeployerTest {
     omnicast.mint{value: 0.025 ether}();
   }
 
+  function testSendingGas() public {
+    omnicast.sendMessage(
+      uint16(block.chainid),
+      omnicast.idOf(owner),
+      omnicast.idOf(address(this)),
+      "prosperity",
+      address(0),
+      ""
+    );
+  }
+
   function testSendAndReadMessage(address to, bytes memory payload) public {
-    omnicast.sendMessage(uint16(block.chainid), to, payload, address(0), "");
-    assertEq0(omnicast.readMessageFor(to, myAddress), payload);
+    omnicast.sendMessage(
+      uint16(block.chainid),
+      omnicast.idOf(to),
+      omnicast.idOf(address(this)),
+      payload,
+      address(0),
+      ""
+    );
+    assertEq0(
+      omnicast.readMessage(omnicast.idOf(to), omnicast.idOf(myAddress)),
+      payload
+    );
   }
 
   function testUnauthorizedSending(
@@ -49,17 +70,17 @@ contract OmnicastTest is BaseProtocolDeployerTest {
     );
 
     uint256 receiverId = omnicast.idOf(omnicastAddress);
-    uint256 channelId = omnicast.idOf(omnicastChannel);
+    uint256 casterId = omnicast.idOf(omnicastChannel);
     hevm.expectRevert("Omnicaster: UNAUTHORIZED_CHANNEL");
     omnicast.sendMessage(
       uint16(block.chainid),
       receiverId,
-      channelId,
+      casterId,
       payload,
       address(0),
       ""
     );
 
-    assertEq0(omnicast.readMessageFor(omnicastAddress, omnicastChannel), "");
+    assertEq0(omnicast.readMessage(receiverId, casterId), "");
   }
 }

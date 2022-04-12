@@ -50,11 +50,11 @@ contract Omnicast is IERC721, IERC721Metadata, Omnicaster, Metta, Soulbound {
   ); // tokenuri.eden.dao
 
   function nameOf(uint256 omnicastId) public view returns (string memory) {
-    return string(readMessage[omnicastId][NAME_CHANNEL]);
+    return string(readMessage(omnicastId, NAME_CHANNEL));
   }
 
   function tokenURI(uint256 omnicastId) public view returns (string memory) {
-    return string(readMessage[omnicastId][TOKENURI_CHANNEL]);
+    return string(readMessage(omnicastId, TOKENURI_CHANNEL));
   }
 
   // =================================

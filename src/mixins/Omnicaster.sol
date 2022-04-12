@@ -34,90 +34,55 @@ contract Omnicaster is IOmnicast, Omnichain, Pausable {
     bytes data
   );
 
-  // (myOmnicasterId => onOmnichannelId => data)
-  mapping(uint256 => mapping(uint256 => bytes)) public readMessage;
+  // (receiverId => senderId => data[])
+  mapping(uint256 => mapping(uint256 => bytes[])) public receivedMessages;
 
-  // Base utility — read and write cross-chain identified by the address of the writer
-  function sendMessage(
-    uint16 toChainId,
-    address toAddress,
-    bytes memory payload,
-    address lzPaymentAddress,
-    bytes memory lzTransactionParams
-  ) public payable {
-    sendMessage(
-      toChainId,
-      uint256(uint160(toAddress)),
-      idOf(msg.sender),
-      payload,
-      lzPaymentAddress,
-      lzTransactionParams
-    );
+  function receivedMessagesCount(
+    uint256 recieverCasterId,
+    uint256 senderCasterId
+  ) public view returns (uint256) {
+    return receivedMessages[recieverCasterId][senderCasterId].length;
   }
 
-  function readMessageFor(address omnicastId, address onOmnichannelId)
+  function readMessage(uint256 receiverCasterId, uint256 senderCasterId)
     public
     view
     returns (bytes memory)
   {
-    return readMessage[idOf(omnicastId)][idOf(onOmnichannelId)];
-  }
-
-  // Omnichannel — specify the address and branded omnichannel name to write to
-  function sendMessage(
-    uint16 toChainId,
-    address toAddress,
-    string memory omnichannelName,
-    bytes memory payload,
-    address lzPaymentAddress,
-    bytes memory lzTransactionParams
-  ) public payable {
-    sendMessage(
-      toChainId,
-      uint256(uint160(toAddress)),
-      omnichannel.idOf(omnichannelName),
-      payload,
-      lzPaymentAddress,
-      lzTransactionParams
-    );
-  }
-
-  function readMessageFor(address omnicastId, string memory channelName)
-    public
-    view
-    returns (bytes memory)
-  {
-    return readMessage[idOf(omnicastId)][omnichannel.idOf(channelName)];
+    bytes[] memory messages = receivedMessages[receiverCasterId][
+      senderCasterId
+    ];
+    return messages.length == 0 ? bytes("") : messages[messages.length - 1];
   }
 
   // Maximum control — specify the omnicast and omnichannel by ID
   function sendMessage(
     uint16 toChainId,
-    uint256 toOmnireceiverId,
-    uint256 onOmnichannelId,
+    uint256 toReceiverId,
+    uint256 withCasterId,
     bytes memory payload,
     address lzPaymentAddress,
     bytes memory lzTransactionParams
   ) public payable whenNotPaused {
     require(
-      (msg.sender == address(uint160(toOmnireceiverId)) ||
-        onOmnichannelId == idOf(msg.sender) ||
-        msg.sender == omnichannel.ownerOf(onOmnichannelId)),
+      (msg.sender == address(uint160(toReceiverId)) ||
+        withCasterId == idOf(msg.sender) ||
+        msg.sender == omnichannel.ownerOf(withCasterId)),
       "Omnicaster: UNAUTHORIZED_CHANNEL"
     );
 
     if (toChainId == currentChainId) {
-      readMessage[toOmnireceiverId][onOmnichannelId] = payload;
+      receivedMessages[toReceiverId][withCasterId].push(payload);
     } else {
       lzSend(
         toChainId,
-        abi.encode(toOmnireceiverId, onOmnichannelId, payload),
+        abi.encode(toReceiverId, withCasterId, payload),
         lzPaymentAddress,
         lzTransactionParams
       );
     }
 
-    emit Message(toChainId, toOmnireceiverId, onOmnichannelId, payload);
+    emit Message(toChainId, toReceiverId, withCasterId, payload);
   }
 
   function receiveMessage(
@@ -131,8 +96,7 @@ contract Omnicaster is IOmnicast, Omnichain, Pausable {
       (uint256, uint256, bytes)
     );
 
-    readMessage[omnicastId][channelId] = message;
-
+    receivedMessages[omnicastId][channelId].push(message);
     emit Message(currentChainId, omnicastId, channelId, message);
   }
 }
