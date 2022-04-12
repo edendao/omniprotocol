@@ -11,13 +11,15 @@ import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {Soulbound, Immovable} from "@protocol/mixins/Soulbound.sol";
 
 /*
- * An Omnicast is your cross-chain identity for the future.
+ * An Omnicast is your cross-chain identity in omnispace.
+ *
+ *
  */
 contract Omnicast is
   IERC721,
   IERC721Metadata,
-  Omnichain,
   Metta,
+  Omnichain,
   Pausable,
   Soulbound
 {
@@ -49,34 +51,59 @@ contract Omnicast is
   mapping(uint256 => address) public ownerOf;
 
   function mint() public payable returns (uint256, uint256) {
-    return mintTo(msg.sender);
-  }
-
-  function mintTo(address to) public payable returns (uint256, uint256) {
     require(msg.value >= 0.025 ether, "Omnicast: INSUFFICIENT_VALUE");
-    uint256 omnicastId = uint256(uint160(to));
+    uint256 omnicastId = uint256(uint160(msg.sender));
     require(ownerOf[omnicastId] == address(0), "Omnicast: NOT_AVAILABLE");
 
-    ownerOf[omnicastId] = to;
-    emit Transfer(address(0), to, omnicastId);
+    ownerOf[omnicastId] = msg.sender;
+    emit Transfer(address(0), msg.sender, omnicastId);
 
-    return (omnicastId, edn.mintTo(msg.sender, previewEDN(msg.value)));
+    return (omnicastId, note.mintTo(msg.sender, previewNote(msg.value)));
   }
 
-  // =======================================
-  // ======== Messaging Layer =========
-  // =======================================
+  // =================================
+  // ============ IERC721 ============
+  // =================================
+  function approve(address, uint256) external payable {
+    revert Immovable();
+  }
 
-  // On-chain data (myOmnicastId => onOmnichannelId => data)
-  mapping(uint256 => mapping(uint256 => bytes)) public readMessage;
+  function setApprovalForAll(address, bool) external pure {
+    revert Immovable();
+  }
 
-  uint256 public constant NAME_CHANNEL = (
-    0x5390756d6822bfddf4c057851c400cc27c97960f67128fa42a6d838b35584b8c
-  ); // name.eden.dao
+  function getApproved(uint256) external pure returns (address) {
+    return address(0);
+  }
 
-  uint256 public constant TOKENURI_CHANNEL = (
-    0x1de324d049794c1e40480a9129c30e42d9ada5968d6e81df7b8b9c0fa838251f
-  ); // tokenuri.eden.dao
+  function isApprovedForAll(address, address) external pure returns (bool) {
+    return false;
+  }
+
+  function transferFrom(
+    address from,
+    address to,
+    uint256 id
+  ) public payable override(IERC721, Soulbound) {
+    super.transferFrom(from, to, id);
+  }
+
+  function safeTransferFrom(
+    address from,
+    address to,
+    uint256 id
+  ) public payable override(IERC721, Soulbound) {
+    super.safeTransferFrom(from, to, id);
+  }
+
+  function safeTransferFrom(
+    address from,
+    address to,
+    uint256 id,
+    bytes calldata data
+  ) public payable override(IERC721, Soulbound) {
+    super.safeTransferFrom(from, to, id, data);
+  }
 
   function nameOf(uint256 omnicastId) public view returns (string memory) {
     return string(readMessage[omnicastId][NAME_CHANNEL]);
@@ -86,9 +113,20 @@ contract Omnicast is
     return string(readMessage[omnicastId][TOKENURI_CHANNEL]);
   }
 
-  // ===========================
-  // ======== Omnichain ========
-  // ===========================
+  // =====================================
+  // ===== OMNICAST MESSAGING LAYER ======
+  // =====================================
+  mapping(uint256 => mapping(uint256 => bytes)) public readMessage;
+  // (myOmnicastId => onOmnichannelId => data)
+
+  uint256 public constant NAME_CHANNEL = (
+    0x5390756d6822bfddf4c057851c400cc27c97960f67128fa42a6d838b35584b8c
+  ); // name.eden.dao
+
+  uint256 public constant TOKENURI_CHANNEL = (
+    0x1de324d049794c1e40480a9129c30e42d9ada5968d6e81df7b8b9c0fa838251f
+  ); // tokenuri.eden.dao
+
   event Message(
     uint256 indexed chainId,
     uint256 indexed omnicastId,
@@ -96,12 +134,12 @@ contract Omnicast is
     bytes data
   );
 
-  function readMessageFrom(address fromAddress)
+  function readMessageFor(address omnicastId, address onChannelId)
     public
     view
     returns (bytes memory)
   {
-    return readMessage[idOf(msg.sender)][idOf(fromAddress)];
+    return readMessage[idOf(omnicastId)][idOf(onChannelId)];
   }
 
   function sendMessage(
@@ -153,49 +191,5 @@ contract Omnicast is
     readMessage[omnicastId][channelId] = message;
 
     emit Message(currentChainId, omnicastId, channelId, message);
-  }
-
-  // =====================
-  // ====== IERC721 ======
-  // =====================
-  function approve(address, uint256) external payable {
-    revert Immovable();
-  }
-
-  function setApprovalForAll(address, bool) external pure {
-    revert Immovable();
-  }
-
-  function getApproved(uint256) external pure returns (address) {
-    return address(0);
-  }
-
-  function isApprovedForAll(address, address) external pure returns (bool) {
-    return false;
-  }
-
-  function transferFrom(
-    address from,
-    address to,
-    uint256 id
-  ) public payable override(IERC721, Soulbound) {
-    super.transferFrom(from, to, id);
-  }
-
-  function safeTransferFrom(
-    address from,
-    address to,
-    uint256 id
-  ) public payable override(IERC721, Soulbound) {
-    super.safeTransferFrom(from, to, id);
-  }
-
-  function safeTransferFrom(
-    address from,
-    address to,
-    uint256 id,
-    bytes calldata data
-  ) public payable override(IERC721, Soulbound) {
-    super.safeTransferFrom(from, to, id, data);
   }
 }

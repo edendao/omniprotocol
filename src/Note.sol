@@ -89,7 +89,6 @@ contract Note is ERC20, Omnichain, Pausable {
     _burn(msg.sender, amount);
 
     lzSend(toChainId, abi.encode(toAddress, amount));
-
     emit Noted(toChainId, msg.sender, toAddress, amount);
   }
 

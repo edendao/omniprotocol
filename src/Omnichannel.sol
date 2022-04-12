@@ -9,17 +9,17 @@ import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {Metta} from "@protocol/mixins/Metta.sol";
 
-contract Omnichannel is ERC721, Omnichain, Metta {
+contract Omnichannel is ERC721, Metta, Omnichain {
   uint16 public primaryChainId;
 
   constructor(
-    address _authority,
+    address _comptroller,
     address _lzEndpoint,
     address _edn,
     uint16 _primaryChainId
   )
-    ERC721("Eden Dao OmniOmnichannel", "OMNICHANNEL")
-    Omnichain(_authority, _lzEndpoint)
+    ERC721("Eden Dao Omnichannel", "OMNICHANNEL")
+    Omnichain(_comptroller, _lzEndpoint)
     Metta(_edn)
   {
     primaryChainId = _primaryChainId;
@@ -32,7 +32,7 @@ contract Omnichannel is ERC721, Omnichain, Metta {
       0xf689f82b3b8f0beecad45cce0f793c9553e6f68d339c23fe6cecb993903a1744
     ];
     for (uint256 i = 0; i < premint.length; i++) {
-      _mint(owner, premint[i]);
+      _mint(comptrollerAddress(), premint[i]);
     }
   }
 
@@ -56,9 +56,9 @@ contract Omnichannel is ERC721, Omnichain, Metta {
     _;
   }
 
-  // ========================
-  // ====== TOKEN URI =======
-  // ========================
+  // ==============================
+  // ========= TOKEN URI ==========
+  // ==============================
   mapping(uint256 => bytes) internal _tokenURI;
 
   function tokenURI(uint256 channelId)
@@ -83,6 +83,18 @@ contract Omnichannel is ERC721, Omnichain, Metta {
   // ===================================
   mapping(address => uint256) public mintsOf;
 
+  function mintTo(address to, string memory node)
+    external
+    requiresAuth
+    returns (uint256)
+  {
+    uint256 channelId = EdenDaoNS.namehash(node);
+    require(channelId > type(uint160).max, "Omnichannel: RESERVED_SPACE");
+
+    _mint(to, channelId);
+    return channelId;
+  }
+
   function mint(string memory node)
     external
     payable
@@ -100,7 +112,7 @@ contract Omnichannel is ERC721, Omnichain, Metta {
     require(channelId > type(uint160).max, "Omnichannel: RESERVED_SPACE");
 
     _mint(msg.sender, channelId);
-    return (channelId, edn.mintTo(msg.sender, previewEDN(msg.value)));
+    return (channelId, note.mintTo(msg.sender, previewNote(msg.value)));
   }
 
   function burn(uint256 channelId) external onlyOwnerOf(channelId) {

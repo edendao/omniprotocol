@@ -11,7 +11,6 @@ install-deps	:; yarn install
 build         	:; forge build
 xclean        	:; forge clean
 lint          	:; yarn run lint
-test          	:; forge test
-test-gasreport 	:; forge test --gas-report
+test          	:; forge test --gas-report --include-fuzz-test-gas --sizes
 # test-fork     :; forge test --gas-report --fork-url ${ETH_NODE}
 watch		  	:; forge test --watch src/ 

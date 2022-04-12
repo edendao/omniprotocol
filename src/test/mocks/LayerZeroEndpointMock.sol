@@ -15,8 +15,6 @@ if we run a ping-pong-like application, the recursive call might use all gas lim
 - not using any messaging library, hence all messaging library func, e.g. estimateFees, version, will not work
 */
 contract LayerZeroEndpointMock is ILayerZeroEndpoint {
-  mapping(address => address) public lzEndpointLookup;
-
   uint16 public mockChainId;
   address payable public mockOracle;
   address payable public mockRelayer;
@@ -48,12 +46,6 @@ contract LayerZeroEndpointMock is ILayerZeroEndpoint {
     return mockChainId;
   }
 
-  function setDestLzEndpoint(address destAddr, address lzEndpointAddr)
-    external
-  {
-    lzEndpointLookup[destAddr] = lzEndpointAddr;
-  }
-
   // Endpoint send() - the primary entry point for sending LayerZero message
   function send(
     uint16 _chainId,
@@ -64,12 +56,6 @@ contract LayerZeroEndpointMock is ILayerZeroEndpoint {
     bytes memory adapterParams
   ) external payable override {
     address destAddr = packedBytesToAddr(_dstContractAddress);
-    address lzEndpoint = lzEndpointLookup[destAddr];
-
-    require(
-      lzEndpoint != address(0),
-      "LayerZeroMock: destination LayerZero Endpoint not found"
-    );
 
     uint64 nonce;
     {
@@ -91,7 +77,7 @@ contract LayerZeroEndpointMock is ILayerZeroEndpoint {
     ); // cast this address to bytes
 
     inboundNonce[_chainId][abi.encodePacked(msg.sender)] = nonce;
-    LayerZeroEndpointMock(lzEndpoint).receiveAndForward(
+    this.receiveAndForward(
       destAddr,
       mockChainId,
       bytesSourceUserApplicationAddr,

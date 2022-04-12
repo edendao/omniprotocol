@@ -8,23 +8,7 @@ import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 
 abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
   ILayerZeroEndpoint public immutable lzEndpoint;
-  mapping(uint16 => bytes) public remoteContracts;
   uint16 public immutable currentChainId;
-
-  mapping(uint16 => mapping(bytes => mapping(uint256 => FailedMessage)))
-    public failedMessages;
-
-  struct FailedMessage {
-    uint256 payloadLength;
-    bytes32 payloadHash;
-  }
-
-  event LayerZeroReceiveFailed(
-    uint16 fromChainId,
-    bytes fromContractAddress,
-    uint64 nonce,
-    bytes payload
-  );
 
   constructor(address _authority, address _lzEndpoint) Comptrolled(_authority) {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
@@ -46,6 +30,8 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
         adapterParams
       );
   }
+
+  mapping(uint16 => bytes) public remoteContracts;
 
   function setTrustedRemoteContract(uint16 onChainId, address contractAddress)
     external
@@ -90,9 +76,24 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
       payload,
       payable(msg.sender),
       comptrollerAddress(),
-      comptroller().layerZeroTransactionParams()
+      comptroller.layerZeroTransactionParams()
     );
   }
+
+  mapping(uint16 => mapping(bytes => mapping(uint256 => FailedMessage)))
+    public failedMessages;
+
+  struct FailedMessage {
+    uint256 payloadLength;
+    bytes32 payloadHash;
+  }
+
+  event LayerZeroReceiveFailed(
+    uint16 fromChainId,
+    bytes fromContractAddress,
+    uint64 nonce,
+    bytes payload
+  );
 
   function lzReceive(
     uint16 fromChainId,
