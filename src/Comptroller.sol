@@ -9,7 +9,7 @@ contract Comptroller is MultiRolesAuthority {
   constructor(address _owner)
     MultiRolesAuthority(_owner, Authority(address(0)))
   {
-    this;
+    setAuthority(this);
   }
 
   function withdrawTo(address to, uint256 amount) public requiresAuth {

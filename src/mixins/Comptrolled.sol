@@ -30,15 +30,18 @@ contract Comptrolled {
     return address(comptroller);
   }
 
-  function withdrawTo(address to, uint256 amount) public requiresAuth {
-    payable(to).transfer(amount);
+  function withdraw(uint256 amount) public requiresAuth {
+    payable(comptrollerAddress()).transfer(amount);
   }
 
-  function withdrawToken(
-    address token,
-    address to,
-    uint256 idOrAmount
-  ) public requiresAuth {
-    TransferFromToken(token).transferFrom(address(this), to, idOrAmount);
+  function withdrawToken(address token, uint256 idOrAmount)
+    public
+    requiresAuth
+  {
+    TransferFromToken(token).transferFrom(
+      address(this),
+      comptrollerAddress(),
+      idOrAmount
+    );
   }
 }
