@@ -14,25 +14,25 @@ jobs:
         with:
           version: nightly
 
-      - name: Install node
-        uses: actions/setup-node@v2
-
       - name: Clone repo with submodules
         uses: actions/checkout@v2
         with:
           submodules: recursive
 
-      - name: Install yarn
+      - name: Install Node
+        uses: actions/setup-node@v2
+
+      - name: Install Yarn
         run: npm i -g yarn
 
-      - name: Install dependencies
+      - name: Install Deps
         run: make
 
-      - name: Show Foundry config
+      - name: Config
         run: forge config
 
-      - name: Check contracts are linted
+      - name: Lint
         run: yarn lint:check
 
-      - name: Run tests
+      - name: Test
         run: make test
