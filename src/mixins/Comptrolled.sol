@@ -9,7 +9,7 @@ contract Comptrolled {
   Comptroller public comptroller;
 
   constructor(address _comptroller) {
-    comptroller = Comptroller(_comptroller);
+    comptroller = Comptroller(payable(_comptroller));
   }
 
   modifier requiresAuth() {
@@ -17,6 +17,7 @@ contract Comptrolled {
     _;
   }
 
+  // Delegate to Comptroller
   function isAuthorized(address user, bytes4 functionSig)
     internal
     view
@@ -30,6 +31,7 @@ contract Comptrolled {
     return address(comptroller);
   }
 
+  // Withdraw to comptroller
   function withdraw(uint256 amount) public requiresAuth {
     payable(comptrollerAddress()).transfer(amount);
   }

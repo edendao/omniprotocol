@@ -23,4 +23,8 @@ contract Comptroller is MultiRolesAuthority {
   ) public requiresAuth {
     TransferFromToken(token).transferFrom(address(this), to, idOrAmount);
   }
+
+  receive() external payable {
+    this;
+  }
 }
