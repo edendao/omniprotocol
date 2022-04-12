@@ -32,7 +32,9 @@ contract OmnichannelTest is BaseProtocolDeployerTest {
   }
 
   function testInsufficientValue(address to) public {
-    hevm.assume(to != address(0) && to != owner);
+    hevm.assume(
+      to != address(0) && to != owner && myAddress.balance >= 0.025 ether
+    );
 
     hevm.expectRevert("Omnichannel: INSUFFICIENT_VALUE");
     omnichannel.mint{value: 0.025 ether}("prosperity");
