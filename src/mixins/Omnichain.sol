@@ -10,6 +10,8 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
   ILayerZeroEndpoint public immutable lzEndpoint;
   uint16 public immutable currentChainId;
 
+  mapping(uint16 => bytes) public remoteContracts;
+
   constructor(address _comptroller, address _lzEndpoint)
     Comptrolled(_comptroller)
   {
@@ -17,30 +19,12 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     currentChainId = uint16(block.chainid);
   }
 
-  function estimateLzSendGas(
-    uint16 toChainId,
-    bytes memory payload,
-    bool useZRO,
-    bytes memory adapterParams
-  ) public view returns (uint256 nativeFee, uint256 zroFee) {
-    return
-      lzEndpoint.estimateFees(
-        toChainId,
-        address(this),
-        payload,
-        useZRO,
-        adapterParams
-      );
-  }
-
-  mapping(uint16 => bytes) public remoteContracts;
-
   function setTrustedRemoteContract(uint16 onChainId, address contractAddress)
     external
     requiresAuth
   {
     require(onChainId != currentChainId, "Omnichain: INVALID_CHAIN");
-    remoteContracts[onChainId] = abi.encode(contractAddress);
+    remoteContracts[onChainId] = abi.encodePacked(contractAddress);
   }
 
   function setLzConfig(
@@ -65,6 +49,22 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     requiresAuth
   {
     lzEndpoint.forceResumeReceive(srcChainId, srcAddress);
+  }
+
+  function estimateLzSendGas(
+    uint16 toChainId,
+    bytes memory payload,
+    bool useZRO,
+    bytes memory adapterParams
+  ) public view returns (uint256 nativeFee, uint256 zroFee) {
+    return
+      lzEndpoint.estimateFees(
+        toChainId,
+        address(this),
+        payload,
+        useZRO,
+        adapterParams
+      );
   }
 
   function lzSend(
