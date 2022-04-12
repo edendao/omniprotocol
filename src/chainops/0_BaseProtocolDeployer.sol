@@ -20,17 +20,19 @@ contract BaseProtocolDeployer {
     comptroller = new Comptroller(owner);
 
     note = new Note(address(comptroller), layerZeroEndpoint);
+
     omnichannel = new Omnichannel(
       address(comptroller),
       layerZeroEndpoint,
       address(note),
       primaryChainId
     );
+
     omnicast = new Omnicast(
       address(comptroller),
       layerZeroEndpoint,
-      address(note),
-      address(omnichannel)
+      address(omnichannel),
+      address(note)
     );
   }
 }

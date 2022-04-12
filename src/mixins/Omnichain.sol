@@ -10,7 +10,9 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
   ILayerZeroEndpoint public immutable lzEndpoint;
   uint16 public immutable currentChainId;
 
-  constructor(address _authority, address _lzEndpoint) Comptrolled(_authority) {
+  constructor(address _comptroller, address _lzEndpoint)
+    Comptrolled(_comptroller)
+  {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
     currentChainId = uint16(block.chainid);
   }

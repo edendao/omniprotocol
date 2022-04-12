@@ -7,9 +7,9 @@ import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
 
 contract Note is ERC20, Omnichain, Pausable {
-  constructor(address _authority, address _lzEndpoint)
+  constructor(address _comptroller, address _lzEndpoint)
     ERC20("Eden Dao Note", "EDN", 3)
-    Omnichain(_authority, _lzEndpoint)
+    Omnichain(_comptroller, _lzEndpoint)
   {
     this;
   }
