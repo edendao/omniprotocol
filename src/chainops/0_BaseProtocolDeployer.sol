@@ -17,7 +17,7 @@ contract BaseProtocolDeployer {
     address layerZeroEndpoint,
     uint16 primaryChainId
   ) {
-    comptroller = new Comptroller(owner);
+    comptroller = new Comptroller(address(this));
 
     note = new Note(address(comptroller), layerZeroEndpoint);
 
@@ -34,5 +34,12 @@ contract BaseProtocolDeployer {
       address(omnichannel),
       address(note)
     );
+
+    uint8 noteMinter = 0;
+    comptroller.setRoleCapability(noteMinter, note.mintTo.selector, true);
+    comptroller.setUserRole(address(omnichannel), noteMinter, true);
+    comptroller.setUserRole(address(omnicast), noteMinter, true);
+
+    comptroller.setOwner(owner);
   }
 }

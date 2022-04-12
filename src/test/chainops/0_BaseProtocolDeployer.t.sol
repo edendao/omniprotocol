@@ -21,22 +21,11 @@ contract BaseProtocolDeployerTest is DSTestPlus {
   LayerZeroEndpointMock internal layerZeroEndpoint =
     new LayerZeroEndpointMock(primaryChainId);
 
-  BaseProtocolDeployer internal base =
+  BaseProtocolDeployer internal protocol =
     new BaseProtocolDeployer(owner, address(layerZeroEndpoint), primaryChainId);
 
-  Comptroller internal comptroller = base.comptroller();
-  Note internal note = base.note();
-  Omnicast internal omnicast = base.omnicast();
-  Omnichannel internal omnichannel = base.omnichannel();
-
-  function setUp() public {
-    hevm.startPrank(owner);
-
-    uint8 noteMinter = 0;
-    comptroller.setRoleCapability(noteMinter, note.mintTo.selector, true);
-    comptroller.setUserRole(address(omnichannel), noteMinter, true);
-    comptroller.setUserRole(address(omnicast), noteMinter, true);
-
-    hevm.stopPrank();
-  }
+  Comptroller internal comptroller = protocol.comptroller();
+  Note internal note = protocol.note();
+  Omnicast internal omnicast = protocol.omnicast();
+  Omnichannel internal omnichannel = protocol.omnichannel();
 }
