@@ -19,7 +19,7 @@ contract OmnichannelTest is BaseProtocolDeployerTest {
     hevm.deal(to, 0.05 ether);
     hevm.startPrank(to);
 
-    (uint256 channelId, uint256 ednEarned) = omnichannel.mint{
+    (uint256 channelId, uint256 noteReceived) = omnichannel.mint{
       value: 0.05 ether
     }("prosperity");
 
@@ -28,7 +28,7 @@ contract OmnichannelTest is BaseProtocolDeployerTest {
     assertEq(omnichannel.balanceOf(to), 1);
     assertEq(omnichannel.ownerOf(channelId), to);
     assertEq(channelId, omnichannel.idOf("prosperity"));
-    assertEq(note.balanceOf(to), ednEarned);
+    assertEq(note.balanceOf(to), noteReceived);
   }
 
   function testInsufficientValue(address to) public {

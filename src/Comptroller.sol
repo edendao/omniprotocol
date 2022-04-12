@@ -12,10 +12,6 @@ contract Comptroller is MultiRolesAuthority {
     this;
   }
 
-  function layerZeroTransactionParams() public pure returns (bytes memory) {
-    return "";
-  }
-
   function withdrawTo(address to, uint256 amount) public requiresAuth {
     payable(to).transfer(amount);
   }

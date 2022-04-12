@@ -145,13 +145,17 @@ contract Omnicast is
   function sendMessage(
     uint16 toChainId,
     address toAddress,
-    bytes memory payload
+    bytes memory payload,
+    address lzPaymentAddress,
+    bytes memory lzTransactionParams
   ) public payable {
     sendMessage(
       toChainId,
       uint256(uint160(toAddress)),
       idOf(msg.sender),
-      payload
+      payload,
+      lzPaymentAddress,
+      lzTransactionParams
     );
   }
 
@@ -159,7 +163,9 @@ contract Omnicast is
     uint16 toChainId,
     uint256 toOmnicastId,
     uint256 onOmnichannelId,
-    bytes memory payload
+    bytes memory payload,
+    address lzPaymentAddress,
+    bytes memory lzTransactionParams
   ) public payable whenNotPaused {
     require(
       (msg.sender == ownerOf[toOmnicastId] ||
@@ -171,7 +177,12 @@ contract Omnicast is
     if (toChainId == currentChainId) {
       readMessage[toOmnicastId][onOmnichannelId] = payload;
     } else {
-      lzSend(toChainId, abi.encode(toOmnicastId, onOmnichannelId, payload));
+      lzSend(
+        toChainId,
+        abi.encode(toOmnicastId, onOmnichannelId, payload),
+        lzPaymentAddress,
+        lzTransactionParams
+      );
     }
 
     emit Message(toChainId, toOmnicastId, onOmnichannelId, payload);

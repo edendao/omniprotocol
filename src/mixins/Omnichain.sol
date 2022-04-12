@@ -65,7 +65,12 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     lzEndpoint.forceResumeReceive(srcChainId, srcAddress);
   }
 
-  function lzSend(uint16 toChainId, bytes memory payload) internal {
+  function lzSend(
+    uint16 toChainId,
+    bytes memory payload,
+    address lzPaymentAddress,
+    bytes memory lzTransactionParams
+  ) internal {
     (uint256 nativeFee, ) = estimateLzSendGas(toChainId, payload, false, "");
     require(msg.value >= nativeFee, "Omnichain: INSUFFICIENT_VALUE");
 
@@ -75,8 +80,8 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
       remoteContracts[toChainId],
       payload,
       payable(msg.sender),
-      comptrollerAddress(),
-      comptroller.layerZeroTransactionParams()
+      lzPaymentAddress,
+      lzTransactionParams
     );
   }
 

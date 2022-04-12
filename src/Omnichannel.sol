@@ -164,11 +164,18 @@ contract Omnichannel is ERC721, Metta, Omnichain {
   function omniTransfer(
     uint16 toChainId,
     address toAddress,
-    uint256 channelId
+    uint256 channelId,
+    address lzPaymentAddress,
+    bytes memory lzTransactionParams
   ) external payable onlyOwnerOf(channelId) {
     _burn(channelId);
 
-    lzSend(toChainId, abi.encode(toAddress, channelId, _tokenURI[channelId]));
+    lzSend(
+      toChainId,
+      abi.encode(toAddress, channelId, _tokenURI[channelId]),
+      lzPaymentAddress,
+      lzTransactionParams
+    );
   }
 
   function receiveMessage(

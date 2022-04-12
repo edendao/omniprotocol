@@ -33,7 +33,7 @@ contract OmnicastTest is BaseProtocolDeployerTest {
   }
 
   function testSendAndReadMessage(address to, bytes memory payload) public {
-    omnicast.sendMessage(uint16(block.chainid), to, payload);
+    omnicast.sendMessage(uint16(block.chainid), to, payload, address(0), "");
     assertEq0(omnicast.readMessageFor(to, myAddress), payload);
   }
 
@@ -51,7 +51,14 @@ contract OmnicastTest is BaseProtocolDeployerTest {
     uint256 omnicastId = omnicast.idOf(omnicastAddress);
     uint256 channelId = omnicast.idOf(omnicastChannel);
     hevm.expectRevert("Omnicast: UNAUTHORIZED_CHANNEL");
-    omnicast.sendMessage(uint16(block.chainid), omnicastId, channelId, payload);
+    omnicast.sendMessage(
+      uint16(block.chainid),
+      omnicastId,
+      channelId,
+      payload,
+      address(0),
+      ""
+    );
 
     assertEq0(omnicast.readMessageFor(omnicastAddress, omnicastChannel), "");
   }

@@ -84,11 +84,18 @@ contract Note is ERC20, Omnichain, Pausable {
   function omniTransfer(
     uint16 toChainId,
     address toAddress,
-    uint256 amount
+    uint256 amount,
+    address lzPaymentAddress,
+    bytes memory lzTransactionParams
   ) external payable whenNotPaused {
     _burn(msg.sender, amount);
 
-    lzSend(toChainId, abi.encode(toAddress, amount));
+    lzSend(
+      toChainId,
+      abi.encode(toAddress, amount),
+      lzPaymentAddress,
+      lzTransactionParams
+    );
     emit Noted(toChainId, msg.sender, toAddress, amount);
   }
 
