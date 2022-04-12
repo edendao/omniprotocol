@@ -6,14 +6,12 @@ import {DSTestPlus} from "@rari-capital/solmate/test/utils/DSTestPlus.sol";
 
 import {LayerZeroEndpointMock} from "@protocol/test/mocks/LayerZeroEndpointMock.sol";
 
-import {BaseProtocolDeployer} from "@protocol/chainops/0_BaseProtocolDeployer.sol";
-
 import {Comptroller} from "@protocol/Comptroller.sol";
 import {Note} from "@protocol/Note.sol";
 import {Omnicast} from "@protocol/Omnicast.sol";
 import {Omnichannel} from "@protocol/Omnichannel.sol";
 
-contract BaseProtocolDeployerTest is DSTestPlus {
+contract TestEnvironment is DSTestPlus {
   address internal myAddress = address(this);
   address internal ownerAddress = hevm.addr(42);
 
@@ -21,15 +19,32 @@ contract BaseProtocolDeployerTest is DSTestPlus {
   LayerZeroEndpointMock internal layerZeroEndpoint =
     new LayerZeroEndpointMock(primaryChainId);
 
-  BaseProtocolDeployer internal protocol =
-    new BaseProtocolDeployer(
-      ownerAddress,
+  Comptroller internal comptroller = new Comptroller(address(this));
+
+  Note internal note =
+    new Note(address(comptroller), address(layerZeroEndpoint));
+
+  Omnichannel internal omnichannel =
+    new Omnichannel(
+      address(comptroller),
       address(layerZeroEndpoint),
+      address(note),
       primaryChainId
     );
 
-  Comptroller internal comptroller = protocol.comptroller();
-  Note internal note = protocol.note();
-  Omnicast internal omnicast = protocol.omnicast();
-  Omnichannel internal omnichannel = protocol.omnichannel();
+  Omnicast internal omnicast =
+    new Omnicast(
+      address(comptroller),
+      address(layerZeroEndpoint),
+      address(omnichannel),
+      address(note)
+    );
+
+  function setUp() public {
+    uint8 noteMinter = 0;
+    comptroller.setRoleCapability(noteMinter, note.mintTo.selector, true);
+    comptroller.setUserRole(address(omnichannel), noteMinter, true);
+    comptroller.setUserRole(address(omnicast), noteMinter, true);
+    comptroller.setOwner(ownerAddress);
+  }
 }

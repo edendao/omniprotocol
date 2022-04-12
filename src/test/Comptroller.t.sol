@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {BaseProtocolDeployerTest} from "@protocol/test/chainops/0_BaseProtocolDeployer.t.sol";
+import {TestEnvironment} from "@protocol/test/TestEnvironment.t.sol";
 
-contract ComptrollerTest is BaseProtocolDeployerTest {
+contract ComptrollerTest is TestEnvironment {
   function testOwner() public {
     assertEq(comptroller.owner(), ownerAddress);
   }
@@ -20,9 +20,8 @@ contract ComptrollerTest is BaseProtocolDeployerTest {
   function testWithdrawTo(address receiver, uint256 amount) public {
     comptrollerTransfer(amount);
 
-    hevm.startPrank(ownerAddress);
+    hevm.prank(ownerAddress);
     comptroller.withdrawTo(receiver, amount);
-    hevm.stopPrank();
 
     assertEq(receiver.balance, amount);
   }
