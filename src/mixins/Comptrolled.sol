@@ -5,7 +5,7 @@ import {TransferFromToken} from "@protocol/interfaces/TransferFromToken.sol";
 
 import {Comptroller} from "@protocol/Comptroller.sol";
 
-contract Comptrolled {
+abstract contract Comptrolled {
   Comptroller public comptroller;
 
   constructor(address _comptroller) {
@@ -31,7 +31,6 @@ contract Comptrolled {
     return address(comptroller);
   }
 
-  // Withdraw to comptroller
   function withdraw(uint256 amount) public requiresAuth {
     payable(comptrollerAddress()).transfer(amount);
   }
