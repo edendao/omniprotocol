@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 interface IOmnicast {
-  function readMessage(uint256 omniReceiverId, uint256 omniSenderId)
+  function readMessage(uint256 receiverCasterId, uint256 senderCasterId)
     external
     view
     returns (bytes memory);
