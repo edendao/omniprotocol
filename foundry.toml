@@ -1,5 +1,5 @@
 # Full reference
-# https://onbjerg.github.io/foundry-book/reference/config.html
+# https://book.getfoundry.sh/reference/config.html
 [default]
 solc_version = "0.8.13"
 optimizer = true
@@ -8,3 +8,4 @@ gas_reports = ["*"]
 
 [ci]
 verbosity = 4
+fuzz_runs = 65536
