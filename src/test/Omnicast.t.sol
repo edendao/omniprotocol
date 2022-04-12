@@ -35,7 +35,7 @@ contract OmnicastTest is BaseProtocolDeployerTest {
   function testSendingGas() public {
     omnicast.sendMessage(
       uint16(block.chainid),
-      omnicast.idOf(owner),
+      omnicast.idOf(ownerAddress),
       omnicast.idOf(address(this)),
       "prosperity",
       address(0),

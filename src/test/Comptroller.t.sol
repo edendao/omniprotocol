@@ -5,7 +5,7 @@ import {BaseProtocolDeployerTest} from "@protocol/test/chainops/0_BaseProtocolDe
 
 contract ComptrollerTest is BaseProtocolDeployerTest {
   function testOwner() public {
-    assertEq(comptroller.owner(), owner);
+    assertEq(comptroller.owner(), ownerAddress);
   }
 
   function testAuthority() public {
@@ -20,7 +20,7 @@ contract ComptrollerTest is BaseProtocolDeployerTest {
   function testWithdrawTo(address receiver, uint256 amount) public {
     comptrollerTransfer(amount);
 
-    hevm.startPrank(owner);
+    hevm.startPrank(ownerAddress);
     comptroller.withdrawTo(receiver, amount);
     hevm.stopPrank();
 

@@ -9,13 +9,13 @@ contract OmnichannelTest is BaseProtocolDeployerTest {
   }
 
   function testMintToGas() public {
-    hevm.startPrank(owner);
+    hevm.startPrank(ownerAddress);
     omnichannel.mintTo(myAddress, "prosperity");
     hevm.stopPrank();
   }
 
   function testMint(address to) public {
-    hevm.assume(to != address(0) && to != owner);
+    hevm.assume(to != address(0) && to != ownerAddress);
     hevm.deal(to, 0.05 ether);
     hevm.startPrank(to);
 
@@ -31,11 +31,8 @@ contract OmnichannelTest is BaseProtocolDeployerTest {
     assertEq(note.balanceOf(to), noteReceived);
   }
 
-  function testInsufficientValue(address to) public {
-    hevm.assume(
-      to != address(0) && to != owner && myAddress.balance >= 0.025 ether
-    );
-
+  function testInsufficientValue() public {
+    hevm.assume(myAddress.balance >= 0.025 ether);
     hevm.expectRevert("Omnichannel: INSUFFICIENT_VALUE");
     omnichannel.mint{value: 0.025 ether}("prosperity");
   }
