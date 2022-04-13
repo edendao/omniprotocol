@@ -4,13 +4,18 @@ pragma solidity ^0.8.13;
 import {TestEnvironment} from "@protocol/test/TestEnvironment.t.sol";
 
 contract OmnichannelTest is TestEnvironment {
+  uint256 internal immutable omnichannelId = omnichannel.idOf("prosperity");
+
+  function testMintGas() public {
+    omnichannel.mintTo(address(this), omnichannelId);
+  }
+
   function testMintTo(address to) public {
     hevm.assume(to != address(0));
 
-    uint256 omnichannelId = omnichannel.mintTo(to, "prosperity");
+    omnichannel.mintTo(to, omnichannelId);
 
     assertEq(omnichannel.ownerOf(omnichannelId), to);
-    assertEq(omnichannelId, omnichannel.idOf("prosperity"));
   }
 
   function testMintToRequiresAuth(address caller) public {
@@ -18,6 +23,6 @@ contract OmnichannelTest is TestEnvironment {
 
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
     hevm.prank(caller);
-    omnichannel.mintTo(caller, "prosperity");
+    omnichannel.mintTo(caller, omnichannelId);
   }
 }

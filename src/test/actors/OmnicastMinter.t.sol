@@ -16,6 +16,10 @@ contract OmnicastMinterTest is TestEnvironment {
     comptroller.setUserRole(address(minter), minterRole, true);
   }
 
+  function testClaimGas() public {
+    minter.claim{value: minter.claimRequirement()}();
+  }
+
   function testClaim(address caller, uint256 value) public {
     hevm.deal(caller, value);
     hevm.startPrank(caller);
@@ -42,6 +46,7 @@ contract OmnicastMinterTest is TestEnvironment {
         caller != address(0) &&
         value > minter.claimRequirement()
     );
+    // solhint-disable-next-line avoid-low-level-calls
     (bool ok, ) = address(minter).call{value: value}("");
     assertTrue(ok);
     assertEq(1, omnicast.balanceOf(caller));

@@ -30,10 +30,14 @@ contract OmnichannelMinter is Comptrolled {
     return (amountMintedBy[msg.sender] + 1) * 0.05 ether;
   }
 
-  function claim(string memory node)
+  function claim(string memory node) public payable returns (uint256, uint256) {
+    return claim(omnichannel.idOf(node));
+  }
+
+  function claim(uint256 omnichannelId)
     public
     payable
-    returns (uint256 omnichannelId, uint256 notesReceived)
+    returns (uint256, uint256)
   {
     require(amountMintedBy[msg.sender] < 10, "OmnichannelMinter: MINT_LIMIT");
     require(
@@ -42,7 +46,7 @@ contract OmnichannelMinter is Comptrolled {
     );
 
     amountMintedBy[msg.sender] += 1;
-    omnichannelId = omnichannel.mintTo(msg.sender, node);
-    notesReceived = note.mintTo(msg.sender, optimismNotes(msg.value));
+    omnichannel.mintTo(msg.sender, omnichannelId);
+    return (omnichannelId, note.mintTo(msg.sender, optimismNotes(msg.value)));
   }
 }

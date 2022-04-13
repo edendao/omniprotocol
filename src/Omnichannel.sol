@@ -78,13 +78,12 @@ contract Omnichannel is ERC721, Omnichain {
   // ===================================
   // ===== MINTS, BURNS, TRANSFERS =====
   // ===================================
-  function mintTo(address to, string memory node)
+  function mintTo(address to, uint256 channelId)
     external
     onlyPrimaryChain
     requiresAuth
     returns (uint256)
   {
-    uint256 channelId = EdenDaoNS.namehash(node);
     require(channelId > type(uint160).max, "Omnichannel: RESERVED_SPACE");
 
     _mint(to, channelId);

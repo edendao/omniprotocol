@@ -4,6 +4,10 @@ pragma solidity ^0.8.13;
 import {TestEnvironment} from "@protocol/test/TestEnvironment.t.sol";
 
 contract NoteTest is TestEnvironment {
+  function testMintGas() public {
+    note.mintTo(address(this), 10_000_000);
+  }
+
   function testMintTo(address to, uint256 amount) public {
     hevm.assume(to != address(0));
     note.mintTo(to, amount);

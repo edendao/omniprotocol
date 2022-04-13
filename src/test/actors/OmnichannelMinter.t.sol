@@ -24,7 +24,11 @@ contract OmnichannelMinterTest is TestEnvironment {
     comptroller.setUserRole(address(minter), minterRole, true);
   }
 
-  function testReserve(address caller, uint256 value) public {
+  function testClaimGas() public {
+    minter.claim{value: minter.claimRequirement()}("prosperity");
+  }
+
+  function testClaim(address caller, uint256 value) public {
     hevm.deal(caller, value);
     hevm.startPrank(caller);
 
