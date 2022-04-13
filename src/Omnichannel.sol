@@ -38,18 +38,14 @@ contract Omnichannel is ERC721, Omnichain {
   }
 
   // ========================
-  // ====== MODIFIERS =======
+  // ====== OWNERSHIP =======
   // ========================
-  modifier onlyPrimaryChain() {
-    require(
-      currentChainId == primaryChainId,
-      "Omnichannel: ONLY_PRIMARY_CHAIN"
-    );
-    _;
+  function ownerAddressOf(uint256 channelId) public view returns (address) {
+    return _ownerOf[channelId]; // Non-reverting version of ownerOf
   }
 
   modifier onlyOwnerOf(uint256 channelId) {
-    require(msg.sender == ownerOf[channelId], "Omnichannel: ONLY_OWNER");
+    require(msg.sender == ownerOf(channelId), "Omnichannel: ONLY_OWNER");
     _;
   }
 
@@ -64,7 +60,6 @@ contract Omnichannel is ERC721, Omnichain {
     override
     returns (string memory)
   {
-    require(ownerOf[channelId] != address(0), "Omnichannel: INVALID_CHANNEL");
     return string(_tokenURI[channelId]);
   }
 
@@ -80,10 +75,10 @@ contract Omnichannel is ERC721, Omnichain {
   // ===================================
   function mintTo(address to, uint256 channelId)
     external
-    onlyPrimaryChain
     requiresAuth
     returns (uint256)
   {
+    require(currentChainId == primaryChainId, "Omnichannel: INVALID_CHAIN");
     require(channelId > type(uint160).max, "Omnichannel: RESERVED_SPACE");
 
     _mint(to, channelId);
@@ -123,11 +118,11 @@ contract Omnichannel is ERC721, Omnichain {
     // Underflow of the sender's balance is impossible because we check for
     // ownership above and the recipient's balance can't realistically overflow.
     unchecked {
-      balanceOf[from]--;
-      balanceOf[to]++;
+      _balanceOf[from]--;
+      _balanceOf[to]++;
     }
 
-    ownerOf[id] = to;
+    _ownerOf[id] = to;
     delete getApproved[id];
 
     emit Transfer(from, to, id);

@@ -1,8 +1,8 @@
-@rari-capital/solmate/=lib/solmate/src/
-@layerzerolabs/contracts/=lib/LayerZero/contracts/
-@ensdomains/ens-contracts/=lib/ens-contracts/contracts/
-@protocol/=src/
 @boring/=lib/BoringSolidity/contracts/
+@layerzerolabs/contracts/=lib/LayerZero/contracts/
+@protocol/=src/
+@proxy/=lib/prb-proxy/contracts/
+@rari-capital/solmate/=lib/solmate/src/
 ds-proxy/=lib/ds-proxy/src/
 ds-test/=lib/ds-test/src/
 forge-std/=lib/forge-std/src/

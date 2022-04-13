@@ -44,7 +44,9 @@ contract OmnicastTest is TestEnvironment {
     assertEq(uri, omnicast.tokenURI(omnicastId));
   }
 
-  function testSettingWrongTokenURI(address caller, string memory uri) public {
+  function testSettingUnmintedTokenURI(address caller, string memory uri)
+    public
+  {
     hevm.assume(caller != address(0) && caller != address(this));
 
     uint256 omnicastId = omnicast.mintTo(caller);
@@ -52,5 +54,15 @@ contract OmnicastTest is TestEnvironment {
     hevm.expectRevert("Omnicaster: UNAUTHORIZED_CHANNEL");
     hevm.prank(caller);
     omnicast.setTokenURI(omnicastId + 1, uri);
+  }
+
+  function testSettingOtherTokenURI(address caller, string memory uri) public {
+    hevm.assume(caller != address(0) && caller != address(this));
+
+    uint256 myOmnicastId = omnicast.mintTo(address(this));
+
+    hevm.expectRevert("Omnicaster: UNAUTHORIZED_CHANNEL");
+    hevm.prank(caller);
+    omnicast.setTokenURI(myOmnicastId, uri);
   }
 }

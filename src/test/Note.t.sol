@@ -22,11 +22,12 @@ contract NoteTest is TestEnvironment {
     note.mintTo(caller, amount);
   }
 
-  function testBurnRequiresAuth(address from, uint256 amount) public {
-    note.mintTo(from, amount);
+  function testBurnRequiresAuth(address caller, uint256 amount) public {
+    hevm.assume(caller != address(this));
+    note.mintTo(caller, amount);
 
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
-    hevm.prank(from);
-    note.burnFrom(from, amount);
+    hevm.prank(caller);
+    note.burnFrom(caller, amount);
   }
 }

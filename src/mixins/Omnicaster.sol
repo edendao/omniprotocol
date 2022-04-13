@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {console} from "forge-std/console.sol";
-
 import {IERC721} from "@boring/interfaces/IERC721.sol";
 
 import {IOmnicaster} from "@protocol/interfaces/IOmnicaster.sol";
 import {EdenDaoNS} from "@protocol/libraries/EdenDaoNS.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
+
+interface IOmnichannel {
+  function ownerAddressOf(uint256 channelId) external view returns (address);
+}
 
 // Only for use with Omnicast
 abstract contract Omnicaster is IOmnicaster, Omnichain, Pausable {
@@ -34,7 +36,7 @@ abstract contract Omnicaster is IOmnicaster, Omnichain, Pausable {
   // ===== OMNICAST MESSAGING LAYER ======
   // =====================================
   event Message(
-    uint16 indexed chainId,
+    uint16 chainId,
     uint64 nonce,
     uint256 indexed receiverId,
     uint256 indexed senderId,
@@ -86,7 +88,8 @@ abstract contract Omnicaster is IOmnicaster, Omnichain, Pausable {
     require(
       (msg.sender == address(uint160(toReceiverId)) ||
         withSenderId == idOf(msg.sender) ||
-        msg.sender == omnichannel.ownerOf(withSenderId)),
+        (toReceiverId > type(uint160).max &&
+          msg.sender == omnichannel.ownerOf(toReceiverId))),
       "Omnicaster: UNAUTHORIZED_CHANNEL"
     );
 
