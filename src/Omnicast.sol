@@ -5,13 +5,12 @@ import {IERC721TokenReceiver} from "@boring/interfaces/IERC721TokenReceiver.sol"
 import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";
 
 import {Soulbound, Immovable} from "@protocol/mixins/Soulbound.sol";
-import {Metta} from "@protocol/mixins/Metta.sol";
 import {Omnicaster} from "@protocol/mixins/Omnicaster.sol";
 
 // ===================================================
 // An Omnicast is your on-chain identity in omnispace.
 // ===================================================
-contract Omnicast is IERC721, IERC721Metadata, Omnicaster, Metta, Soulbound {
+contract Omnicast is IERC721, IERC721Metadata, Omnicaster, Soulbound {
   string public constant name = "Eden Dao Omnicast";
   string public constant symbol = "OMNICAST";
   mapping(uint256 => address) public ownerOf;
@@ -19,9 +18,8 @@ contract Omnicast is IERC721, IERC721Metadata, Omnicaster, Metta, Soulbound {
   constructor(
     address _comptroller,
     address _layerZeroEndpoint,
-    address _omnichannel,
-    address _note
-  ) Omnicaster(_comptroller, _layerZeroEndpoint, _omnichannel) Metta(_note) {
+    address _omnichannel
+  ) Omnicaster(_comptroller, _layerZeroEndpoint, _omnichannel) {
     this;
   }
 
@@ -30,15 +28,14 @@ contract Omnicast is IERC721, IERC721Metadata, Omnicaster, Metta, Soulbound {
     return ownerOf[idOf(a)] == address(0) ? 0 : 1;
   }
 
-  function mint() public payable returns (uint256, uint256) {
-    require(msg.value >= 0.025 ether, "Omnicast: INSUFFICIENT_VALUE");
-    uint256 omnicastId = idOf(msg.sender);
+  function mintTo(address to) external requiresAuth returns (uint256) {
+    uint256 omnicastId = idOf(to);
     require(ownerOf[omnicastId] == address(0), "Omnicast: NOT_AVAILABLE");
 
-    ownerOf[omnicastId] = msg.sender;
-    emit Transfer(address(0), msg.sender, omnicastId);
+    ownerOf[omnicastId] = to;
+    emit Transfer(address(0), to, omnicastId);
 
-    return (omnicastId, note.mintTo(msg.sender, previewNote(msg.value)));
+    return omnicastId;
   }
 
   uint256 public constant NAME_CHANNEL = (
@@ -55,6 +52,34 @@ contract Omnicast is IERC721, IERC721Metadata, Omnicaster, Metta, Soulbound {
 
   function tokenURI(uint256 omnicastId) public view returns (string memory) {
     return string(readMessage(omnicastId, TOKENURI_CHANNEL));
+  }
+
+  function setTokenURI(uint256 omnicastId, string memory uri) public {
+    sendMessage(
+      currentChainId,
+      omnicastId,
+      TOKENURI_CHANNEL,
+      bytes(uri),
+      address(0),
+      ""
+    );
+  }
+
+  function sendTokenURI(
+    uint16 toChainId,
+    uint256 omnicastId,
+    string memory uri,
+    address lzPaymentAddress,
+    bytes memory lzTransactionParams
+  ) public {
+    sendMessage(
+      toChainId,
+      omnicastId,
+      TOKENURI_CHANNEL,
+      bytes(uri),
+      lzPaymentAddress,
+      lzTransactionParams
+    );
   }
 
   // =================================

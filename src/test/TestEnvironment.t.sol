@@ -15,9 +15,9 @@ contract TestEnvironment is DSTestPlus {
   address internal myAddress = address(this);
   address internal ownerAddress = hevm.addr(42);
 
-  uint16 internal primaryChainId = uint16(block.chainid);
+  uint16 internal currentChainId = uint16(block.chainid);
   LayerZeroEndpointMock internal layerZeroEndpoint =
-    new LayerZeroEndpointMock(primaryChainId);
+    new LayerZeroEndpointMock(currentChainId);
 
   Comptroller internal comptroller = new Comptroller(address(this));
 
@@ -28,23 +28,13 @@ contract TestEnvironment is DSTestPlus {
     new Omnichannel(
       address(comptroller),
       address(layerZeroEndpoint),
-      address(note),
-      primaryChainId
+      currentChainId
     );
 
   Omnicast internal omnicast =
     new Omnicast(
       address(comptroller),
       address(layerZeroEndpoint),
-      address(omnichannel),
-      address(note)
+      address(omnichannel)
     );
-
-  function setUp() public {
-    uint8 noteMinter = 0;
-    comptroller.setRoleCapability(noteMinter, note.mintTo.selector, true);
-    comptroller.setUserRole(address(omnichannel), noteMinter, true);
-    comptroller.setUserRole(address(omnicast), noteMinter, true);
-    comptroller.setOwner(ownerAddress);
-  }
 }

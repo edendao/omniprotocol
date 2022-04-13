@@ -5,6 +5,11 @@ import {TestEnvironment} from "@protocol/test/TestEnvironment.t.sol";
 
 contract ComptrollerTest is TestEnvironment {
   function testOwner() public {
+    assertEq(comptroller.owner(), myAddress);
+  }
+
+  function testSetOwner() public {
+    comptroller.setOwner(ownerAddress);
     assertEq(comptroller.owner(), ownerAddress);
   }
 
@@ -19,17 +24,14 @@ contract ComptrollerTest is TestEnvironment {
 
   function testWithdrawTo(address receiver, uint256 amount) public {
     comptrollerTransfer(amount);
-
-    hevm.prank(ownerAddress);
     comptroller.withdrawTo(receiver, amount);
-
     assertEq(receiver.balance, amount);
   }
 
-  function testUnauthorizedWithdrawTo(address receiver, uint256 amount) public {
+  function testWithdrawToRequiresAuth(address caller, uint256 amount) public {
     comptrollerTransfer(amount);
-
     hevm.expectRevert("UNAUTHORIZED");
-    comptroller.withdrawTo(receiver, amount);
+    hevm.prank(caller);
+    comptroller.withdrawTo(caller, amount);
   }
 }

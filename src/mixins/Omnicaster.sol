@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {IERC721} from "@boring/interfaces/IERC721.sol";
+import {console} from "forge-std/console.sol";
 
-import {Omnichain} from "@protocol/mixins/Omnichain.sol";
-import {Pausable} from "@protocol/mixins/Pausable.sol";
+import {IERC721} from "@boring/interfaces/IERC721.sol";
 
 import {IOmnicaster} from "@protocol/interfaces/IOmnicaster.sol";
 import {EdenDaoNS} from "@protocol/libraries/EdenDaoNS.sol";
+import {Omnichain} from "@protocol/mixins/Omnichain.sol";
+import {Pausable} from "@protocol/mixins/Pausable.sol";
 
-contract Omnicaster is IOmnicaster, Omnichain, Pausable {
+// Only for use with Omnicast
+abstract contract Omnicaster is IOmnicaster, Omnichain, Pausable {
   IERC721 internal omnichannel;
 
   constructor(
@@ -32,7 +34,8 @@ contract Omnicaster is IOmnicaster, Omnichain, Pausable {
   // ===== OMNICAST MESSAGING LAYER ======
   // =====================================
   event Message(
-    uint256 indexed chainId,
+    uint16 indexed chainId,
+    uint64 nonce,
     uint256 indexed receiverId,
     uint256 indexed senderId,
     bytes data
@@ -51,16 +54,16 @@ contract Omnicaster is IOmnicaster, Omnichain, Pausable {
   function receiveMessage(
     uint16, // fromChainId
     bytes calldata, // fromContractAddress,
-    uint64, // nonce
-    bytes memory data
-  ) internal override {
-    (uint256 receiverId, uint256 senderId, bytes memory message) = abi.decode(
-      data,
+    uint64 nonce,
+    bytes memory payload
+  ) internal override whenNotPaused {
+    (uint256 receiverId, uint256 senderId, bytes memory data) = abi.decode(
+      payload,
       (uint256, uint256, bytes)
     );
 
-    receivedMessages[receiverId][senderId].push(message);
-    emit Message(currentChainId, receiverId, senderId, message);
+    receivedMessages[receiverId][senderId].push(data);
+    emit Message(currentChainId, nonce, receiverId, senderId, data);
   }
 
   function readMessage(uint256 receiverId, uint256 senderId)
@@ -69,7 +72,7 @@ contract Omnicaster is IOmnicaster, Omnichain, Pausable {
     returns (bytes memory)
   {
     bytes[] memory messages = receivedMessages[receiverId][senderId];
-    return messages.length == 0 ? bytes("") : messages[messages.length - 1];
+    return messages[messages.length - 1];
   }
 
   function sendMessage(
@@ -89,6 +92,9 @@ contract Omnicaster is IOmnicaster, Omnichain, Pausable {
 
     if (toChainId == currentChainId) {
       receivedMessages[toReceiverId][withSenderId].push(payload);
+      if (msg.value != 0) {
+        payable(msg.sender).transfer(msg.value);
+      }
     } else {
       lzSend(
         toChainId,
@@ -98,6 +104,12 @@ contract Omnicaster is IOmnicaster, Omnichain, Pausable {
       );
     }
 
-    emit Message(toChainId, toReceiverId, withSenderId, payload);
+    emit Message(
+      toChainId,
+      lzEndpoint.getOutboundNonce(toChainId, address(this)),
+      toReceiverId,
+      withSenderId,
+      payload
+    );
   }
 }

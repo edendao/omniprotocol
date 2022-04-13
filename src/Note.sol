@@ -76,6 +76,7 @@ contract Note is ERC20, Omnichain, Pausable {
   // ===========================
   event Noted(
     uint16 indexed chainId,
+    uint64 nonce,
     address indexed sender,
     address indexed recipient,
     uint256 amount
@@ -96,13 +97,19 @@ contract Note is ERC20, Omnichain, Pausable {
       lzPaymentAddress,
       lzTransactionParams
     );
-    emit Noted(toChainId, msg.sender, toAddress, amount);
+    emit Noted(
+      toChainId,
+      lzEndpoint.getOutboundNonce(toChainId, address(this)),
+      msg.sender,
+      toAddress,
+      amount
+    );
   }
 
   function receiveMessage(
     uint16 fromChainId,
     bytes calldata, // _fromContractAddress,
-    uint64, // _nonce,
+    uint64 nonce,
     bytes memory payload
   ) internal override whenNotPaused {
     (address toAddress, uint256 amount) = abi.decode(
@@ -111,6 +118,6 @@ contract Note is ERC20, Omnichain, Pausable {
     );
 
     _mint(toAddress, amount);
-    emit Noted(fromChainId, msg.sender, toAddress, amount);
+    emit Noted(fromChainId, nonce, msg.sender, toAddress, amount);
   }
 }

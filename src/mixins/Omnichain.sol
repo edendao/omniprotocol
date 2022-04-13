@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
+import {console} from "forge-std/console.sol";
+
 import {ILayerZeroEndpoint} from "@layerzerolabs/contracts/interfaces/ILayerZeroEndpoint.sol";
 import {ILayerZeroReceiver} from "@layerzerolabs/contracts/interfaces/ILayerZeroReceiver.sol";
 
@@ -23,7 +25,6 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     external
     requiresAuth
   {
-    require(onChainId != currentChainId, "Omnichain: INVALID_CHAIN");
     remoteContracts[onChainId] = abi.encodePacked(contractAddress);
   }
 
@@ -57,14 +58,17 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     bool useZRO,
     bytes memory adapterParams
   ) public view returns (uint256 nativeFee, uint256 zroFee) {
-    return
-      lzEndpoint.estimateFees(
+    if (toChainId == currentChainId) {
+      (nativeFee = 0, zroFee = 0);
+    } else {
+      (nativeFee, zroFee) = lzEndpoint.estimateFees(
         toChainId,
         address(this),
         payload,
         useZRO,
         adapterParams
       );
+    }
   }
 
   function lzSend(
@@ -91,11 +95,11 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     public failedMessages;
 
   struct FailedMessage {
-    uint256 payloadLength;
-    bytes32 payloadHash;
+    uint256 length;
+    bytes32 keccak;
   }
 
-  event LayerZeroReceiveFailed(
+  event MessageFailed(
     uint16 fromChainId,
     bytes fromContractAddress,
     uint64 nonce,
@@ -108,16 +112,16 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     uint64 nonce,
     bytes memory payload
   ) external override {
+    require(msg.sender == address(lzEndpoint), "Omnichain: INVALID_CALLER");
     require(
-      msg.sender == address(lzEndpoint) &&
-        fromContractAddress.length == remoteContracts[fromChainId].length &&
+      fromContractAddress.length == remoteContracts[fromChainId].length &&
         keccak256(fromContractAddress) ==
         keccak256(remoteContracts[fromChainId]),
-      "Omnichain: INVALID_LZ_RECEIVE_CALLER"
+      "Omnichain: INVALID_REMOTE_CONTRACT"
     );
 
     // solhint-disable-next-line no-empty-blocks
-    try this.selfReceive(fromChainId, fromContractAddress, nonce, payload) {
+    try this.internalReceive(fromChainId, fromContractAddress, nonce, payload) {
       // do nothing
     } catch {
       // error / exception
@@ -125,23 +129,17 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
         payload.length,
         keccak256(payload)
       );
-      emit LayerZeroReceiveFailed(
-        fromChainId,
-        fromContractAddress,
-        nonce,
-        payload
-      );
+      emit MessageFailed(fromChainId, fromContractAddress, nonce, payload);
     }
   }
 
-  // Try can only be used with external function calls
-  function selfReceive(
+  function internalReceive(
     uint16 fromChainId,
     bytes memory fromContractAddress,
     uint64 nonce,
     bytes memory payload
-  ) public {
-    require(msg.sender == address(this), "Omnichain: ONLY_SELF");
+  ) external {
+    require(msg.sender == address(this), "Omnichain: UNAUTHORIZED");
     receiveMessage(fromChainId, fromContractAddress, nonce, payload);
   }
 
@@ -157,21 +155,20 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     bytes memory fromContractAddress,
     uint64 nonce,
     bytes calldata payload
-  ) external payable {
+  ) external {
     // assert there is message to retry
     FailedMessage storage message = failedMessages[fromChainId][
       fromContractAddress
     ][nonce];
-    require(message.payloadHash != bytes32(0), "Omnichain: MESSAGE_NOT_FOUND");
+    require(message.keccak != bytes32(0), "Omnichain: MESSAGE_NOT_FOUND");
     require(
-      payload.length == message.payloadLength &&
-        keccak256(payload) == message.payloadHash,
-      "LayerZero: INVALID_PAYLOAD"
+      payload.length == message.length && keccak256(payload) == message.keccak,
+      "Omnichain: INVALID_PAYLOAD"
     );
     // clear the stored message
-    message.payloadLength = 0;
-    message.payloadHash = bytes32(0);
-    // execute the message. revert if it fails again
-    this.selfReceive(fromChainId, fromContractAddress, nonce, payload);
+    message.length = 0;
+    message.keccak = bytes32(0);
+    // execute the message, revert if it fails again
+    this.internalReceive(fromChainId, fromContractAddress, nonce, payload);
   }
 }

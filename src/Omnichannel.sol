@@ -7,20 +7,17 @@ import {EdenDaoNS} from "@protocol/libraries/EdenDaoNS.sol";
 
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
-import {Metta} from "@protocol/mixins/Metta.sol";
 
-contract Omnichannel is ERC721, Metta, Omnichain {
+contract Omnichannel is ERC721, Omnichain {
   uint16 public primaryChainId;
 
   constructor(
     address _comptroller,
     address _lzEndpoint,
-    address _edn,
     uint16 _primaryChainId
   )
     ERC721("Eden Dao Omnichannel", "OMNICHANNEL")
     Omnichain(_comptroller, _lzEndpoint)
-    Metta(_edn)
   {
     primaryChainId = _primaryChainId;
     uint256[6] memory premint = [
@@ -81,10 +78,9 @@ contract Omnichannel is ERC721, Metta, Omnichain {
   // ===================================
   // ===== MINTS, BURNS, TRANSFERS =====
   // ===================================
-  mapping(address => uint256) public mintsOf;
-
   function mintTo(address to, string memory node)
     external
+    onlyPrimaryChain
     requiresAuth
     returns (uint256)
   {
@@ -93,26 +89,6 @@ contract Omnichannel is ERC721, Metta, Omnichain {
 
     _mint(to, channelId);
     return channelId;
-  }
-
-  function mint(string memory node)
-    external
-    payable
-    onlyPrimaryChain
-    returns (uint256, uint256)
-  {
-    uint256 mints = mintsOf[msg.sender];
-    require(mints < 10, "Omnichannel: MINT_LIMIT");
-    require(
-      msg.value >= (mints + 1) * 0.05 ether,
-      "Omnichannel: INSUFFICIENT_VALUE"
-    );
-
-    uint256 channelId = EdenDaoNS.namehash(node);
-    require(channelId > type(uint160).max, "Omnichannel: RESERVED_SPACE");
-
-    _mint(msg.sender, channelId);
-    return (channelId, note.mintTo(msg.sender, previewNote(msg.value)));
   }
 
   function burn(uint256 channelId) external onlyOwnerOf(channelId) {
@@ -179,9 +155,9 @@ contract Omnichannel is ERC721, Metta, Omnichain {
   }
 
   function receiveMessage(
-    uint16, // _fromChainId
-    bytes calldata, // _fromContractAddress
-    uint64, // _nonce
+    uint16, // fromChainId
+    bytes calldata, // fromContractAddress
+    uint64, // nonce
     bytes memory payload
   ) internal override {
     (address toAddress, uint256 channelId, bytes memory uri) = abi.decode(
