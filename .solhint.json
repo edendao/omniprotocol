@@ -8,6 +8,7 @@
       "error",
       8
     ],
+    "check-send-result": "off",
     "compiler-version": "off",
     "const-name-snakecase": "off",
     "constructor-syntax": "error",

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {TestEnvironment, console} from "@protocol/test/TestEnvironment.t.sol";
+import {ChainEnvironmentTest, console} from "@protocol/test/ChainEnvironment.t.sol";
 
-contract OmnicasterTest is TestEnvironment {
+contract OmnicasterTest is ChainEnvironmentTest {
   function testLocalSendGas() public {
     omnicast.sendMessage(
       uint16(block.chainid),
@@ -33,17 +33,20 @@ contract OmnicasterTest is TestEnvironment {
     assertEq0(payload, omnicast.readMessage(receiverId, senderId));
   }
 
-  function xtestRemoteSendAndRead(
+  function testSendingOmniMessage(
     uint16 chainId,
     address to,
     bytes memory payload
   ) public {
     hevm.assume(to != address(0) && chainId != 0);
 
-    hevm.startPrank(ownerAddress);
-    omnicast.setTrustedRemoteContract(chainId, address(omnicast));
-    omnicast.setTrustedRemoteContract(currentChainId, address(omnicast));
-    hevm.stopPrank();
+    bytes memory remoteAddressBytes = abi.encodePacked(address(omnicast));
+    omnicast.setTrustedRemoteContract(chainId, remoteAddressBytes);
+    omnicast.setTrustedRemoteContract(currentChainId, remoteAddressBytes);
+    layerZeroEndpoint.setDestLzEndpoint(
+      address(omnicast),
+      address(layerZeroEndpoint)
+    );
 
     uint256 receiverId = omnicast.idOf(to);
     uint256 senderId = omnicast.idOf(myAddress);
@@ -57,6 +60,7 @@ contract OmnicasterTest is TestEnvironment {
       ""
     );
 
+    assertEq(1, omnicast.receivedMessagesCount(receiverId, senderId));
     assertEq0(payload, omnicast.readMessage(receiverId, senderId));
   }
 

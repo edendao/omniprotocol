@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {console} from "forge-std/console.sol";
-
 import {ILayerZeroEndpoint} from "@layerzerolabs/contracts/interfaces/ILayerZeroEndpoint.sol";
 import {ILayerZeroReceiver} from "@layerzerolabs/contracts/interfaces/ILayerZeroReceiver.sol";
 
+import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 
-abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
+abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
   ILayerZeroEndpoint public immutable lzEndpoint;
   uint16 public immutable currentChainId;
-
-  mapping(uint16 => bytes) public remoteContracts;
 
   constructor(address _comptroller, address _lzEndpoint)
     Comptrolled(_comptroller)
@@ -21,14 +18,162 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     currentChainId = uint16(block.chainid);
   }
 
-  function setTrustedRemoteContract(uint16 onChainId, address contractAddress)
-    external
-    requiresAuth
+  function addressFromPackedBytes(bytes memory toAddressBytes)
+    public
+    pure
+    returns (address toAddress)
   {
-    remoteContracts[onChainId] = abi.encodePacked(contractAddress);
+    // solhint-disable-next-line no-inline-assembly
+    assembly {
+      toAddress := mload(add(toAddressBytes, 20))
+    }
   }
 
-  function setLzConfig(
+  // =============================
+  // ======= REMOTE CONFIG =======
+  // =============================
+  mapping(uint16 => bytes) public remoteContracts;
+
+  event SetTrustedRemote(uint16 onChainId, bytes contractAddress);
+
+  function setTrustedRemoteContract(
+    uint16 onChainId,
+    bytes calldata contractAddress
+  ) external requiresAuth {
+    remoteContracts[onChainId] = contractAddress;
+    emit SetTrustedRemote(onChainId, contractAddress);
+  }
+
+  function isTrustedRemoteContract(
+    uint16 onChainId,
+    bytes calldata contractAddress
+  ) public view returns (bool) {
+    return keccak256(contractAddress) == keccak256(remoteContracts[onChainId]);
+  }
+
+  // ===============================
+  // ======= LAYER ZERO SEND =======
+  // ===============================
+  function lzEstimateSendGas(
+    uint16 toChainId,
+    bytes memory payload,
+    bool useZRO,
+    bytes memory adapterParams
+  ) internal view returns (uint256, uint256) {
+    return
+      lzEndpoint.estimateFees(
+        toChainId,
+        address(this),
+        payload,
+        useZRO,
+        adapterParams
+      );
+  }
+
+  function lzSend(
+    uint16 toChainId,
+    bytes memory payload,
+    address lzPaymentAddress,
+    bytes memory lzTransactionParams
+  ) internal whenNotPaused {
+    bytes memory remoteContract = remoteContracts[toChainId];
+    require(remoteContract.length != 0, "Omnichain: INVALID_DESTINATION");
+
+    // solhint-disable-next-line check-send-result
+    lzEndpoint.send{value: msg.value}(
+      toChainId,
+      remoteContract,
+      payload,
+      payable(msg.sender),
+      lzPaymentAddress,
+      lzTransactionParams
+    );
+  }
+
+  // ==================================
+  // ======= LAYER ZERO RECEIVE =======
+  // ==================================
+  mapping(uint16 => mapping(bytes => mapping(uint256 => bytes32)))
+    public failedMessages;
+
+  event MessageFailed(
+    uint16 indexed fromChainId,
+    bytes indexed fromContract,
+    uint64 nonce,
+    bytes payload
+  );
+
+  function lzReceive(
+    uint16 fromChainId,
+    bytes calldata fromContract,
+    uint64 nonce,
+    bytes calldata payload
+  ) external override {
+    require(
+      msg.sender == address(lzEndpoint) &&
+        isTrustedRemoteContract(fromChainId, fromContract),
+      "Omnichain: INVALID_CALLER"
+    );
+
+    try this.lzTryReceive(fromChainId, fromContract, nonce, payload) {
+      this;
+    } catch {
+      failedMessages[fromChainId][fromContract][nonce] = keccak256(payload);
+      emit MessageFailed(fromChainId, fromContract, nonce, payload);
+    }
+  }
+
+  function lzTryReceive(
+    uint16 fromChainId,
+    bytes calldata fromContract,
+    uint64 nonce,
+    bytes calldata payload
+  ) external {
+    require(msg.sender == address(this), "Omnichain: INTERNAL");
+    receiveMessage(fromChainId, fromContract, nonce, payload);
+  }
+
+  function receiveMessage(
+    uint16 fromChainId,
+    bytes calldata fromContract,
+    uint64 nonce,
+    bytes calldata payload
+  ) internal virtual;
+
+  function retryMessage(
+    uint16 fromChainId,
+    bytes calldata fromContract,
+    uint64 nonce,
+    bytes calldata payload
+  ) external {
+    // assert there is message to retry
+    bytes32 payloadHash = failedMessages[fromChainId][fromContract][nonce];
+    require(payloadHash != bytes32(0), "Omnichain: MESSAGE_NOT_FOUND");
+    require(keccak256(payload) == payloadHash, "Omnichain: INVALID_PAYLOAD");
+    // clear the stored message
+    failedMessages[fromChainId][fromContract][nonce] = bytes32(0);
+    // execute the message, revert if it fails again
+    receiveMessage(fromChainId, fromContract, nonce, payload);
+  }
+
+  // =================================
+  // ======= LAYER ZERO CONFIG =======
+  // =================================
+  function lzGetConfig(uint16 chainId, uint256 configType)
+    public
+    view
+    returns (bytes memory)
+  {
+    return
+      lzEndpoint.getConfig(
+        lzEndpoint.getSendVersion(address(this)),
+        chainId,
+        address(this),
+        configType
+      );
+  }
+
+  function lzSetConfig(
     uint16 version,
     uint16 chainId,
     uint256 configType,
@@ -37,138 +182,18 @@ abstract contract Omnichain is Comptrolled, ILayerZeroReceiver {
     lzEndpoint.setConfig(version, chainId, configType, config);
   }
 
-  function setLzSendVersion(uint16 version) external requiresAuth {
+  function lzSetSendVersion(uint16 version) external requiresAuth {
     lzEndpoint.setSendVersion(version);
   }
 
-  function setLzReceiveVersion(uint16 version) external requiresAuth {
+  function lzSetReceiveVersion(uint16 version) external requiresAuth {
     lzEndpoint.setReceiveVersion(version);
   }
 
-  function forceLzResumeReceive(uint16 srcChainId, bytes calldata srcAddress)
+  function lzForceResumeReceive(uint16 srcChainId, bytes calldata srcAddress)
     external
     requiresAuth
   {
     lzEndpoint.forceResumeReceive(srcChainId, srcAddress);
-  }
-
-  function estimateLzSendGas(
-    uint16 toChainId,
-    bytes memory payload,
-    bool useZRO,
-    bytes memory adapterParams
-  ) public view returns (uint256 nativeFee, uint256 zroFee) {
-    if (toChainId == currentChainId) {
-      (nativeFee = 0, zroFee = 0);
-    } else {
-      (nativeFee, zroFee) = lzEndpoint.estimateFees(
-        toChainId,
-        address(this),
-        payload,
-        useZRO,
-        adapterParams
-      );
-    }
-  }
-
-  function lzSend(
-    uint16 toChainId,
-    bytes memory payload,
-    address lzPaymentAddress,
-    bytes memory lzTransactionParams
-  ) internal {
-    (uint256 nativeFee, ) = estimateLzSendGas(toChainId, payload, false, "");
-    require(msg.value >= nativeFee, "Omnichain: INSUFFICIENT_VALUE");
-
-    // solhint-disable-next-line check-send-result
-    lzEndpoint.send{value: msg.value}(
-      toChainId,
-      remoteContracts[toChainId],
-      payload,
-      payable(msg.sender),
-      lzPaymentAddress,
-      lzTransactionParams
-    );
-  }
-
-  mapping(uint16 => mapping(bytes => mapping(uint256 => FailedMessage)))
-    public failedMessages;
-
-  struct FailedMessage {
-    uint256 length;
-    bytes32 keccak;
-  }
-
-  event MessageFailed(
-    uint16 fromChainId,
-    bytes fromContractAddress,
-    uint64 nonce,
-    bytes payload
-  );
-
-  function lzReceive(
-    uint16 fromChainId,
-    bytes calldata fromContractAddress,
-    uint64 nonce,
-    bytes memory payload
-  ) external override {
-    require(msg.sender == address(lzEndpoint), "Omnichain: INVALID_CALLER");
-    require(
-      fromContractAddress.length == remoteContracts[fromChainId].length &&
-        keccak256(fromContractAddress) ==
-        keccak256(remoteContracts[fromChainId]),
-      "Omnichain: INVALID_REMOTE_CONTRACT"
-    );
-
-    // solhint-disable-next-line no-empty-blocks
-    try this.internalReceive(fromChainId, fromContractAddress, nonce, payload) {
-      // do nothing
-    } catch {
-      // error / exception
-      failedMessages[fromChainId][fromContractAddress][nonce] = FailedMessage(
-        payload.length,
-        keccak256(payload)
-      );
-      emit MessageFailed(fromChainId, fromContractAddress, nonce, payload);
-    }
-  }
-
-  function internalReceive(
-    uint16 fromChainId,
-    bytes memory fromContractAddress,
-    uint64 nonce,
-    bytes memory payload
-  ) external {
-    require(msg.sender == address(this), "Omnichain: UNAUTHORIZED");
-    receiveMessage(fromChainId, fromContractAddress, nonce, payload);
-  }
-
-  function receiveMessage(
-    uint16 fromChainId,
-    bytes memory fromContractAddress,
-    uint64 nonce,
-    bytes memory payload
-  ) internal virtual;
-
-  function retryMessage(
-    uint16 fromChainId,
-    bytes memory fromContractAddress,
-    uint64 nonce,
-    bytes calldata payload
-  ) external {
-    // assert there is message to retry
-    FailedMessage storage message = failedMessages[fromChainId][
-      fromContractAddress
-    ][nonce];
-    require(message.keccak != bytes32(0), "Omnichain: MESSAGE_NOT_FOUND");
-    require(
-      payload.length == message.length && keccak256(payload) == message.keccak,
-      "Omnichain: INVALID_PAYLOAD"
-    );
-    // clear the stored message
-    message.length = 0;
-    message.keccak = bytes32(0);
-    // execute the message, revert if it fails again
-    this.internalReceive(fromChainId, fromContractAddress, nonce, payload);
   }
 }

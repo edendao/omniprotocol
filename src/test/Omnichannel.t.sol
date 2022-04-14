@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {TestEnvironment} from "@protocol/test/TestEnvironment.t.sol";
+import {ChainEnvironmentTest} from "@protocol/test/ChainEnvironment.t.sol";
 
-contract OmnichannelTest is TestEnvironment {
+contract OmnichannelTest is ChainEnvironmentTest {
   uint256 internal immutable omnichannelId = omnichannel.idOf("prosperity");
 
   function testMintGas() public {

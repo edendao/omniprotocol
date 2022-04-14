@@ -1,0 +1,19 @@
+[testnet]
+
+[testnet.rinkeby]
+Comptroller = "0x003DD590DFb3f3A88189b96e75a8296108831B08"
+Note = "0x4b9942be59a41db9c3b463a466cfc3165bc699b7"
+Omnichannel = "0xd12b7d7dbe40cf86b4939fc4630bdc7e58f85f00"
+Omnicast = "0x98acbec172a423d6693265748d9a82d010dfce74"
+Proxy = "0x46f8873115b0ef162d2fb285a097d7ee3e4c8a35"
+OmnicastMinter = "0x44d9af21a224e9db39dd6e6326dece6cbfd0f932"
+OmnichannelMinter = "0x6644d9bfe72fbc22e3f031a64956b2802baf4340" # Set up permissions
+
+[testnet.rinkarby]
+Comptroller = "0xf705e8c22c09267e1339394758b9f0722d1fd852"
+Note = "0xe0a5661e94adbbc1f11e86608178da093aca3f7f"
+Omnichannel = ""
+Omnicast = ""
+OmnicastMinter = ""
+
+[mainnet]

@@ -1,27 +1,30 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {TestEnvironment} from "@protocol/test/TestEnvironment.t.sol";
+import {ChainEnvironmentTest} from "@protocol/test/ChainEnvironment.t.sol";
 
 import {OmnichannelMinter} from "@protocol/actors/OmnichannelMinter.sol";
 
-contract OmnichannelMinterTest is TestEnvironment {
+contract OmnichannelMinterTest is ChainEnvironmentTest {
   OmnichannelMinter internal minter =
     new OmnichannelMinter(
       address(comptroller),
-      address(omnichannel),
-      address(note)
+      address(note),
+      address(omnichannel)
     );
 
   function setUp() public {
-    uint8 minterRole = 255;
-    comptroller.setRoleCapability(minterRole, note.mintTo.selector, true);
+    uint8 noteMinterRole = 0;
+    comptroller.setRoleCapability(noteMinterRole, note.mintTo.selector, true);
+    comptroller.setUserRole(address(minter), noteMinterRole, true);
+
+    uint8 omnicastMinterRole = 255;
     comptroller.setRoleCapability(
-      minterRole,
-      omnichannel.mintTo.selector,
+      omnicastMinterRole,
+      omnicast.mintTo.selector,
       true
     );
-    comptroller.setUserRole(address(minter), minterRole, true);
+    comptroller.setUserRole(address(minter), omnicastMinterRole, true);
   }
 
   function testClaimGas() public {

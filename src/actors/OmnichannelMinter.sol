@@ -7,18 +7,18 @@ import {Note} from "@protocol/Note.sol";
 import {Omnichannel} from "@protocol/Omnichannel.sol";
 
 contract OmnichannelMinter is Comptrolled {
-  Omnichannel public omnichannel;
   Note public note;
+  Omnichannel public omnichannel;
 
   mapping(address => uint256) public amountMintedBy;
 
   constructor(
     address _comptroller,
-    address _omnichannel,
-    address _note
+    address _note,
+    address _omnichannel
   ) Comptrolled(_comptroller) {
-    omnichannel = Omnichannel(_omnichannel);
     note = Note(_note);
+    omnichannel = Omnichannel(_omnichannel);
   }
 
   function optimismNotes(uint256 valueInWei) public pure returns (uint256) {

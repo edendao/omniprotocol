@@ -4,16 +4,11 @@ pragma solidity ^0.8.13;
 import {IERC721} from "@boring/interfaces/IERC721.sol";
 
 import {IOmnicaster} from "@protocol/interfaces/IOmnicaster.sol";
-import {EdenDaoNS} from "@protocol/libraries/EdenDaoNS.sol";
+import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
-import {Pausable} from "@protocol/mixins/Pausable.sol";
-
-interface IOmnichannel {
-  function ownerAddressOf(uint256 channelId) external view returns (address);
-}
 
 // Only for use with Omnicast
-abstract contract Omnicaster is IOmnicaster, Omnichain, Pausable {
+abstract contract Omnicaster is IOmnicaster, Omnichain, EdenDaoNS {
   IERC721 internal omnichannel;
 
   constructor(
@@ -29,14 +24,14 @@ abstract contract Omnicaster is IOmnicaster, Omnichain, Pausable {
   }
 
   function idOf(string memory name) public pure returns (uint256) {
-    return EdenDaoNS.namehash(name);
+    return namehash(name);
   }
 
   // =====================================
   // ===== OMNICAST MESSAGING LAYER ======
   // =====================================
   event Message(
-    uint16 chainId,
+    uint16 indexed chainId,
     uint64 nonce,
     uint256 indexed receiverId,
     uint256 indexed senderId,
@@ -45,6 +40,15 @@ abstract contract Omnicaster is IOmnicaster, Omnichain, Pausable {
 
   // (receiverId => senderId => data[])
   mapping(uint256 => mapping(uint256 => bytes[])) public receivedMessages;
+
+  function readMessage(uint256 receiverId, uint256 senderId)
+    public
+    view
+    returns (bytes memory)
+  {
+    bytes[] memory messages = receivedMessages[receiverId][senderId];
+    return messages[messages.length - 1];
+  }
 
   function receivedMessagesCount(
     uint256 recieverCasterId,
@@ -57,8 +61,8 @@ abstract contract Omnicaster is IOmnicaster, Omnichain, Pausable {
     uint16, // fromChainId
     bytes calldata, // fromContractAddress,
     uint64 nonce,
-    bytes memory payload
-  ) internal override whenNotPaused {
+    bytes calldata payload
+  ) internal override {
     (uint256 receiverId, uint256 senderId, bytes memory data) = abi.decode(
       payload,
       (uint256, uint256, bytes)
@@ -68,13 +72,21 @@ abstract contract Omnicaster is IOmnicaster, Omnichain, Pausable {
     emit Message(currentChainId, nonce, receiverId, senderId, data);
   }
 
-  function readMessage(uint256 receiverId, uint256 senderId)
-    public
-    view
-    returns (bytes memory)
-  {
-    bytes[] memory messages = receivedMessages[receiverId][senderId];
-    return messages[messages.length - 1];
+  function estimateSendFee(
+    uint16 toChainId,
+    uint256 toReceiverId,
+    uint256 withSenderId,
+    bytes calldata payload,
+    bool useZRO,
+    bytes calldata adapterParams
+  ) public view returns (uint256, uint256) {
+    return
+      lzEstimateSendGas(
+        toChainId,
+        abi.encode(toReceiverId, withSenderId, payload),
+        useZRO,
+        adapterParams
+      );
   }
 
   function sendMessage(
@@ -84,7 +96,7 @@ abstract contract Omnicaster is IOmnicaster, Omnichain, Pausable {
     bytes memory payload,
     address lzPaymentAddress,
     bytes memory lzTransactionParams
-  ) public payable whenNotPaused {
+  ) public payable {
     require(
       (msg.sender == address(uint160(toReceiverId)) ||
         withSenderId == idOf(msg.sender) ||
@@ -95,9 +107,6 @@ abstract contract Omnicaster is IOmnicaster, Omnichain, Pausable {
 
     if (toChainId == currentChainId) {
       receivedMessages[toReceiverId][withSenderId].push(payload);
-      if (msg.value != 0) {
-        payable(msg.sender).transfer(msg.value);
-      }
     } else {
       lzSend(
         toChainId,

@@ -3,12 +3,12 @@ pragma solidity ^0.8.13;
 
 import {ERC721} from "@rari-capital/solmate/tokens/ERC721.sol";
 
-import {EdenDaoNS} from "@protocol/libraries/EdenDaoNS.sol";
+import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
 
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 
-contract Omnichannel is ERC721, Omnichain {
+contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
   uint16 public primaryChainId;
 
   constructor(
@@ -34,16 +34,12 @@ contract Omnichannel is ERC721, Omnichain {
   }
 
   function idOf(string memory node) public pure returns (uint256) {
-    return EdenDaoNS.namehash(node);
+    return namehash(node);
   }
 
   // ========================
   // ====== OWNERSHIP =======
   // ========================
-  function ownerAddressOf(uint256 channelId) public view returns (address) {
-    return _ownerOf[channelId]; // Non-reverting version of ownerOf
-  }
-
   modifier onlyOwnerOf(uint256 channelId) {
     require(msg.sender == ownerOf(channelId), "Omnichannel: ONLY_OWNER");
     _;
@@ -76,6 +72,7 @@ contract Omnichannel is ERC721, Omnichain {
   function mintTo(address to, uint256 channelId)
     external
     requiresAuth
+    whenNotPaused
     returns (uint256)
   {
     require(currentChainId == primaryChainId, "Omnichannel: INVALID_CHAIN");
@@ -85,82 +82,12 @@ contract Omnichannel is ERC721, Omnichain {
     return channelId;
   }
 
-  function burn(uint256 channelId) external onlyOwnerOf(channelId) {
-    _burn(channelId);
-  }
-
-  event ForceTransfer(
-    address indexed manipulator,
-    address indexed from,
-    address indexed to,
-    uint256 id
-  );
-
-  function transferFrom(
-    address from,
-    address to,
-    uint256 id
-  ) public override {
-    require(to != address(0), "Omnichannel: INVALID_RECIPIENT");
-
-    if (
-      msg.sender != from &&
-      !isApprovedForAll[from][msg.sender] &&
-      msg.sender != getApproved[id]
-    ) {
-      if (isAuthorized(msg.sender, msg.sig)) {
-        emit ForceTransfer(msg.sender, from, to, id);
-      } else {
-        revert("Omnichannel: UNAUTHORIZED");
-      }
-    }
-
-    // Underflow of the sender's balance is impossible because we check for
-    // ownership above and the recipient's balance can't realistically overflow.
-    unchecked {
-      _balanceOf[from]--;
-      _balanceOf[to]++;
-    }
-
-    _ownerOf[id] = to;
-    delete getApproved[id];
-
-    emit Transfer(from, to, id);
-  }
-
-  // =======================
-  // ====== LayerZero ======
-  // =======================
-  function omniTransfer(
-    uint16 toChainId,
-    address toAddress,
-    uint256 channelId,
-    address lzPaymentAddress,
-    bytes memory lzTransactionParams
-  ) external payable onlyOwnerOf(channelId) {
-    _burn(channelId);
-
-    lzSend(
-      toChainId,
-      abi.encode(toAddress, channelId, _tokenURI[channelId]),
-      lzPaymentAddress,
-      lzTransactionParams
+  function burn(uint256 channelId) external {
+    require(
+      ownerOf(channelId) == msg.sender || isAuthorized(msg.sender, msg.sig),
+      "Omnichannel: UNAUTHORIZED"
     );
-  }
-
-  function receiveMessage(
-    uint16, // fromChainId
-    bytes calldata, // fromContractAddress
-    uint64, // nonce
-    bytes memory payload
-  ) internal override {
-    (address toAddress, uint256 channelId, bytes memory uri) = abi.decode(
-      payload,
-      (address, uint256, bytes)
-    );
-
-    _mint(toAddress, channelId);
-    _tokenURI[channelId] = uri;
+    _burn(channelId);
   }
 
   // ======================
@@ -172,5 +99,123 @@ contract Omnichannel is ERC721, Omnichain {
     returns (address receiver, uint256 royaltyAmount)
   {
     return (comptrollerAddress(), (salePrice * 10) / 100);
+  }
+
+  // =======================
+  // ====== OMNICHAIN ======
+  // =======================
+  event ReceiveFromChain(
+    uint16 indexed fromChainId,
+    address indexed toAddress,
+    uint256 indexed tokenId,
+    uint64 nonce
+  );
+
+  function receiveMessage(
+    uint16, // fromChainId
+    bytes calldata, // fromContractAddress
+    uint64, // nonce
+    bytes memory payload
+  ) internal override {
+    (bytes memory toAddressB, uint256 channelId, bytes memory uri) = abi.decode(
+      payload,
+      (bytes, uint256, bytes)
+    );
+
+    _mint(addressFromPackedBytes(toAddressB), channelId);
+    _tokenURI[channelId] = uri;
+  }
+
+  function estimateSendFee(
+    uint16 toChainId,
+    bytes calldata toAddress,
+    uint256 channelId,
+    bool useZRO,
+    bytes calldata adapterParams
+  ) public view returns (uint256, uint256) {
+    return
+      lzEstimateSendGas(
+        toChainId,
+        abi.encode(toAddress, channelId, _tokenURI[channelId]),
+        useZRO,
+        adapterParams
+      );
+  }
+
+  event SendToChain(
+    address indexed fromAddress,
+    uint16 indexed toChainId,
+    bytes indexed toAddress,
+    uint256 tokenId,
+    uint64 nonce
+  );
+
+  function send(
+    uint16 toChainId,
+    bytes calldata toAddress,
+    uint256 channelId,
+    address lzPaymentAddress,
+    bytes memory lzTransactionParams
+  ) external payable {
+    omniTransferFrom(
+      msg.sender,
+      toChainId,
+      toAddress,
+      channelId,
+      lzPaymentAddress,
+      lzTransactionParams
+    );
+  }
+
+  function sendFrom(
+    address fromAddress,
+    uint16 toChainId,
+    bytes calldata toAddress,
+    uint256 amount,
+    address lzPaymentAddress,
+    bytes memory lzTransactionParams
+  ) external payable {
+    omniTransferFrom(
+      fromAddress,
+      toChainId,
+      toAddress,
+      amount,
+      lzPaymentAddress,
+      lzTransactionParams
+    );
+  }
+
+  function omniTransferFrom(
+    address fromAddress,
+    uint16 toChainId,
+    bytes calldata toAddress,
+    uint256 channelId,
+    address lzPaymentAddress,
+    bytes memory lzTransactionParams
+  ) internal {
+    require(
+      fromAddress == ownerOf(channelId) &&
+        (msg.sender == fromAddress ||
+          isApprovedForAll[fromAddress][msg.sender] ||
+          msg.sender == getApproved[channelId]),
+      "Omnichannel: UNAUTHORIZED"
+    );
+
+    _burn(channelId);
+
+    lzSend(
+      toChainId,
+      abi.encode(toAddress, channelId, _tokenURI[channelId]),
+      lzPaymentAddress,
+      lzTransactionParams
+    );
+
+    emit SendToChain(
+      fromAddress,
+      toChainId,
+      toAddress,
+      channelId,
+      lzEndpoint.getOutboundNonce(toChainId, address(this))
+    );
   }
 }

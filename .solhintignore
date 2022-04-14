@@ -1,1 +1,2 @@
 lib/**/*.sol
+src/test/mocks/LZEndpointMock.sol

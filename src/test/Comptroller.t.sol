@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {TestEnvironment} from "@protocol/test/TestEnvironment.t.sol";
+import {BoringAddress} from "@boring/libraries/BoringAddress.sol";
 
-contract ComptrollerTest is TestEnvironment {
+import {ChainEnvironmentTest} from "@protocol/test/ChainEnvironment.t.sol";
+
+contract ComptrollerTest is ChainEnvironmentTest {
   function testOwner() public {
     assertEq(comptroller.owner(), myAddress);
   }
@@ -23,6 +25,7 @@ contract ComptrollerTest is TestEnvironment {
   }
 
   function testWithdrawTo(address receiver, uint256 amount) public {
+    hevm.assume(!BoringAddress.isContract(receiver));
     comptrollerTransfer(amount);
     comptroller.withdrawTo(receiver, amount);
     assertEq(receiver.balance, amount);

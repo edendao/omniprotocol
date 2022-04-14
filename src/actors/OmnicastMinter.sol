@@ -9,16 +9,16 @@ import {Note} from "@protocol/Note.sol";
 import {Omnicast} from "@protocol/Omnicast.sol";
 
 contract OmnicastMinter is Comptrolled {
-  Omnicast public omnicast;
   Note public note;
+  Omnicast public omnicast;
 
   constructor(
     address _comptroller,
-    address _omnicast,
-    address _note
+    address _note,
+    address _omnicast
   ) Comptrolled(_comptroller) {
-    omnicast = Omnicast(_omnicast);
     note = Note(_note);
+    omnicast = Omnicast(_omnicast);
   }
 
   uint256 public constant claimRequirement = 0.01 ether;
