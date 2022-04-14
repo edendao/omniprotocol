@@ -104,7 +104,7 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
   // =======================
   // ====== OMNICHAIN ======
   // =======================
-  event ReceiveFromChain(
+  event ReceiveOmnitransfer(
     uint16 indexed fromChainId,
     address indexed toAddress,
     uint256 indexed tokenId,
@@ -112,9 +112,9 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
   );
 
   function receiveMessage(
-    uint16, // fromChainId
+    uint16 fromChainId,
     bytes calldata, // fromContractAddress
-    uint64, // nonce
+    uint64 nonce,
     bytes memory payload
   ) internal override {
     (bytes memory toAddressB, uint256 channelId, bytes memory uri) = abi.decode(
@@ -122,8 +122,11 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
       (bytes, uint256, bytes)
     );
 
-    _mint(addressFromPackedBytes(toAddressB), channelId);
+    address toAddress = addressFromPackedBytes(toAddressB);
+    _mint(toAddress, channelId);
     _tokenURI[channelId] = uri;
+
+    emit ReceiveOmnitransfer(fromChainId, toAddress, channelId, nonce);
   }
 
   function estimateSendFee(
@@ -142,7 +145,7 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
       );
   }
 
-  event SendToChain(
+  event SendOmnitransfer(
     address indexed fromAddress,
     uint16 indexed toChainId,
     bytes indexed toAddress,
@@ -150,14 +153,14 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
     uint64 nonce
   );
 
-  function send(
+  function omnitransfer(
     uint16 toChainId,
     bytes calldata toAddress,
     uint256 channelId,
     address lzPaymentAddress,
     bytes memory lzTransactionParams
   ) external payable {
-    omniTransferFrom(
+    _omnitransferFrom(
       msg.sender,
       toChainId,
       toAddress,
@@ -167,7 +170,7 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
     );
   }
 
-  function sendFrom(
+  function omnitransferFrom(
     address fromAddress,
     uint16 toChainId,
     bytes calldata toAddress,
@@ -175,7 +178,7 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
     address lzPaymentAddress,
     bytes memory lzTransactionParams
   ) external payable {
-    omniTransferFrom(
+    _omnitransferFrom(
       fromAddress,
       toChainId,
       toAddress,
@@ -185,7 +188,7 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
     );
   }
 
-  function omniTransferFrom(
+  function _omnitransferFrom(
     address fromAddress,
     uint16 toChainId,
     bytes calldata toAddress,
@@ -210,7 +213,7 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
       lzTransactionParams
     );
 
-    emit SendToChain(
+    emit SendOmnitransfer(
       fromAddress,
       toChainId,
       toAddress,

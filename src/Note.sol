@@ -41,7 +41,7 @@ contract Note is ERC20, Omnichain {
   // ===========================
   // ======== OMNICHAIN ========
   // ===========================
-  event ReceiveFromChain(
+  event ReceiveOmnitransfer(
     uint16 indexed fromChainId,
     address indexed toAddress,
     uint256 amount,
@@ -61,7 +61,7 @@ contract Note is ERC20, Omnichain {
     address toAddress = addressFromPackedBytes(toAddressB);
 
     _mint(toAddress, amount);
-    emit ReceiveFromChain(fromChainId, toAddress, amount, nonce);
+    emit ReceiveOmnitransfer(fromChainId, toAddress, amount, nonce);
   }
 
   function estimateSendFee(
@@ -80,7 +80,7 @@ contract Note is ERC20, Omnichain {
       );
   }
 
-  event SendToChain(
+  event SendOmnitransfer(
     address indexed fromAddress,
     uint16 indexed toChainId,
     bytes indexed toAddress,
@@ -88,14 +88,14 @@ contract Note is ERC20, Omnichain {
     uint64 nonce
   );
 
-  function send(
+  function omnitransfer(
     uint16 toChainId,
     bytes calldata toAddress,
     uint256 amount,
     address lzPaymentAddress,
     bytes calldata lzTransactionParams
   ) external payable {
-    omniTransferFrom(
+    _omnitransferFrom(
       msg.sender,
       toChainId,
       toAddress,
@@ -105,7 +105,7 @@ contract Note is ERC20, Omnichain {
     );
   }
 
-  function sendFrom(
+  function omnitransferFrom(
     address fromAddress,
     uint16 toChainId,
     bytes calldata toAddress,
@@ -119,7 +119,7 @@ contract Note is ERC20, Omnichain {
       allowance[fromAddress][msg.sender] = allowed - amount;
     }
 
-    omniTransferFrom(
+    _omnitransferFrom(
       fromAddress,
       toChainId,
       toAddress,
@@ -129,7 +129,7 @@ contract Note is ERC20, Omnichain {
     );
   }
 
-  function omniTransferFrom(
+  function _omnitransferFrom(
     address fromAddress,
     uint16 toChainId,
     bytes calldata toAddress,
@@ -146,7 +146,7 @@ contract Note is ERC20, Omnichain {
       lzTransactionParams
     );
 
-    emit SendToChain(
+    emit SendOmnitransfer(
       fromAddress,
       toChainId,
       toAddress,

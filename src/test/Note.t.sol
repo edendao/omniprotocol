@@ -61,7 +61,7 @@ contract NoteTest is ChainEnvironmentTest {
 
     hevm.prank(sender);
     note.approve(address(this), amount);
-    note.sendFrom{value: 1 ether}(
+    note.omnitransferFrom{value: 1 ether}(
       sender,
       toChainId,
       toAddress,
