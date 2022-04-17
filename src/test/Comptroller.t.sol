@@ -6,6 +6,35 @@ import {BoringAddress} from "@boring/libraries/BoringAddress.sol";
 import {ChainEnvironmentTest} from "@protocol/test/ChainEnvironment.t.sol";
 
 contract ComptrollerTest is ChainEnvironmentTest {
+  function testMulticallable() public {
+    bytes[] memory functions = new bytes[](4);
+    functions[0] = abi.encodeWithSignature(
+      "setRoleCapability(uint8,bytes4,bool)",
+      0,
+      note.mintTo.selector,
+      true
+    );
+    functions[1] = abi.encodeWithSignature(
+      "setUserRole(address,uint8,bool)",
+      address(this),
+      0,
+      true
+    );
+    functions[2] = abi.encodeWithSignature(
+      "doesUserHaveRole(address,uint8)",
+      address(this),
+      0
+    );
+    functions[3] = abi.encodeWithSignature(
+      "doesRoleHaveCapability(uint8,bytes4)",
+      0,
+      note.mintTo.selector
+    );
+    bytes[] memory results = comptroller.multicall(functions);
+    assertTrue(abi.decode(results[2], (bool)));
+    assertTrue(abi.decode(results[3], (bool)));
+  }
+
   function testOwner() public {
     assertEq(comptroller.owner(), myAddress);
   }

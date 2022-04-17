@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-interface IOmnicaster {
+import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";
+
+interface IOmnicast is IERC721, IERC721Metadata {
   function idOf(address account) external view returns (uint256 omnicastId);
 
   function idOf(string memory name) external view returns (uint256 omnicastId);

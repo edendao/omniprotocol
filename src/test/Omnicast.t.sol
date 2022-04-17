@@ -95,12 +95,12 @@ contract OmnicastTest is ChainEnvironmentTest {
     assertEq0(payload, omnicast.readMessage(receiverId, senderId));
   }
 
-  function testSendingOmniMessage(
+  function testRemoteSendAndRead(
     uint16 chainId,
     address to,
     bytes memory payload
   ) public {
-    hevm.assume(to != address(0) && chainId != 0);
+    hevm.assume(to != address(0) && chainId != 0 && chainId != currentChainId);
 
     bytes memory remoteAddressBytes = abi.encodePacked(address(omnicast));
     omnicast.setTrustedRemoteContract(chainId, remoteAddressBytes);

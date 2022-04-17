@@ -20,13 +20,16 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
     Omnichain(_comptroller, _lzEndpoint)
   {
     primaryChainId = _primaryChainId;
-    uint256[6] memory premint = [
-      0x02dae9de41f5b412ce8d65c69e825802e5cfc0bb85d707c53c94e30d4ddd56d2,
-      0x1de324d049794c1e40480a9129c30e42d9ada5968d6e81df7b8b9c0fa838251f,
-      0xea8fba367ad6b69c052c234a59bf5699ab50fa270606dbafe9a4ce0980c9c7aa,
-      0x024ea6b6f347d1530d953d352fe1f5df9bd6ba1fd817c0b7243943917d8507ed,
-      0x25294245858553a1889e6fe0f4976bd4e2405f5d55396afa91cad09a95c78137,
-      0xf689f82b3b8f0beecad45cce0f793c9553e6f68d339c23fe6cecb993903a1744
+    uint256[9] memory premint = [
+      idOf("my"),
+      idOf("profile"),
+      idOf("app"),
+      idOf("name"),
+      idOf("tokenuri"),
+      idOf("terexitarius"),
+      idOf("gitcoin"),
+      idOf("station"),
+      idOf("refi")
     ];
     for (uint256 i = 0; i < premint.length; i++) {
       _mint(comptrollerAddress(), premint[i]);
@@ -35,14 +38,6 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
 
   function idOf(string memory node) public pure returns (uint256) {
     return namehash(node);
-  }
-
-  // ========================
-  // ====== OWNERSHIP =======
-  // ========================
-  modifier onlyOwnerOf(uint256 channelId) {
-    require(msg.sender == ownerOf(channelId), "Omnichannel: ONLY_OWNER");
-    _;
   }
 
   // ==============================
@@ -59,10 +54,8 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
     return string(_tokenURI[channelId]);
   }
 
-  function setTokenURI(uint256 channelId, bytes memory uri)
-    external
-    onlyOwnerOf(channelId)
-  {
+  function setTokenURI(uint256 channelId, bytes memory uri) external {
+    require(msg.sender == ownerOf(channelId), "Omnichannel: ONLY_OWNER");
     _tokenURI[channelId] = uri;
   }
 

@@ -7,7 +7,7 @@ abstract contract Pausable is Comptrolled {
   bool public isPaused;
 
   modifier whenNotPaused() {
-    require(!isPaused, "Pausable: Paused");
+    require(!isPaused, "Pausable: PAUSED");
     _;
   }
 

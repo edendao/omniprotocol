@@ -5,7 +5,9 @@ import {MultiRolesAuthority, Authority} from "@rari-capital/solmate/auth/authori
 
 import {TransferFromToken} from "@protocol/interfaces/TransferFromToken.sol";
 
-contract Comptroller is MultiRolesAuthority {
+import {Multicallable} from "@protocol/mixins/Multicallable.sol";
+
+contract Comptroller is MultiRolesAuthority, Multicallable {
   constructor(address _owner)
     MultiRolesAuthority(_owner, Authority(address(0)))
   {
