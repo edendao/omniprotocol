@@ -15,7 +15,8 @@
         "**/CVS": true,
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
-        "cache": false,
+        ".husky": true,
+        "cache": true,
         "node_modules": true,
         "out": true
     }
