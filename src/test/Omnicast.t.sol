@@ -44,14 +44,13 @@ contract OmnicastTest is ChainEnvironmentTest {
     assertEq(uri, omnicast.tokenURI(omnicastId));
   }
 
-  function testSettingUnmintedTokenURI(address caller, string memory uri)
+  function testFailSetInvalidTokenURI(address caller, string memory uri)
     public
   {
     hevm.assume(caller != address(0) && caller != address(this));
 
     uint256 omnicastId = omnicast.mintTo(caller);
 
-    hevm.expectRevert("Omnicaster: UNAUTHORIZED_CHANNEL");
     hevm.prank(caller);
     omnicast.setTokenURI(omnicastId + 1, uri);
   }
