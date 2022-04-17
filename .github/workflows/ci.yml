@@ -35,4 +35,4 @@ jobs:
         run: yarn lint:check
 
       - name: Test
-        run: make test
+        run: forge test --gas-report --sizes
