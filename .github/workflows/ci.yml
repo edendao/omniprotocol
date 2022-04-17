@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - name: Install Foundry
-        uses: onbjerg/foundry-toolchain@v1.0.6
+        uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
 
@@ -35,4 +35,4 @@ jobs:
         run: yarn lint:check
 
       - name: Test
-        run: forge test --gas-report --sizes
+        run: forge test -vvvv
