@@ -33,22 +33,20 @@ contract NoteTest is ChainEnvironmentTest {
 
   function testOmniTransferFrom(
     address sender,
-    uint16 toChainId,
     uint256 amount,
     address receiver
   ) public {
+    uint16 toChainId = 10010; // rinkarby
     hevm.assume(
       sender != address(0) &&
         receiver != address(0) &&
         sender != receiver &&
-        toChainId != 0 &&
-        toChainId != currentChainId &&
         amount != 0
     );
 
     bytes memory remoteAddressBytes = abi.encodePacked(address(note));
-    note.setTrustedRemoteContract(toChainId, remoteAddressBytes);
-    note.setTrustedRemoteContract(currentChainId, remoteAddressBytes);
+    note.setTrustedRemoteContract(toChainId, remoteAddressBytes); // send to note
+    note.setTrustedRemoteContract(currentChainId, remoteAddressBytes); // receive note
     layerZeroEndpoint.setDestLzEndpoint(
       address(note),
       address(layerZeroEndpoint)

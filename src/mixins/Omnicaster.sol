@@ -107,6 +107,9 @@ abstract contract Omnicaster is IOmnicaster, Omnichain, EdenDaoNS {
 
     if (toChainId == currentChainId) {
       receivedMessages[toReceiverId][withSenderId].push(payload);
+      if (msg.value > 0) {
+        payable(msg.sender).transfer(msg.value);
+      }
     } else {
       lzSend(
         toChainId,

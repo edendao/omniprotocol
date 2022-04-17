@@ -18,6 +18,7 @@ contract ChainEnvironmentTest is DSTestPlus {
   address public ownerAddress = hevm.addr(42);
 
   uint16 public currentChainId = uint16(block.chainid);
+
   LZEndpointMock public layerZeroEndpoint = new LZEndpointMock(currentChainId);
 
   Proxy public proxy = new Proxy();
