@@ -99,14 +99,6 @@ contract Omnicast is
   // =====================================
   // ===== OMNICAST MESSAGING LAYER ======
   // =====================================
-  event Message(
-    uint16 indexed chainId,
-    uint64 nonce,
-    uint256 indexed receiverId,
-    uint256 indexed senderId,
-    bytes data
-  );
-
   // (receiverId => senderId => data[])
   mapping(uint256 => mapping(uint256 => bytes[])) public receivedMessages;
 
@@ -119,11 +111,12 @@ contract Omnicast is
     return messages[messages.length - 1];
   }
 
-  function receivedMessagesCount(
-    uint256 recieverCasterId,
-    uint256 senderCasterId
-  ) public view returns (uint256) {
-    return receivedMessages[recieverCasterId][senderCasterId].length;
+  function receivedMessagesCount(uint256 receiverId, uint256 senderId)
+    public
+    view
+    returns (uint256)
+  {
+    return receivedMessages[receiverId][senderId].length;
   }
 
   function receiveMessage(
