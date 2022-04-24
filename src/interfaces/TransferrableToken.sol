@@ -8,3 +8,7 @@ interface TransferFromToken {
     uint256 idOrAmount
   ) external;
 }
+
+interface TransferToken {
+  function transfer(address to, uint256 idOrAmount) external;
+}

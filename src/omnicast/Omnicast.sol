@@ -39,8 +39,9 @@ contract Omnicast is
     return uint256(uint160(account));
   }
 
-  function idOf(string memory label) public pure returns (uint256) {
-    return namehash(label);
+  function idOf(string memory label) public pure returns (uint256 id) {
+    id = namehash(label);
+    require(id > type(uint160).max, "Omnichannel: RESERVED_SPACE");
   }
 
   function balanceOf(address a) public view returns (uint256) {
@@ -79,15 +80,15 @@ contract Omnicast is
     );
   }
 
-  function sendTokenURI(
-    uint16 toChainId,
+  function setTokenURI(
     uint256 omnicastId,
     string memory uri,
+    uint16 onChainId,
     address lzPaymentAddress,
     bytes memory lzTransactionParams
   ) public {
     sendMessage(
-      toChainId,
+      onChainId,
       omnicastId,
       tokenURIChannel,
       bytes(uri),
@@ -134,10 +135,8 @@ contract Omnicast is
     emit Message(currentChainId, nonce, receiverId, senderId, data);
   }
 
-  function estimateSendFee(
+  function estimateLayerZeroGas(
     uint16 toChainId,
-    uint256 toReceiverId,
-    uint256 withSenderId,
     bytes calldata payload,
     bool useZRO,
     bytes calldata adapterParams
@@ -145,7 +144,7 @@ contract Omnicast is
     return
       lzEstimateSendGas(
         toChainId,
-        abi.encode(toReceiverId, withSenderId, payload),
+        abi.encode(uint256(0), uint256(0), payload),
         useZRO,
         adapterParams
       );
@@ -164,7 +163,7 @@ contract Omnicast is
         withSenderId == idOf(msg.sender) ||
         (toReceiverId > type(uint160).max &&
           msg.sender == omnichannel.ownerOf(toReceiverId))),
-      "Omnicaster: UNAUTHORIZED_CHANNEL"
+      "Omnicast: UNAUTHORIZED_CHANNEL"
     );
 
     if (toChainId == currentChainId) {

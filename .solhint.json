@@ -8,6 +8,8 @@
       "error",
       8
     ],
+    "no-empty-blocks": "off",
+    "var-name-mixedcase": "off",
     "check-send-result": "off",
     "compiler-version": "off",
     "const-name-snakecase": "off",

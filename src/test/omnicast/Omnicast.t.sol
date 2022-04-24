@@ -60,12 +60,12 @@ contract OmnicastTest is ChainEnvironmentTest {
 
     uint256 myOmnicastId = omnicast.mintTo(address(this));
 
-    hevm.expectRevert("Omnicaster: UNAUTHORIZED_CHANNEL");
+    hevm.expectRevert("Omnicast: UNAUTHORIZED_CHANNEL");
     hevm.prank(caller);
     omnicast.setTokenURI(myOmnicastId, uri);
   }
 
-  function testLocalSendGas() public {
+  function testMessageGas() public {
     omnicast.sendMessage(
       uint16(block.chainid),
       omnicast.idOf(ownerAddress),
@@ -73,6 +73,16 @@ contract OmnicastTest is ChainEnvironmentTest {
       "prosperity",
       address(0),
       ""
+    );
+
+    assertEq(
+      "prosperity",
+      string(
+        omnicast.readMessage(
+          omnicast.idOf(ownerAddress),
+          omnicast.idOf(myAddress)
+        )
+      )
     );
   }
 
@@ -140,7 +150,7 @@ contract OmnicastTest is ChainEnvironmentTest {
     uint256 receiverId = omnicast.idOf(receiverAddress);
     uint256 senderId = omnicast.idOf(senderAddress);
 
-    hevm.expectRevert("Omnicaster: UNAUTHORIZED_CHANNEL");
+    hevm.expectRevert("Omnicast: UNAUTHORIZED_CHANNEL");
     omnicast.sendMessage(
       currentChainId,
       receiverId,

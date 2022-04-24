@@ -36,8 +36,9 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
     }
   }
 
-  function idOf(string memory node) public pure returns (uint256) {
-    return namehash(node);
+  function idOf(string memory label) public pure returns (uint256 id) {
+    id = namehash(label);
+    require(id > type(uint160).max, "Omnichannel: RESERVED_SPACE");
   }
 
   // ==============================
@@ -62,17 +63,15 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
   // ===================================
   // ===== MINTS, BURNS, TRANSFERS =====
   // ===================================
-  function mintTo(address to, uint256 channelId)
+  function mintTo(address to, string memory label)
     external
     requiresAuth
     whenNotPaused
-    returns (uint256)
+    returns (uint256 channelId)
   {
     require(currentChainId == primaryChainId, "Omnichannel: INVALID_CHAIN");
-    require(channelId > type(uint160).max, "Omnichannel: RESERVED_SPACE");
-
+    channelId = idOf(label);
     _mint(to, channelId);
-    return channelId;
   }
 
   function burn(uint256 channelId) external {

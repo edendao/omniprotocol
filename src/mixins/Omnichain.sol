@@ -94,7 +94,7 @@ abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
   // ======= LAYER ZERO RECEIVE =======
   // ==================================
   mapping(uint16 => mapping(bytes => mapping(uint256 => bytes32)))
-    public failedMessages;
+    public failedMessagesHash;
 
   event MessageFailed(
     uint16 indexed fromChainId,
@@ -118,7 +118,7 @@ abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
     try this.lzTryReceive(fromChainId, fromContract, nonce, payload) {
       this;
     } catch {
-      failedMessages[fromChainId][fromContract][nonce] = keccak256(payload);
+      failedMessagesHash[fromChainId][fromContract][nonce] = keccak256(payload);
       emit MessageFailed(fromChainId, fromContract, nonce, payload);
     }
   }
@@ -147,11 +147,11 @@ abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
     bytes calldata payload
   ) external {
     // assert there is message to retry
-    bytes32 payloadHash = failedMessages[fromChainId][fromContract][nonce];
+    bytes32 payloadHash = failedMessagesHash[fromChainId][fromContract][nonce];
     require(payloadHash != bytes32(0), "Omnichain: MESSAGE_NOT_FOUND");
     require(keccak256(payload) == payloadHash, "Omnichain: INVALID_PAYLOAD");
     // clear the stored message
-    failedMessages[fromChainId][fromContract][nonce] = bytes32(0);
+    failedMessagesHash[fromChainId][fromContract][nonce] = bytes32(0);
     // execute the message, revert if it fails again
     receiveMessage(fromChainId, fromContract, nonce, payload);
   }

@@ -6,12 +6,12 @@ import {DSTestPlus} from "@rari-capital/solmate/test/utils/DSTestPlus.sol";
 
 import {LZEndpointMock} from "@protocol/test/mocks/LZEndpointMock.sol";
 
-import {Proxy} from "@protocol/Proxy.sol";
+import {Note} from "@protocol/reserve/Note.sol";
+import {Omnicast} from "@protocol/omnicast/Omnicast.sol";
+import {Omnichannel} from "@protocol/omnicast/Omnichannel.sol";
 
-import {Comptroller} from "@protocol/Comptroller.sol";
-import {Note} from "@protocol/Note.sol";
-import {Omnicast} from "@protocol/Omnicast.sol";
-import {Omnichannel} from "@protocol/Omnichannel.sol";
+import {Proxy} from "@protocol/auth/Proxy.sol";
+import {Comptroller} from "@protocol/auth/Comptroller.sol";
 
 contract ChainEnvironmentTest is DSTestPlus {
   address public myAddress = address(this);
@@ -25,7 +25,7 @@ contract ChainEnvironmentTest is DSTestPlus {
 
   Comptroller public comptroller = new Comptroller(address(this));
 
-  Note public note = new Note(address(comptroller), address(layerZeroEndpoint));
+  Note public note = new Note(address(comptroller), "Eden Dao", "EDN", 3);
 
   Omnichannel public omnichannel =
     new Omnichannel(

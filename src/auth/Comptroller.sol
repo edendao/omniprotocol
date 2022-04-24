@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {MultiRolesAuthority, Authority} from "@rari-capital/solmate/auth/authorities/MultiRolesAuthority.sol";
 
-import {TransferFromToken} from "@protocol/interfaces/TransferFromToken.sol";
+import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
 
 import {Multicallable} from "@protocol/mixins/Multicallable.sol";
 
@@ -14,16 +14,16 @@ contract Comptroller is MultiRolesAuthority, Multicallable {
     setAuthority(this);
   }
 
-  function withdrawTo(address to, uint256 amount) public requiresAuth {
+  function withdrawTo(address to, uint256 amount) external requiresAuth {
     payable(to).transfer(amount);
   }
 
   function withdrawToken(
     address token,
     address to,
-    uint256 idOrAmount
-  ) public requiresAuth {
-    TransferFromToken(token).transferFrom(address(this), to, idOrAmount);
+    uint256 amount
+  ) external requiresAuth {
+    TransferToken(token).transfer(to, amount);
   }
 
   receive() external payable {

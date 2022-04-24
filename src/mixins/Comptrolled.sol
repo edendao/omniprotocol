@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {TransferFromToken} from "@protocol/interfaces/TransferFromToken.sol";
+import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
 
-import {Comptroller} from "@protocol/Comptroller.sol";
+import {Comptroller} from "@protocol/auth/Comptroller.sol";
 
 abstract contract Comptrolled {
   Comptroller public comptroller;
@@ -19,12 +19,13 @@ abstract contract Comptrolled {
 
   // Delegate to Comptroller
   function isAuthorized(address user, bytes4 functionSig)
-    internal
+    public
     view
     returns (bool)
   {
-    return (comptroller.canCall(user, address(this), functionSig) ||
-      user == comptroller.owner());
+    return
+      comptroller.canCall(user, address(this), functionSig) ||
+      user == comptroller.owner();
   }
 
   function comptrollerAddress() public view returns (address) {
@@ -35,14 +36,15 @@ abstract contract Comptrolled {
     payable(comptrollerAddress()).transfer(amount);
   }
 
-  function withdrawToken(address token, uint256 idOrAmount)
+  function withdrawToken(address token, uint256 amount)
     public
+    virtual
     requiresAuth
   {
-    TransferFromToken(token).transferFrom(
-      address(this),
-      comptrollerAddress(),
-      idOrAmount
-    );
+    TransferToken(token).transfer(comptrollerAddress(), amount);
+  }
+
+  receive() external payable virtual {
+    this;
   }
 }
