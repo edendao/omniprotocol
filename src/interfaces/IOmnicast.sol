@@ -22,11 +22,11 @@ interface IOmnicast is IERC721, IERC721Metadata {
   // https://layerzero.gitbook.io/docs/technical-reference/mainnet/supported-chain-ids
   // Testnets Chain IDs
   // https://layerzero.gitbook.io/docs/technical-reference/testnet/testnet-addresses
-  function sendMessage(
-    uint16 toChainId,
+  function writeMessage(
     uint256 toReceiverId, // use idOf(address account)
     uint256 withSenderId, // use idOf(address account) or idOf(omnichannel name)
     bytes memory payload, // abi.encode anything you please!
+    uint16 onChainId,
     address lzPaymentAddress,
     bytes memory lzTransactionParams
   ) external payable;

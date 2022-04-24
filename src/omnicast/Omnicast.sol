@@ -82,11 +82,11 @@ contract Omnicast is
   }
 
   function setTokenURI(uint256 omnicastId, string memory uri) public {
-    sendMessage(
-      currentChainId,
+    writeMessage(
       omnicastId,
       tokenURIChannel,
       bytes(uri),
+      currentChainId,
       address(0),
       ""
     );
@@ -99,11 +99,11 @@ contract Omnicast is
     address lzPaymentAddress,
     bytes memory lzTransactionParams
   ) public {
-    sendMessage(
-      onChainId,
+    writeMessage(
       omnicastId,
       tokenURIChannel,
       bytes(uri),
+      onChainId,
       lzPaymentAddress,
       lzTransactionParams
     );
@@ -162,30 +162,29 @@ contract Omnicast is
       );
   }
 
-  function sendMessage(
-    uint16 toChainId,
+  function writeMessage(
     uint256 toReceiverId,
     uint256 withSenderId,
     bytes memory payload,
+    uint16 onChainId,
     address lzPaymentAddress,
     bytes memory lzTransactionParams
   ) public payable {
     require(
       (msg.sender == address(uint160(toReceiverId)) ||
         withSenderId == idOf(msg.sender) ||
-        (toReceiverId > type(uint160).max &&
-          msg.sender == omnichannel.ownerOf(toReceiverId))),
+        msg.sender == omnichannel.ownerOf(toReceiverId)),
       "Omnicast: UNAUTHORIZED_CHANNEL"
     );
 
-    if (toChainId == currentChainId) {
+    if (onChainId == currentChainId) {
       receivedMessages[toReceiverId][withSenderId].push(payload);
       if (msg.value > 0) {
         payable(msg.sender).transfer(msg.value);
       }
     } else {
       lzSend(
-        toChainId,
+        onChainId,
         abi.encode(toReceiverId, withSenderId, payload),
         lzPaymentAddress,
         lzTransactionParams
@@ -193,8 +192,8 @@ contract Omnicast is
     }
 
     emit Message(
-      toChainId,
-      lzEndpoint.getOutboundNonce(toChainId, address(this)),
+      onChainId,
+      lzEndpoint.getOutboundNonce(onChainId, address(this)),
       toReceiverId,
       withSenderId,
       payload

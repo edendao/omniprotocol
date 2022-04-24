@@ -1,4 +1,4 @@
-_eden dao protocol is in code review._ PRs greatly appreciated!
+_eden dao protocol is in code review._ This is an opportunity for the community to get involved prior to testnet launch. PRs would be greatly appreciated!
 
 Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
 
@@ -6,11 +6,11 @@ Interested in building with eden dao protocol? **[Let's collaborate!](https://ed
 
 **Regenerative** in that protocol fees are directed for the public good towards carbon dioxide removal and renewable energy.
 
-**Omnichain infrastructure** in that it liberates DAOs from a single chain with new primitives.
+**Omnichain infrastructure** in that it liberates DAOs from a single chain with new primitives. Eden Dao Protocol is a collection of immutable contracts for omnispace travel.
 
-## Eden Dao Omnicast is an omnichain account datastore
+## Eden Dao Omnicast is an omnichain datastore
 
-[Omnicast](./src/omnicast/Omnicast.sol) is a simple protocol to read and write arbitrary bytes messages across any LayerZero chain. Every address has its own Omnicast as a soulbound NFT. Messages are written to a `uint256 receiverOmnicastId` on a `uint256 senderOmnicastId` channel. Every address has its own unique `omnicastId = uint256(uint160(msg.sender))`, and [Omnichannel](./src/omnicast/Omnichannel.sol) NFTs can be minted to write to vanity channel names like `fwb.eden.dao`.
+[Omnicast](./src/omnicast/Omnicast.sol) is a simple protocol to read and write arbitrary bytes messages across any LayerZero chain on a specific "channel" scoped to a wallet address.
 
 As an arbitrary bytes store, what you use this for is up to you. You could:
 
@@ -19,11 +19,42 @@ As an arbitrary bytes store, what you use this for is up to you. You could:
 3. Leave art on people's Omnicasts
 4. Write user data to another chain
 
-## Eden Dao Notes are omnichain tokens
+```solidity
+  // (receiverId => senderId => data[])
+  mapping(uint256 => mapping(uint256 => bytes[])) public receivedMessages;
+
+  function readMessage(uint256 receiverId, uint256 senderId)
+    public
+    view
+    returns (bytes memory)
+  {
+    bytes[] memory messages = receivedMessages[receiverId][senderId];
+    return messages[messages.length - 1];
+  }
+
+  function writeMessage(
+    uint256 toReceiverId,
+    uint256 withSenderId,
+    bytes memory payload,
+    uint16 onChainId,
+    address lzPaymentAddress,
+    bytes memory lzTransactionParams
+  ) public payable {
+    require(
+      (msg.sender == address(uint160(toReceiverId)) || // write on your own omnicast
+        withSenderId == idOf(msg.sender) || // write on your own channel
+        msg.sender == omnichannel.ownerOf(toReceiverId)), // write on a branded channel name
+      "Omnicast: UNAUTHORIZED_CHANNEL"
+    );
+    // implementation
+  }
+```
+
+## Eden Dao Note is an Omnichain ERC20
 
 New DAOs spend too much wasted time agonizing on which chain to launch on. Eden Dao illuminates the omnichain path with Note: A gas-optimized, secure ERC20 with simple cross-chain bridging built in.
 
-To create your own Note, register a [Comptroller](./src/auth/ComptrollerFactory.sol), use that to create a [Note](./src/mint/NoteFactory.sol), and enable the Omniportal to mint and burn your note:
+To create your own Note, register a [Comptroller](./src/auth/ComptrollerFactory.sol), use that to create a [Note](./src/mint/NoteFactory.sol), and enable the [Omniportal](./src/mint/Omniportal.sol) to mint and burn your note:
 
 ```solidity
 uint8 portalRole = 0;
@@ -41,7 +72,20 @@ Note(noteAddressOnChainA).setRemoteNote(chainBId, abi.encodePacked(noteAddressOn
 Note(noteAddressOnChainB).setRemoteNote(chainAId, abi.encodePacked(noteAddressOnChainA));
 ```
 
-Now your tokens can be bridged across the chains simply and conveniently thanks to LayerZero!
+Now token holders can move their tokens across chains with a simple call to:
+
+```solidity
+  Omniportal.sendNote(
+    address noteAddress, // on this chain
+    uint256 amount, // amount
+    uint16 toChainId, // LayerZero chain id
+    bytes calldata toAddress, // receiver address
+    address lzPaymentAddress,
+    bytes calldata lzTransactionParams
+  ) external payable {
+    // implementation
+  }
+```
 
 ## Eden Dao Vaults are [Rari Vaults](https://github.com/Rari-Capital/vaults) that mint Notes
 

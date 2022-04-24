@@ -55,22 +55,23 @@ contract OmnicastTest is ChainEnvironmentTest {
     omnicast.setTokenURI(omnicastId + 1, uri);
   }
 
-  function testSettingOtherTokenURI(address caller, string memory uri) public {
+  function testFailSettingOtherTokenURI(address caller, string memory uri)
+    public
+  {
     hevm.assume(caller != address(0) && caller != address(this));
 
     uint256 myOmnicastId = omnicast.mintTo(address(this));
 
-    hevm.expectRevert("Omnicast: UNAUTHORIZED_CHANNEL");
     hevm.prank(caller);
     omnicast.setTokenURI(myOmnicastId, uri);
   }
 
   function testMessageGas() public {
-    omnicast.sendMessage(
-      uint16(block.chainid),
+    omnicast.writeMessage(
       omnicast.idOf(ownerAddress),
       omnicast.idOf(myAddress),
       "prosperity",
+      currentChainId,
       address(0),
       ""
     );
@@ -92,11 +93,11 @@ contract OmnicastTest is ChainEnvironmentTest {
     uint256 receiverId = omnicast.idOf(to);
     uint256 senderId = omnicast.idOf(myAddress);
 
-    omnicast.sendMessage(
-      currentChainId,
+    omnicast.writeMessage(
       receiverId,
       senderId,
       payload,
+      currentChainId,
       address(0),
       ""
     );
@@ -122,11 +123,11 @@ contract OmnicastTest is ChainEnvironmentTest {
     uint256 receiverId = omnicast.idOf(to);
     uint256 senderId = omnicast.idOf(myAddress);
 
-    omnicast.sendMessage{value: 0.1 ether}(
-      chainId,
+    omnicast.writeMessage{value: 0.1 ether}(
       receiverId,
       senderId,
       payload,
+      chainId,
       address(0),
       ""
     );
@@ -135,7 +136,7 @@ contract OmnicastTest is ChainEnvironmentTest {
     assertEq0(payload, omnicast.readMessage(receiverId, senderId));
   }
 
-  function testUnauthorizedSend(
+  function testFailUnauthorizedSend(
     address receiverAddress,
     address senderAddress,
     bytes memory payload
@@ -150,12 +151,11 @@ contract OmnicastTest is ChainEnvironmentTest {
     uint256 receiverId = omnicast.idOf(receiverAddress);
     uint256 senderId = omnicast.idOf(senderAddress);
 
-    hevm.expectRevert("Omnicast: UNAUTHORIZED_CHANNEL");
-    omnicast.sendMessage(
-      currentChainId,
+    omnicast.writeMessage(
       receiverId,
       senderId,
       payload,
+      currentChainId,
       address(0),
       ""
     );
