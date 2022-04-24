@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, console} from "@protocol/test/ChainEnvironment.t.sol";
+import {ChainEnvironmentTest, console} from "@protocol/test/ChainEnvironmentTest.t.sol";
 
 contract OmnicastTest is ChainEnvironmentTest {
   function testMintGas() public {

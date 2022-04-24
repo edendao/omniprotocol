@@ -8,13 +8,46 @@ import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 
 import {Comptroller} from "@protocol/auth/Comptroller.sol";
 
-import {Note} from "./Note.sol";
+interface INote {
+  function mintTo(address receiver, uint256 amount) external returns (uint256);
+
+  function burnFrom(address owner, uint256 amount) external;
+
+  function remoteNote(uint16 onChainId) external view returns (bytes memory);
+}
 
 contract Omnigateway is Omnichain {
   constructor(address _comptroller, address _lzEndpoint)
     Omnichain(_comptroller, _lzEndpoint)
   {
     this;
+  }
+
+  function permissionsCalldataFor(uint8 role, address authorizedAddress)
+    external
+    view
+    returns (bytes[] memory)
+  {
+    bytes[] memory commands = new bytes[](3);
+    commands[0] = abi.encodeWithSelector(
+      comptroller.setRoleCapability.selector,
+      role,
+      INote.mintTo.selector,
+      true
+    );
+    commands[1] = abi.encodeWithSelector(
+      comptroller.setRoleCapability.selector,
+      role,
+      INote.burnFrom.selector,
+      true
+    );
+    commands[2] = abi.encodeWithSelector(
+      comptroller.setUserRole.selector,
+      authorizedAddress,
+      role,
+      true
+    );
+    return commands;
   }
 
   event SendNote(
@@ -34,13 +67,10 @@ contract Omnigateway is Omnichain {
     address lzPaymentAddress,
     bytes calldata lzTransactionParams
   ) external payable {
-    Note note = Note(payable(noteAddress));
+    INote note = INote(payable(noteAddress));
+
     note.burnFrom(msg.sender, amount);
-
-    uint256 fee = _mulDivDown(amount, feePercent, 1e18);
-    note.mintTo(address(this), fee);
-
-    amount -= fee;
+    amount -= note.mintTo(address(this), _mulDivDown(amount, feePercent, 1e18));
 
     lzSend(
       toChainId,
@@ -79,7 +109,7 @@ contract Omnigateway is Omnichain {
     address noteAddress = addressFromPackedBytes(noteAddressB);
     address toAddress = addressFromPackedBytes(toAddressB);
 
-    Note(payable(noteAddress)).mintTo(toAddress, amount);
+    INote(payable(noteAddress)).mintTo(toAddress, amount);
 
     emit ReceiveNote(fromChainId, nonce, noteAddress, toAddress, amount);
   }

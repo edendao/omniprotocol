@@ -33,7 +33,6 @@ contract Note is ERC20, Comptrolled, Pausable, ReentrancyGuard {
     remoteNote[onChainId] = remoteNoteAddressB;
   }
 
-  // To get the authority to call these functions, reach out to us
   function mintTo(address to, uint256 amount)
     external
     requiresAuth
@@ -50,7 +49,9 @@ contract Note is ERC20, Comptrolled, Pausable, ReentrancyGuard {
     requiresAuth
     nonReentrant
     whenNotPaused
+    returns (uint256)
   {
     _burn(from, amount);
+    return amount;
   }
 }

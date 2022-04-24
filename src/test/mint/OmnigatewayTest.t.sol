@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, Comptroller} from "@protocol/test/ChainEnvironment.t.sol";
+import {ChainEnvironmentTest, Comptroller} from "@protocol/test/ChainEnvironmentTest.t.sol";
 
 import {MockERC20} from "@rari-capital/solmate/test/utils/mocks/MockERC20.sol";
 
@@ -27,10 +27,7 @@ contract OmnigatewayTest is ChainEnvironmentTest {
   uint16 public constant bridgeToChainId = 10010; // rinkarby
 
   function setUp() public {
-    uint8 gatewayRole = 0;
-    comptroller.setRoleCapability(gatewayRole, Note.mintTo.selector, true);
-    comptroller.setRoleCapability(gatewayRole, Note.burnFrom.selector, true);
-    comptroller.setUserRole(address(gateway), gatewayRole, true);
+    comptroller.multicall(gateway.permissionsCalldataFor(0, address(gateway)));
 
     layerZeroEndpoint.setDestLzEndpoint(
       address(gateway),

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest} from "@protocol/test/ChainEnvironment.t.sol";
+import {ChainEnvironmentTest} from "@protocol/test/ChainEnvironmentTest.t.sol";
 
 import {Omnispace} from "@protocol/omnicast/Omnispace.sol";
 

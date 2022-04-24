@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, Comptroller} from "@protocol/test/ChainEnvironment.t.sol";
+import {ChainEnvironmentTest, Comptroller} from "@protocol/test/ChainEnvironmentTest.t.sol";
 
 import {Note, NoteFactory} from "@protocol/mint/NoteFactory.sol";
 
