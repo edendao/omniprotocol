@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest} from "@protocol/test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, console} from "@protocol/test/ChainEnvironmentTest.t.sol";
 
 import {Omnispace} from "@protocol/omnicast/Omnispace.sol";
 
@@ -14,18 +14,12 @@ contract OmnispaceTest is ChainEnvironmentTest {
     );
 
   function setUp() public {
-    uint8 omnispaceRole = 255;
-    comptroller.setRoleCapability(
-      omnispaceRole,
-      omnichannel.mintTo.selector,
-      true
-    );
-    comptroller.setRoleCapability(
-      omnispaceRole,
-      omnicast.mintTo.selector,
-      true
-    );
-    comptroller.setUserRole(address(minter), omnispaceRole, true);
+    bytes memory command = minter.capabilities(1);
+
+    // emit log_named_bytes("[OMNISPACE CAPABILITIES]", command);
+    // solhint-disable-next-line avoid-low-level-calls
+    (bool ok, ) = address(comptroller).call(command);
+    require(ok, "Failed to permission Omnispace");
   }
 
   function testClaimGas() public {

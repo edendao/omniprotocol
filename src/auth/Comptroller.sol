@@ -14,6 +14,18 @@ contract Comptroller is MultiRolesAuthority, Multicallable {
     setAuthority(this);
   }
 
+  function setCapabilitiesTo(
+    address roleAddress,
+    uint8 withRoleId,
+    bytes4[] memory functionSignatures,
+    bool enabled
+  ) external requiresAuth {
+    for (uint256 i = 0; i < functionSignatures.length; i += 1) {
+      setRoleCapability(withRoleId, functionSignatures[i], enabled);
+    }
+    setUserRole(roleAddress, withRoleId, enabled);
+  }
+
   function withdrawTo(address to, uint256 amount) external requiresAuth {
     payable(to).transfer(amount);
   }

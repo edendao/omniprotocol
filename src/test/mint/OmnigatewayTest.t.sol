@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, Comptroller} from "@protocol/test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, Comptroller, console} from "@protocol/test/ChainEnvironmentTest.t.sol";
 
 import {MockERC20} from "@rari-capital/solmate/test/utils/mocks/MockERC20.sol";
 
@@ -27,7 +27,12 @@ contract OmnigatewayTest is ChainEnvironmentTest {
   uint16 public constant bridgeToChainId = 10010; // rinkarby
 
   function setUp() public {
-    comptroller.multicall(gateway.permissionsCalldataFor(0, address(gateway)));
+    bytes memory command = gateway.capabilities(0);
+
+    // emit log_named_bytes("[OMNIGATEWAY CAPABILITIES]", command);
+    // solhint-disable-next-line avoid-low-level-calls
+    (bool ok, ) = address(comptroller).call(command);
+    require(ok, "Failed to permission Omnigateway");
 
     layerZeroEndpoint.setDestLzEndpoint(
       address(gateway),

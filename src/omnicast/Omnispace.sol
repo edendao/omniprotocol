@@ -23,6 +23,21 @@ contract Omnispace is Comptrolled {
     omnicast = Omnicast(payable(_omnicast));
   }
 
+  function capabilities(uint8 role) public view returns (bytes memory) {
+    bytes4[] memory selectors = new bytes4[](2);
+    selectors[0] = omnichannel.mintTo.selector;
+    selectors[1] = omnicast.mintTo.selector;
+
+    return
+      abi.encodeWithSelector(
+        comptroller.setCapabilitiesTo.selector,
+        address(this),
+        role,
+        selectors,
+        true
+      );
+  }
+
   function register(string memory label) public payable returns (uint256) {
     require(channelsRegisteredBy[msg.sender] < 10, "Omnichannel: MINT_LIMIT");
     require(

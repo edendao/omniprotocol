@@ -64,10 +64,10 @@ As an ERC20 Note, what you use this for is up to you:
 At a high level, to create your own Note, register a [Comptroller](./src/auth/ComptrollerFactory.sol), use that to create a [Note](./src/mint/NoteFactory.sol), and enable the [Omniportal](./src/mint/Omniportal.sol) to mint and burn your note:
 
 ```solidity
-uint8 portalRole = 0;
-comptroller.setRoleCapability(portalRole, Note.mintTo.selector, true);
-comptroller.setRoleCapability(portalRole, Note.burnFrom.selector, true);
-comptroller.setUserRole(address(portal), portalRole, true);
+bytes4[] memory selectors = new bytes4[](2);
+selectors[0] = Note.mintTo.selector;
+selectors[1] = Note.burnFrom.selector;
+comptroller.setCapabilitiesTo(address(omnigateway), 0, [], true);
 ```
 
 For the next chain, repeat the same steps. Then, hook both Notes up to each other:

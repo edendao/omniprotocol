@@ -23,31 +23,19 @@ contract Omnigateway is Omnichain {
     this;
   }
 
-  function permissionsCalldataFor(uint8 role, address authorizedAddress)
-    external
-    view
-    returns (bytes[] memory)
-  {
-    bytes[] memory commands = new bytes[](3);
-    commands[0] = abi.encodeWithSelector(
-      comptroller.setRoleCapability.selector,
-      role,
-      INote.mintTo.selector,
-      true
-    );
-    commands[1] = abi.encodeWithSelector(
-      comptroller.setRoleCapability.selector,
-      role,
-      INote.burnFrom.selector,
-      true
-    );
-    commands[2] = abi.encodeWithSelector(
-      comptroller.setUserRole.selector,
-      authorizedAddress,
-      role,
-      true
-    );
-    return commands;
+  function capabilities(uint8 role) public view returns (bytes memory) {
+    bytes4[] memory selectors = new bytes4[](2);
+    selectors[0] = INote.mintTo.selector;
+    selectors[1] = INote.burnFrom.selector;
+
+    return
+      abi.encodeWithSelector(
+        comptroller.setCapabilitiesTo.selector,
+        address(this),
+        role,
+        selectors,
+        true
+      );
   }
 
   event SendNote(
