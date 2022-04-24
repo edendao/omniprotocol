@@ -11,9 +11,6 @@ import {Comptroller} from "@protocol/auth/Comptroller.sol";
 
 import {Note} from "./Note.sol";
 
-/// @title Eden Dao Omnibank
-/// @author Cyrus, Transmissions11, and JetJadeja
-/// @notice Factory which enables deploying a Note or a Vault for any ERC20 token.
 contract Omniportal is Omnichain {
   using FixedPointMathLib for uint256;
 
@@ -23,8 +20,7 @@ contract Omniportal is Omnichain {
     this;
   }
 
-  // Send notes into omnispace
-  event SendMessage(
+  event SendNote(
     uint16 indexed toChainId,
     uint64 nonce,
     address indexed noteAddress,
@@ -33,38 +29,41 @@ contract Omniportal is Omnichain {
     uint256 amount
   );
 
-  function sendMessage(
-    uint16 toChainId,
+  function sendNote(
     address noteAddress,
-    bytes calldata toAddress,
     uint256 amount,
+    uint16 toChainId,
+    bytes calldata toAddress,
     address lzPaymentAddress,
     bytes calldata lzTransactionParams
   ) external payable {
     Note note = Note(payable(noteAddress));
     note.burnFrom(msg.sender, amount);
-    uint256 fee = amount.mulDivDown(sendFeePercent, 1e18);
+
+    uint256 fee = amount.mulDivDown(feePercent, 1e18);
     note.mintTo(address(this), fee);
+
+    amount -= fee;
 
     lzSend(
       toChainId,
-      abi.encode(note.remoteNote(toChainId), toAddress, amount - fee),
+      abi.encode(note.remoteNote(toChainId), toAddress, amount),
       lzPaymentAddress,
       lzTransactionParams
     );
 
-    emit SendMessage(
+    emit SendNote(
       toChainId,
       lzEndpoint.getOutboundNonce(toChainId, address(this)),
       noteAddress,
       msg.sender,
       toAddress,
-      amount - fee
+      amount
     );
   }
 
   // Receive notes from omnispace
-  event ReceiveMessage(
+  event ReceiveNote(
     uint16 indexed fromChainId,
     uint64 nonce,
     address indexed noteAddress,
@@ -85,7 +84,7 @@ contract Omniportal is Omnichain {
 
     Note(payable(noteAddress)).mintTo(toAddress, amount);
 
-    emit ReceiveMessage(fromChainId, nonce, noteAddress, toAddress, amount);
+    emit ReceiveNote(fromChainId, nonce, noteAddress, toAddress, amount);
   }
 
   // Estimate LayerZero gas associated with .sendMessage
@@ -103,23 +102,13 @@ contract Omniportal is Omnichain {
       );
   }
 
-  /// @notice The percentage of value recognized each transfer to reserve as fees.
-  /// @dev A fixed point number where 1e18 represents 100% and 0 represents 0%.
-  uint256 public sendFeePercent = 1e15; // 0.1% for public goods
+  uint256 public feePercent = 1e15; // 0.1% for public goods
 
-  /// @notice Emitted when the fee percentage is updated.
-  /// @param user The authorized user who triggered the update.
-  /// @param newFeePercent The new fee percentage.
-  event SendFeePercentUpdated(address indexed user, uint256 newFeePercent);
+  event FeePercentUpdated(address indexed user, uint256 newFeePercent);
 
-  /// @notice Sets a new fee percentage.
-  /// @param newFeePercent The new fee percentage.
-  function setSendFeePercent(uint256 newFeePercent) external requiresAuth {
-    require(newFeePercent <= 1e16, "FEE_TOO_HIGH"); // 1% or less
-
-    // Update the fee percentage.
-    sendFeePercent = newFeePercent;
-
-    emit SendFeePercentUpdated(msg.sender, newFeePercent);
+  function setFeePercent(uint256 newFeePercent) external requiresAuth {
+    require(newFeePercent <= 1e16, "Omniportal: INVALID_FEE"); // 1% or less
+    feePercent = newFeePercent;
+    emit FeePercentUpdated(msg.sender, newFeePercent);
   }
 }

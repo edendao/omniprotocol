@@ -24,7 +24,7 @@ contract OmniportalTest is ChainEnvironmentTest {
       fwaum.decimals()
     );
 
-  uint16 public constant portalChainId = 10010; // rinkarby
+  uint16 public constant bridgeToChainId = 10010; // rinkarby
 
   function setUp() public {
     uint8 portalRole = 0;
@@ -41,12 +41,12 @@ contract OmniportalTest is ChainEnvironmentTest {
       abi.encodePacked(address(portal))
     );
     portal.setTrustedRemoteContract(
-      portalChainId,
+      bridgeToChainId,
       abi.encodePacked(address(portal))
     );
 
     fwaumVault.setRemoteNote(
-      portalChainId,
+      bridgeToChainId,
       abi.encodePacked(address(fwaumNote))
     );
     fwaumNote.setRemoteNote(
@@ -65,16 +65,16 @@ contract OmniportalTest is ChainEnvironmentTest {
     fwaumVault.deposit(amount, address(this));
     assertEq(fwaumVault.balanceOf(address(this)), amount);
 
-    portal.sendMessage{value: 1 ether}(
-      portalChainId,
+    portal.sendNote{value: 1 ether}(
       address(fwaumVault),
-      abi.encodePacked(address(this)),
       amount,
+      bridgeToChainId,
+      abi.encodePacked(address(this)),
       address(0),
       bytes("")
     );
 
-    uint256 fee = (amount * portal.sendFeePercent()) / 1e18;
+    uint256 fee = (amount * portal.feePercent()) / 1e18;
 
     assertEq(fwaumNote.balanceOf(address(this)), amount - fee);
     assertEq(fwaumVault.balanceOf(address(portal)), fee);

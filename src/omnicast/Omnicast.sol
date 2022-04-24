@@ -18,10 +18,6 @@ contract Omnicast is
   Multicallable,
   EdenDaoNS
 {
-  string public constant name = "Eden Dao Omnicast";
-  string public constant symbol = "OMNICAST";
-  mapping(uint256 => address) public ownerOf;
-
   IERC721 internal omnichannel;
 
   constructor(
@@ -30,6 +26,20 @@ contract Omnicast is
     address _omnichannel
   ) Omnichain(_comptroller, _layerZeroEndpoint) {
     omnichannel = IERC721(_omnichannel);
+  }
+
+  string public name = "Eden Dao Omnicast";
+  string public symbol = "OMNICAST";
+
+  event SetMeta(string name, string symbol);
+
+  function setMeta(string memory _name, string memory _symbol)
+    external
+    requiresAuth
+  {
+    name = _name;
+    symbol = _symbol;
+    emit SetMeta(_name, _symbol);
   }
 
   // ==================================
@@ -43,6 +53,8 @@ contract Omnicast is
     id = namehash(label);
     require(id > type(uint160).max, "Omnichannel: RESERVED_SPACE");
   }
+
+  mapping(uint256 => address) public ownerOf;
 
   function balanceOf(address a) public view returns (uint256) {
     return ownerOf[idOf(a)] == address(0) ? 0 : 1;
