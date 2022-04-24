@@ -50,11 +50,20 @@ As an arbitrary bytes store, what you use this for is up to you. You could:
   }
 ```
 
+Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
+
 ## Eden Dao Note is an Omnichain ERC20
 
 New DAOs spend too much wasted time agonizing on which chain to launch on. Eden Dao illuminates the omnichain path with Note: A gas-optimized, secure ERC20 with simple cross-chain bridging built in.
 
-To create your own Note, register a [Comptroller](./src/auth/ComptrollerFactory.sol), use that to create a [Note](./src/mint/NoteFactory.sol), and enable the [Omniportal](./src/mint/Omniportal.sol) to mint and burn your note:
+As an ERC20 Note, what you use this for is up to you:
+
+1. Send notes across chains for omnichain DAO2DAO partnerships
+2. Have an omnichain DAO token so you can use whatever combination of tooling you want (e.g. Coordinape on ETH and Colony on Gnosis Chain)
+
+Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
+
+At a high level, to create your own Note, register a [Comptroller](./src/auth/ComptrollerFactory.sol), use that to create a [Note](./src/mint/NoteFactory.sol), and enable the [Omniportal](./src/mint/Omniportal.sol) to mint and burn your note:
 
 ```solidity
 uint8 portalRole = 0;
@@ -91,3 +100,7 @@ Now token holders can move their tokens across chains with a simple call to:
 
 Rari Vaults are flexible, minimalist, gas-optimized yield aggregator for earning interest on any ERC20 token.
 Eden Dao Vaults mint Notes, which can be connected to other Notes (or other Vaults) for DAOs to create their own decentralized reserves.
+
+These enable DAOs to mint yield aggregator notes that can be simply bridged _to any other chain_.
+
+Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
