@@ -1,10 +1,10 @@
+**EDEN DAO PROTOCOL IS IN CODE REVIEW. THOUGHTFUL PULL REQUESTS WOULD BE GREATLY APPRECIATED. DM ON [TWITTER](https://twitter.com/CyrusOfEden) TO CHAT.**
+
 # Eden Dao Protocol is Regenerative Omnichain Infrastructure
 
 **Regenerative** in that protocol fees are directed for the public good towards carbon dioxide removal and renewable energy.
 
 **Omnichain infrastructure** in that it liberates DAOs from a single chain with new primitives.
-
-EDEN DAO IS IN DEVELOPER PREVIEW. IF YOU WOULD LIKE TO COLLABORATE, DO REACH OUT ON [TWITTER](https://twitter.com/CyrusOfEden).
 
 ## Eden Dao Omnicast is an omnichain account datastore
 
