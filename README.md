@@ -8,7 +8,7 @@ Interested in building with eden dao protocol? **[Let's collaborate!](https://ed
 
 **Omnichain infrastructure** in that it liberates DAOs from a single chain with new primitives. Eden Dao Protocol is a collection of immutable contracts for omnispace travel.
 
-## Eden Dao Omnicast is an omnichain datastore
+## Eden Dao Omnicast is an omnichain user store
 
 [Omnicast](./src/omnicast/Omnicast.sol) is a simple protocol to read and write arbitrary bytes messages across any LayerZero chain on a specific "channel" scoped to a wallet address.
 
@@ -61,8 +61,6 @@ As an ERC20 Note, what you use this for is up to you:
 1. Send notes across chains for omnichain DAO2DAO partnerships
 2. Have an omnichain DAO token so you can use whatever combination of tooling you want (e.g. Coordinape on ETH and Colony on Gnosis Chain)
 
-Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
-
 At a high level, to create your own Note, register a [Comptroller](./src/auth/ComptrollerFactory.sol), use that to create a [Note](./src/mint/NoteFactory.sol), and enable the [Omniportal](./src/mint/Omniportal.sol) to mint and burn your note:
 
 ```solidity
@@ -95,6 +93,8 @@ Now token holders can move their tokens across chains with a simple call to:
     // implementation
   }
 ```
+
+Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
 
 ## Eden Dao Vaults are [Rari Vaults](https://github.com/Rari-Capital/vaults) that mint Notes
 
