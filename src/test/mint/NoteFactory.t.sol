@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {ChainEnvironmentTest, Comptroller} from "@protocol/test/ChainEnvironment.t.sol";
 
-import {Note, NoteFactory} from "@protocol/reserve/NoteFactory.sol";
+import {Note, NoteFactory} from "@protocol/mint/NoteFactory.sol";
 
 contract NoteFactoryTest is ChainEnvironmentTest {
   NoteFactory internal factory = new NoteFactory(address(comptroller));

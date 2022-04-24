@@ -5,9 +5,9 @@ import {ChainEnvironmentTest, Comptroller} from "@protocol/test/ChainEnvironment
 
 import {MockERC20} from "@rari-capital/solmate/test/utils/mocks/MockERC20.sol";
 
-import {Omniportal} from "@protocol/reserve/Omniportal.sol";
-import {Note} from "@protocol/reserve/Note.sol";
-import {Vault} from "@protocol/reserve/Vault.sol";
+import {Omniportal} from "@protocol/mint/Omniportal.sol";
+import {Note} from "@protocol/mint/Note.sol";
+import {Vault} from "@protocol/mint/Vault.sol";
 
 contract OmniportalTest is ChainEnvironmentTest {
   Omniportal public portal =

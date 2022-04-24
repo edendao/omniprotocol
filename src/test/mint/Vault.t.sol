@@ -5,7 +5,7 @@ import {ChainEnvironmentTest, Comptroller} from "@protocol/test/ChainEnvironment
 
 import {MockERC20} from "@rari-capital/solmate/test/utils/mocks/MockERC20.sol";
 
-import {Vault} from "@protocol/reserve/Vault.sol";
+import {Vault} from "@protocol/mint/Vault.sol";
 
 contract VaultTest is ChainEnvironmentTest {
   MockERC20 internal fwaum =

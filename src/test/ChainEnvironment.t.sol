@@ -6,7 +6,7 @@ import {DSTestPlus} from "@rari-capital/solmate/test/utils/DSTestPlus.sol";
 
 import {LZEndpointMock} from "@protocol/test/mocks/LZEndpointMock.sol";
 
-import {Note} from "@protocol/reserve/Note.sol";
+import {Note} from "@protocol/mint/Note.sol";
 import {Omnicast} from "@protocol/omnicast/Omnicast.sol";
 import {Omnichannel} from "@protocol/omnicast/Omnichannel.sol";
 
