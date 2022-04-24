@@ -1,4 +1,6 @@
-**EDEN DAO PROTOCOL IS IN CODE REVIEW. THOUGHTFUL PULL REQUESTS WOULD BE GREATLY APPRECIATED. DM ON [TWITTER](https://twitter.com/CyrusOfEden) TO CHAT.**
+_eden dao protocol is in code review._ PRs greatly appreciated!
+
+Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
 
 # Eden Dao Protocol is Regenerative Omnichain Infrastructure
 
@@ -41,7 +43,7 @@ Note(noteAddressOnChainB).setRemoteNote(chainAId, abi.encodePacked(noteAddressOn
 
 Now your tokens can be bridged across the chains simply and conveniently thanks to LayerZero!
 
-## Eden Dao Vaults are Rari Vaults that mint Notes
+## Eden Dao Vaults are [Rari Vaults](https://github.com/Rari-Capital/vaults) that mint Notes
 
 Rari Vaults are flexible, minimalist, gas-optimized yield aggregator for earning interest on any ERC20 token.
 Eden Dao Vaults mint Notes, which can be connected to other Notes (or other Vaults) for DAOs to create their own decentralized reserves.
