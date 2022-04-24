@@ -3,7 +3,6 @@ pragma solidity ^0.8.10;
 
 import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
 import {Auth, Authority} from "@rari-capital/solmate/auth/Auth.sol";
-import {FixedPointMathLib} from "@rari-capital/solmate/utils/FixedPointMathLib.sol";
 
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 
@@ -11,9 +10,7 @@ import {Comptroller} from "@protocol/auth/Comptroller.sol";
 
 import {Note} from "./Note.sol";
 
-contract Omniportal is Omnichain {
-  using FixedPointMathLib for uint256;
-
+contract Omnigateway is Omnichain {
   constructor(address _comptroller, address _lzEndpoint)
     Omnichain(_comptroller, _lzEndpoint)
   {
@@ -40,7 +37,7 @@ contract Omniportal is Omnichain {
     Note note = Note(payable(noteAddress));
     note.burnFrom(msg.sender, amount);
 
-    uint256 fee = amount.mulDivDown(feePercent, 1e18);
+    uint256 fee = _mulDivDown(amount, feePercent, 1e18);
     note.mintTo(address(this), fee);
 
     amount -= fee;
@@ -110,5 +107,28 @@ contract Omniportal is Omnichain {
     require(newFeePercent <= 1e16, "Omniportal: INVALID_FEE"); // 1% or less
     feePercent = newFeePercent;
     emit FeePercentUpdated(msg.sender, newFeePercent);
+  }
+
+  // From Solmate
+  function _mulDivDown(
+    uint256 x,
+    uint256 y,
+    uint256 denominator
+  ) internal pure returns (uint256 z) {
+    // solhint-disable-next-line no-inline-assembly
+    assembly {
+      // Store x * y in z for now.
+      z := mul(x, y)
+
+      // Equivalent to require(denominator != 0 && (x == 0 || (x * y) / x == y))
+      if iszero(
+        and(iszero(iszero(denominator)), or(iszero(x), eq(div(z, x), y)))
+      ) {
+        revert(0, 0)
+      }
+
+      // Divide z by the denominator.
+      z := div(z, denominator)
+    }
   }
 }

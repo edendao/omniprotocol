@@ -96,10 +96,10 @@ Now token holders can move their tokens across chains with a simple call to:
 
 Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
 
-## Eden Dao Vaults are [Rari Vaults](https://github.com/Rari-Capital/vaults) that mint Notes
+## Eden Dao Omnivaults are [Rari Vaults](https://github.com/Rari-Capital/vaults) that mint Notes
 
 Rari Vaults are flexible, minimalist, gas-optimized yield aggregator for earning interest on any ERC20 token.
-Eden Dao Vaults mint Notes, which can be connected to other Notes (or other Vaults) for DAOs to create their own decentralized reserves.
+Eden Dao Omnivaults mint Notes, which can be connected to other Notes (or other Omnivaults) for DAOs to create their own decentralized reserves.
 
 These enable DAOs to mint yield aggregator notes that can be simply bridged _to any other chain_.
 

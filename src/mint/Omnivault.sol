@@ -18,7 +18,7 @@ import {Note} from "./Note.sol";
 /// @author Cyrus of Eden, Transmissions11, and JetJadeja
 /// @notice Flexible, minimalist, gas-optimized yield aggregator for earning
 /// interest on any ERC20 token. And now, vault tokens are omnichain notes.
-contract Vault is ERC4626, Note {
+contract Omnivault is ERC4626, Note {
   using SafeCastLib for uint256;
   using SafeTransferLib for ERC20;
   using FixedPointMathLib for uint256;
@@ -71,7 +71,7 @@ contract Vault is ERC4626, Note {
 
   /// @notice The period in seconds during which multiple harvests can occur
   /// regardless if they are taking place before the harvest delay has elapsed.
-  /// @dev Long harvest windows open the Vault up to profit distribution slowdown attacks.
+  /// @dev Long harvest windows open the Omnivault up to profit distribution slowdown attacks.
   uint128 public harvestWindow;
 
   /// @notice The period in seconds over which locked profit is unlocked.
@@ -84,10 +84,10 @@ contract Vault is ERC4626, Note {
 
   /// @notice Sets a new harvest window.
   /// @param newHarvestWindow The new harvest window.
-  /// @dev The Vault's harvestDelay must already be set before calling.
+  /// @dev The Omnivault's harvestDelay must already be set before calling.
   function setHarvestWindow(uint128 newHarvestWindow) external requiresAuth {
     // A harvest window longer than the harvest delay doesn't make sense.
-    require(newHarvestWindow <= harvestDelay, "Vault: WINDOW_TOO_LONG");
+    require(newHarvestWindow <= harvestDelay, "Omnivault: WINDOW_TOO_LONG");
 
     // Update the harvest window.
     harvestWindow = newHarvestWindow;
@@ -102,10 +102,10 @@ contract Vault is ERC4626, Note {
   /// it will be scheduled to take effect after the next harvest.
   function setHarvestDelay(uint64 newHarvestDelay) external requiresAuth {
     // A harvest delay of 0 makes harvests vulnerable to sandwich attacks.
-    require(newHarvestDelay != 0, "Vault: DELAY_CANNOT_BE_ZERO");
+    require(newHarvestDelay != 0, "Omnivault: DELAY_CANNOT_BE_ZERO");
 
     // A harvest delay longer than 1 year doesn't make sense.
-    require(newHarvestDelay <= 365 days, "Vault: DELAY_TOO_LONG");
+    require(newHarvestDelay <= 365 days, "Omnivault: DELAY_TOO_LONG");
 
     // If the harvest delay is 0, meaning it has not been set before:
     if (harvestDelay == 0) {
@@ -125,7 +125,7 @@ contract Vault is ERC4626, Note {
                        TARGET FLOAT CONFIGURATION
     //////////////////////////////////////////////////////////////*/
 
-  /// @notice The desired percentage of the Vault's holdings to keep as float.
+  /// @notice The desired percentage of the Omnivault's holdings to keep as float.
   /// @dev A fixed point number where 1e18 represents 100% and 0 represents 0%.
   uint256 public targetFloatPercent;
 
@@ -144,7 +144,7 @@ contract Vault is ERC4626, Note {
     requiresAuth
   {
     // A target float percentage over 100% doesn't make sense.
-    require(newTargetFloatPercent <= 1e18, "Vault: TARGET_TOO_HIGH");
+    require(newTargetFloatPercent <= 1e18, "Omnivault: TARGET_TOO_HIGH");
 
     // Update the target float percentage.
     targetFloatPercent = newTargetFloatPercent;
@@ -164,13 +164,13 @@ contract Vault is ERC4626, Note {
   /// @param trusted Whether the strategy is trusted.
   /// @param balance The amount of underlying tokens held in the strategy.
   struct StrategyData {
-    // Used to determine if the Vault will operate on a strategy.
+    // Used to determine if the Omnivault will operate on a strategy.
     bool trusted;
     // Used to determine profit and loss during harvests of the strategy.
     uint248 balance;
   }
 
-  /// @notice Maps strategies to data the Vault holds on them.
+  /// @notice Maps strategies to data the Omnivault holds on them.
   mapping(Strategy => StrategyData) public getStrategyData;
 
   /*///////////////////////////////////////////////////////////////
@@ -220,7 +220,7 @@ contract Vault is ERC4626, Note {
   /// @dev Only withdraws from strategies if needed and maintains the target float percentage if possible.
   /// @param underlyingAmount The amount of underlying tokens to retrieve.
   function retrieveUnderlying(uint256 underlyingAmount) internal {
-    // Get the Vault's floating balance.
+    // Get the Omnivault's floating balance.
     uint256 float = totalFloat();
 
     // If the amount is greater than the float, withdraw from strategies.
@@ -243,8 +243,8 @@ contract Vault is ERC4626, Note {
                         VAULT ACCOUNTING LOGIC
     //////////////////////////////////////////////////////////////*/
 
-  /// @notice Calculates the total amount of underlying tokens the Vault holds.
-  /// @return totalUnderlyingHeld The total amount of underlying tokens the Vault holds.
+  /// @notice Calculates the total amount of underlying tokens the Omnivault holds.
+  /// @return totalUnderlyingHeld The total amount of underlying tokens the Omnivault holds.
   function totalAssets()
     public
     view
@@ -284,8 +284,8 @@ contract Vault is ERC4626, Note {
     }
   }
 
-  /// @notice Returns the amount of underlying tokens that idly sit in the Vault.
-  /// @return The amount of underlying tokens that sit idly in the Vault.
+  /// @notice Returns the amount of underlying tokens that idly sit in the Omnivault.
+  /// @return The amount of underlying tokens that sit idly in the Omnivault.
   function totalFloat() public view returns (uint256) {
     return asset.balanceOf(address(this));
   }
@@ -313,11 +313,11 @@ contract Vault is ERC4626, Note {
       // We know this harvest is not the first in the window so we need to ensure it's within it.
       require(
         block.timestamp <= lastHarvestWindowStart + harvestWindow,
-        "Vault: BAD_HARVEST_TIME"
+        "Omnivault: BAD_HARVEST_TIME"
       );
     }
 
-    // Get the Vault's current total strategy holdings.
+    // Get the Omnivault's current total strategy holdings.
     uint256 oldTotalStrategyHoldings = totalStrategyHoldings;
 
     // Used to store the total profit accrued by the strategies.
@@ -333,7 +333,10 @@ contract Vault is ERC4626, Note {
 
       // If an untrusted strategy could be harvested a malicious user could use
       // a fake strategy that over-reports holdings to manipulate the exchange rate.
-      require(getStrategyData[strategy].trusted, "Vault: UNTRUSTED_STRATEGY");
+      require(
+        getStrategyData[strategy].trusted,
+        "Omnivault: UNTRUSTED_STRATEGY"
+      );
 
       // Get the strategy's previous and current balance.
       uint256 balanceLastHarvest = getStrategyData[strategy].balance;
@@ -400,7 +403,7 @@ contract Vault is ERC4626, Note {
                     STRATEGY DEPOSIT/WITHDRAWAL LOGIC
     //////////////////////////////////////////////////////////////*/
 
-  /// @notice Emitted after the Vault deposits into a strategy contract.
+  /// @notice Emitted after the Omnivault deposits into a strategy contract.
   /// @param user The authorized user who triggered the deposit.
   /// @param strategy The strategy that was deposited into.
   /// @param underlyingAmount The amount of underlying tokens that were deposited.
@@ -410,7 +413,7 @@ contract Vault is ERC4626, Note {
     uint256 underlyingAmount
   );
 
-  /// @notice Emitted after the Vault withdraws funds from a strategy contract.
+  /// @notice Emitted after the Omnivault withdraws funds from a strategy contract.
   /// @param user The authorized user who triggered the withdrawal.
   /// @param strategy The strategy that was withdrawn from.
   /// @param underlyingAmount The amount of underlying tokens that were withdrawn.
@@ -428,7 +431,7 @@ contract Vault is ERC4626, Note {
     requiresAuth
   {
     // A strategy must be trusted before it can be deposited into.
-    require(getStrategyData[strategy].trusted, "Vault: UNTRUSTED_STRATEGY");
+    require(getStrategyData[strategy].trusted, "Omnivault: UNTRUSTED_STRATEGY");
 
     // Increase totalStrategyHoldings to account for the deposit.
     totalStrategyHoldings += underlyingAmount;
@@ -447,7 +450,7 @@ contract Vault is ERC4626, Note {
     // Deposit into the strategy and revert if it returns an error code.
     require(
       ERC20Strategy(address(strategy)).mint(underlyingAmount) == 0,
-      "Vault: MINT_FAILED"
+      "Omnivault: MINT_FAILED"
     );
   }
 
@@ -460,7 +463,7 @@ contract Vault is ERC4626, Note {
     requiresAuth
   {
     // A strategy must be trusted before it can be withdrawn from.
-    require(getStrategyData[strategy].trusted, "Vault: UNTRUSTED_STRATEGY");
+    require(getStrategyData[strategy].trusted, "Omnivault: UNTRUSTED_STRATEGY");
 
     // Without this the next harvest would count the withdrawal as a loss.
     getStrategyData[strategy].balance -= underlyingAmount.safeCastTo248();
@@ -476,7 +479,7 @@ contract Vault is ERC4626, Note {
     // Withdraw from the strategy and revert if it returns an error code.
     require(
       strategy.redeemUnderlying(underlyingAmount) == 0,
-      "Vault: REDEEM_FAILED"
+      "Omnivault: REDEEM_FAILED"
     );
   }
 
@@ -501,7 +504,7 @@ contract Vault is ERC4626, Note {
     require(
       !strategy.isCEther() &&
         ERC20Strategy(address(strategy)).underlying() == asset,
-      "Vault: WRONG_UNDERLYING"
+      "Omnivault: WRONG_UNDERLYING"
     );
 
     // Store the strategy as trusted.
@@ -638,7 +641,7 @@ contract Vault is ERC4626, Note {
         // Withdraw from the strategy and revert if returns an error code.
         require(
           strategy.redeemUnderlying(amountToPull) == 0,
-          "Vault: REDEEM_FAILED"
+          "Omnivault: REDEEM_FAILED"
         );
 
         // If we fully depleted the strategy:
@@ -669,7 +672,7 @@ contract Vault is ERC4626, Note {
     // Ensure pushing the strategy will not cause the stack exceed its limit.
     require(
       withdrawalStack.length < MAX_WITHDRAWAL_STACK_SIZE,
-      "Vault: STACK_FULL"
+      "Omnivault: STACK_FULL"
     );
 
     // Push the strategy to the front of the stack.
@@ -702,7 +705,7 @@ contract Vault is ERC4626, Note {
     // Ensure the new stack is not larger than the maximum stack size.
     require(
       newStack.length <= MAX_WITHDRAWAL_STACK_SIZE,
-      "Vault: STACK_TOO_BIG"
+      "Omnivault: STACK_TOO_BIG"
     );
 
     // Replace the withdrawal stack.
@@ -800,7 +803,7 @@ contract Vault is ERC4626, Note {
   function setFeePercent(uint256 newFeePercent) external requiresAuth {
     require(
       1e15 <= newFeePercent && newFeePercent <= 1e18,
-      "Vault: INVALID_FEE"
+      "Omnivault: INVALID_FEE"
     );
 
     feePercent = newFeePercent;
@@ -815,7 +818,7 @@ contract Vault is ERC4626, Note {
 
   /// @notice Claims fees accrued from harvests.
   /// @param ednTokenAmount The amount of edn Tokens to claim.
-  /// @dev Accrued fees are measured as edn Tokens held by the Vault.
+  /// @dev Accrued fees are measured as edn Tokens held by the Omnivault.
   function claimFees(uint256 ednTokenAmount) external requiresAuth {
     emit FeesClaimed(msg.sender, ednTokenAmount);
 

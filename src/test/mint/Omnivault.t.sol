@@ -5,12 +5,12 @@ import {ChainEnvironmentTest, Comptroller} from "@protocol/test/ChainEnvironment
 
 import {MockERC20} from "@rari-capital/solmate/test/utils/mocks/MockERC20.sol";
 
-import {Vault} from "@protocol/mint/Vault.sol";
+import {Omnivault} from "@protocol/mint/Omnivault.sol";
 
-contract VaultTest is ChainEnvironmentTest {
+contract OmnivaultTest is ChainEnvironmentTest {
   MockERC20 internal fwaum =
     new MockERC20("Friends with Assets Under Management", "FWAUM", 18);
-  Vault internal vault = new Vault(address(comptroller), fwaum);
+  Omnivault internal vault = new Omnivault(address(comptroller), fwaum);
 
   function testMetadata() public {
     assertEq(
