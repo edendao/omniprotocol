@@ -41,7 +41,7 @@ As an arbitrary bytes store, what you use this for is up to you. You could:
     bytes memory lzTransactionParams
   ) public payable {
     require(
-      (msg.sender == address(uint160(toReceiverId)) || // write on your own omnicast
+      (msg.sender == ownerOf[toReceiverId] || // write on your own omnicast
         withSenderId == idOf(msg.sender) || // write on your own channel
         msg.sender == omnichannel.ownerOf(toReceiverId)), // write on a branded channel name
       "Omnicast: UNAUTHORIZED_CHANNEL"

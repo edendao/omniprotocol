@@ -171,7 +171,7 @@ contract Omnicast is
     bytes memory lzTransactionParams
   ) public payable {
     require(
-      (msg.sender == address(uint160(toReceiverId)) ||
+      (msg.sender == ownerOf[toReceiverId] ||
         withSenderId == idOf(msg.sender) ||
         msg.sender == omnichannel.ownerOf(toReceiverId)),
       "Omnicast: UNAUTHORIZED_CHANNEL"
