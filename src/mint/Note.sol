@@ -23,12 +23,12 @@ contract Note is ERC20, Comptrolled, Pausable, ReentrancyGuard {
     underlying = _underlying;
   }
 
-  function wrap(uint256 amount) external {
+  function wrap(uint256 amount) external nonReentrant whenNotPaused {
     ERC20(underlying).transferFrom(msg.sender, address(this), amount);
     _mint(msg.sender, amount);
   }
 
-  function unwrap(uint256 amount) external {
+  function unwrap(uint256 amount) external nonReentrant whenNotPaused {
     _burn(msg.sender, amount);
     uint256 fee = amount / 100;
     _mint(address(this), fee);
