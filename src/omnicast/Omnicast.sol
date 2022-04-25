@@ -60,7 +60,7 @@ contract Omnicast is
     return ownerOf[idOf(a)] == address(0) ? 0 : 1;
   }
 
-  function mintTo(address to) external requiresAuth returns (uint256) {
+  function mint(address to) external requiresAuth returns (uint256) {
     uint256 omnicastId = idOf(to);
     require(ownerOf[omnicastId] == address(0), "Omnicast: NOT_AVAILABLE");
 

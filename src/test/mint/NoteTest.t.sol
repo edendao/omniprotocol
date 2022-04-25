@@ -18,7 +18,7 @@ contract NoteTest is ChainEnvironmentTest {
     );
 
   function testMintGas() public {
-    note.mintTo(address(this), 10_000_000);
+    note.mint(address(this), 10_000_000);
   }
 
   function testNoteWrapping(address caller, uint256 amount) public {
@@ -42,7 +42,7 @@ contract NoteTest is ChainEnvironmentTest {
 
   function testMintTo(address to, uint256 amount) public {
     hevm.assume(to != address(0));
-    note.mintTo(to, amount);
+    note.mint(to, amount);
 
     assertEq(note.balanceOf(to), amount);
   }
@@ -51,16 +51,16 @@ contract NoteTest is ChainEnvironmentTest {
     hevm.assume(caller != address(this));
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
     hevm.prank(caller);
-    note.mintTo(caller, amount);
+    note.mint(caller, amount);
   }
 
   function testBurnRequiresAuth(address caller, uint256 amount) public {
     hevm.assume(caller != address(this));
-    note.mintTo(caller, amount);
+    note.mint(caller, amount);
 
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
     hevm.prank(caller);
-    note.burnFrom(caller, amount);
+    note.burn(caller, amount);
   }
 
   function testFailWrapNullToken() public {

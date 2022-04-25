@@ -75,7 +75,7 @@ contract OmnigatewayTest is ChainEnvironmentTest {
       bytes("")
     );
 
-    uint256 fee = (amount * gateway.feePercent()) / 1e18;
+    uint256 fee = (amount * gateway.goodPercent()) / 1e18;
 
     assertEq(fwaumNote.balanceOf(address(this)), amount - fee);
     assertEq(fwaumNote.balanceOf(address(gateway)), fee);

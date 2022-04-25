@@ -63,7 +63,7 @@ contract Omnichannel is ERC721, Omnichain, EdenDaoNS {
   // ===================================
   // ===== MINTS, BURNS, TRANSFERS =====
   // ===================================
-  function mintTo(address to, string memory label)
+  function mint(address to, string memory label)
     external
     requiresAuth
     whenNotPaused

@@ -1,22 +1,23 @@
-// SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity ^0.8.10;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.13;
 
 import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
 import {Auth, Authority} from "@rari-capital/solmate/auth/Auth.sol";
 
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
+import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
 import {Comptroller} from "@protocol/auth/Comptroller.sol";
 
 interface INote {
-  function mintTo(address receiver, uint256 amount) external returns (uint256);
+  function mint(address receiver, uint256 amount) external returns (uint256);
 
-  function burnFrom(address owner, uint256 amount) external;
+  function burn(address owner, uint256 amount) external;
 
   function remoteNote(uint16 onChainId) external view returns (bytes memory);
 }
 
-contract Omnigateway is Omnichain {
+contract Omnigateway is Omnichain, PublicGood {
   constructor(address _comptroller, address _lzEndpoint)
     Omnichain(_comptroller, _lzEndpoint)
   {
@@ -25,8 +26,8 @@ contract Omnigateway is Omnichain {
 
   function capabilities(uint8 role) public view returns (bytes memory) {
     bytes4[] memory selectors = new bytes4[](2);
-    selectors[0] = INote.mintTo.selector;
-    selectors[1] = INote.burnFrom.selector;
+    selectors[0] = INote.mint.selector;
+    selectors[1] = INote.burn.selector;
 
     return
       abi.encodeWithSelector(
@@ -57,12 +58,14 @@ contract Omnigateway is Omnichain {
   ) external payable {
     INote note = INote(payable(noteAddress));
 
-    note.burnFrom(msg.sender, amount);
-    amount -= note.mintTo(address(this), _mulDivDown(amount, feePercent, 1e18));
+    note.burn(msg.sender, amount);
+
+    (uint256 flowAmount, uint256 goodAmount) = goodAmounts(amount);
+    note.mint(address(this), goodAmount);
 
     lzSend(
       toChainId,
-      abi.encode(note.remoteNote(toChainId), toAddress, amount),
+      abi.encode(note.remoteNote(toChainId), toAddress, flowAmount),
       lzPaymentAddress,
       lzTransactionParams
     );
@@ -73,7 +76,7 @@ contract Omnigateway is Omnichain {
       noteAddress,
       msg.sender,
       toAddress,
-      amount
+      flowAmount
     );
   }
 
@@ -97,7 +100,7 @@ contract Omnigateway is Omnichain {
     address noteAddress = addressFromPackedBytes(noteAddressB);
     address toAddress = addressFromPackedBytes(toAddressB);
 
-    INote(payable(noteAddress)).mintTo(toAddress, amount);
+    INote(payable(noteAddress)).mint(toAddress, amount);
 
     emit ReceiveNote(fromChainId, nonce, noteAddress, toAddress, amount);
   }
@@ -106,47 +109,13 @@ contract Omnigateway is Omnichain {
   function estimateLayerZeroGas(
     uint16 toChainId,
     bool useZRO,
-    bytes calldata adapterParams
-  ) public view returns (uint256, uint256) {
-    return
-      lzEstimateSendGas(
-        toChainId,
-        abi.encode(bytes20(""), bytes20(""), 0),
-        useZRO,
-        adapterParams
-      );
-  }
-
-  uint256 public feePercent = 1e15; // 0.1% for public goods
-
-  event FeePercentUpdated(address indexed user, uint256 newFeePercent);
-
-  function setFeePercent(uint256 newFeePercent) external requiresAuth {
-    require(newFeePercent <= 1e16, "Omniportal: INVALID_FEE"); // 1% or less
-    feePercent = newFeePercent;
-    emit FeePercentUpdated(msg.sender, newFeePercent);
-  }
-
-  // From Solmate
-  function _mulDivDown(
-    uint256 x,
-    uint256 y,
-    uint256 denominator
-  ) internal pure returns (uint256 z) {
-    // solhint-disable-next-line no-inline-assembly
-    assembly {
-      // Store x * y in z for now.
-      z := mul(x, y)
-
-      // Equivalent to require(denominator != 0 && (x == 0 || (x * y) / x == y))
-      if iszero(
-        and(iszero(iszero(denominator)), or(iszero(x), eq(div(z, x), y)))
-      ) {
-        revert(0, 0)
-      }
-
-      // Divide z by the denominator.
-      z := div(z, denominator)
-    }
+    bytes calldata lzTransactionParams
+  ) public view returns (uint256 gasFees, uint256 lzFees) {
+    (gasFees, lzFees) = lzEstimateSendGas(
+      toChainId,
+      abi.encode(bytes20(""), bytes20(""), 0),
+      useZRO,
+      lzTransactionParams
+    );
   }
 }

@@ -56,18 +56,30 @@ Interested in building with eden dao protocol? **[Let's collaborate!](https://ed
 
 New DAOs spend too much wasted time agonizing on which chain to launch on. Eden Dao illuminates the omnichain path with Note: A gas-optimized, secure ERC20 with simple cross-chain bridging built in.
 
+At a high level, to create your own Note, register a [Comptroller](./src/auth/ComptrollerFactory.sol), use that to create a [Note](./src/mint/NoteFactory.sol), and enable the [Omniportal](./src/mint/Omniportal.sol) to mint and burn your note. You can also specify an `address underlying` to create a Note "wrapper" token around your existing ERC20.
 As an ERC20 Note, what you use this for is up to you:
 
-1. Send notes across chains for omnichain DAO2DAO partnerships
-2. Have an omnichain DAO token so you can use whatever combination of tooling you want (e.g. Coordinape on ETH and Colony on Gnosis Chain)
-
-At a high level, to create your own Note, register a [Comptroller](./src/auth/ComptrollerFactory.sol), use that to create a [Note](./src/mint/NoteFactory.sol), and enable the [Omniportal](./src/mint/Omniportal.sol) to mint and burn your note:
+0. Wrap your existing tokens to send them across chains
+1. Multi-chain liquidity
+2. Omnichain DAO Partnerships
+3. Multi-chain DAO Ops for governance, payouts, etc.
 
 ```solidity
+Comptroller comptroller = ComptrollerFactory(comptrollerFactoryAddress).create(); // msg.sender is now the owner
+
+Note note = NoteFactory(noteFactoryAddress).deployNote(
+  address(TokenToWrapOrAddress0),
+  address(comptroller),
+  "My Token Name",
+  "SYM",
+  uint8(18)
+)
+
+uint8 minterRole = 0;
 bytes4[] memory selectors = new bytes4[](2);
-selectors[0] = Note.mintTo.selector;
-selectors[1] = Note.burnFrom.selector;
-comptroller.setCapabilitiesTo(address(omnigateway), 0, [], true);
+selectors[0] = Note.mint.selector;
+selectors[1] = Note.burn.selector;
+comptroller.setCapabilitiesTo(address(omnigateway), minterRole, [], true);
 ```
 
 For the next chain, repeat the same steps. Then, hook both Notes up to each other:
@@ -79,17 +91,17 @@ Note(noteAddressOnChainA).setRemoteNote(chainBId, abi.encodePacked(noteAddressOn
 Note(noteAddressOnChainB).setRemoteNote(chainAId, abi.encodePacked(noteAddressOnChainA));
 ```
 
-Now token holders can move their tokens across chains with a simple call to:
+In addition to being a flexible, mintable/burnable ERC20, token holders can also send their tokens across chains with a simple call to:
 
 ```solidity
-  Omniportal.sendNote(
+  Omnigateway(address(omnigateway)).sendNote( // from msg.sender
     address noteAddress, // on this chain
     uint256 amount, // amount
     uint16 toChainId, // LayerZero chain id
     bytes calldata toAddress, // receiver address
     address lzPaymentAddress,
     bytes calldata lzTransactionParams
-  ) external payable {
+  ) external payable { // use estimateLayerZeroGas(uint8(toChainId), bool(useZRO), bytes(lzTransactionParams))
     // implementation
   }
 ```

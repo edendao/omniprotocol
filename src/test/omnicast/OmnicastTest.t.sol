@@ -5,13 +5,13 @@ import {ChainEnvironmentTest, console} from "@protocol/test/ChainEnvironmentTest
 
 contract OmnicastTest is ChainEnvironmentTest {
   function testMintGas() public {
-    omnicast.mintTo(address(this));
+    omnicast.mint(address(this));
   }
 
   function testMintTo(address to) public {
     hevm.assume(to != address(0));
 
-    uint256 omnicastId = omnicast.mintTo(to);
+    uint256 omnicastId = omnicast.mint(to);
 
     assertEq(omnicast.balanceOf(to), 1);
     assertEq(omnicast.ownerOf(omnicastId), to);
@@ -20,9 +20,9 @@ contract OmnicastTest is ChainEnvironmentTest {
   function testMintNotAvailable(address to) public {
     hevm.assume(to != address(0));
 
-    omnicast.mintTo(to);
+    omnicast.mint(to);
     hevm.expectRevert("Omnicast: NOT_AVAILABLE");
-    omnicast.mintTo(to);
+    omnicast.mint(to);
   }
 
   function testMintRequiresAuth(address caller) public {
@@ -30,13 +30,13 @@ contract OmnicastTest is ChainEnvironmentTest {
 
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
     hevm.prank(caller);
-    omnicast.mintTo(caller);
+    omnicast.mint(caller);
   }
 
   function testSettingTokenURI(address caller, string memory uri) public {
     hevm.assume(caller != address(0) && caller != address(this));
 
-    uint256 omnicastId = omnicast.mintTo(caller);
+    uint256 omnicastId = omnicast.mint(caller);
 
     hevm.prank(caller);
     omnicast.setTokenURI(omnicastId, uri);
@@ -49,7 +49,7 @@ contract OmnicastTest is ChainEnvironmentTest {
   {
     hevm.assume(caller != address(0) && caller != address(this));
 
-    uint256 omnicastId = omnicast.mintTo(caller);
+    uint256 omnicastId = omnicast.mint(caller);
 
     hevm.prank(caller);
     omnicast.setTokenURI(omnicastId + 1, uri);
@@ -60,7 +60,7 @@ contract OmnicastTest is ChainEnvironmentTest {
   {
     hevm.assume(caller != address(0) && caller != address(this));
 
-    uint256 myOmnicastId = omnicast.mintTo(address(this));
+    uint256 myOmnicastId = omnicast.mint(address(this));
 
     hevm.prank(caller);
     omnicast.setTokenURI(myOmnicastId, uri);

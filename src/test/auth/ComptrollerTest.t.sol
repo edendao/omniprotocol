@@ -11,7 +11,7 @@ contract ComptrollerTest is ChainEnvironmentTest {
     functions[0] = abi.encodeWithSignature(
       "setRoleCapability(uint8,bytes4,bool)",
       0,
-      note.mintTo.selector,
+      note.mint.selector,
       true
     );
     functions[1] = abi.encodeWithSignature(
@@ -28,7 +28,7 @@ contract ComptrollerTest is ChainEnvironmentTest {
     functions[3] = abi.encodeWithSignature(
       "doesRoleHaveCapability(uint8,bytes4)",
       0,
-      note.mintTo.selector
+      note.mint.selector
     );
     bytes[] memory results = comptroller.multicall(functions);
     assertTrue(abi.decode(results[2], (bool)));

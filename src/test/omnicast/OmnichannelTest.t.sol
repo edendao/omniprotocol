@@ -7,13 +7,13 @@ contract OmnichannelTest is ChainEnvironmentTest {
   string public constant label = "prosperity";
 
   function testMintGas() public {
-    omnichannel.mintTo(address(this), label);
+    omnichannel.mint(address(this), label);
   }
 
   function testMintTo(address to) public {
     hevm.assume(to != address(0));
 
-    omnichannel.mintTo(to, label);
+    omnichannel.mint(to, label);
 
     assertEq(omnichannel.ownerOf(omnichannel.idOf(label)), to);
   }
@@ -23,6 +23,6 @@ contract OmnichannelTest is ChainEnvironmentTest {
 
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
     hevm.prank(caller);
-    omnichannel.mintTo(caller, label);
+    omnichannel.mint(caller, label);
   }
 }
