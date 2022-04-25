@@ -4,10 +4,10 @@ pragma solidity ^0.8.13;
 import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
 import {ReentrancyGuard} from "@rari-capital/solmate/utils/ReentrancyGuard.sol";
 
-import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {Pausable} from "@protocol/mixins/Pausable.sol";
 
-contract Note is ERC20, Comptrolled, Pausable, ReentrancyGuard {
+contract Note is ERC20, Pausable, ReentrancyGuard {
   address public immutable underlying;
 
   constructor(
@@ -21,18 +21,6 @@ contract Note is ERC20, Comptrolled, Pausable, ReentrancyGuard {
     ERC20(name, string(abi.encodePacked("edn-", symbol)), decimals)
   {
     underlying = _underlying;
-  }
-
-  function wrap(uint256 amount) external nonReentrant whenNotPaused {
-    ERC20(underlying).transferFrom(msg.sender, address(this), amount);
-    _mint(msg.sender, amount);
-  }
-
-  function unwrap(uint256 amount) external nonReentrant whenNotPaused {
-    _burn(msg.sender, amount);
-    uint256 fee = amount / 100;
-    _mint(address(this), fee);
-    ERC20(underlying).transfer(msg.sender, amount - fee);
   }
 
   function burn(uint256 amount) external {

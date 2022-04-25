@@ -18,19 +18,17 @@ contract NoteFactory is Factory, Comptrolled {
 
   event NoteDeployed(Note note, string name, string symbol, uint8 decimals);
 
+  // bytes memory createParams = abi.encode(
+  //   address underlying,
+  //   address noteComptroller,
+  //   string memory name,
+  //   string memory symbol,
+  //   uint8 decimals
+  // )
   function deployNote(bytes memory createParams)
     public
     payable
-    returns (
-      // abi.encode(
-      //   address underlying,
-      //   address noteComptroller,
-      //   string memory name,
-      //   string memory symbol,
-      //   uint8 decimals
-      // )
-      Note note
-    )
+    returns (Note note)
   {
     note = Note(payable(_create(createParams)));
 

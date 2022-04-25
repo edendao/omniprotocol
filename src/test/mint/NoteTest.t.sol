@@ -21,24 +21,28 @@ contract NoteTest is ChainEnvironmentTest {
     note.mint(address(this), 10_000_000);
   }
 
-  function testNoteWrapping(address caller, uint256 amount) public {
-    hevm.assume(amount > 0 && caller != address(0));
-    fwaum.mint(caller, amount);
+  // function xtestNoteWrapping(address caller, uint256 amount) public {
+  //   hevm.assume(amount > 0 && caller != address(0));
+  //   fwaum.mint(caller, amount);
 
-    hevm.startPrank(caller);
-    fwaum.approve(address(fwaumNote), amount);
-    fwaumNote.wrap(amount);
+  //   hevm.startPrank(caller);
+  //   fwaum.approve(address(fwaumNote), amount);
+  //   fwaumNote.wrap(amount);
 
-    assertEq(fwaumNote.balanceOf(caller), amount);
+  //   assertEq(fwaumNote.balanceOf(caller), amount);
 
-    fwaumNote.unwrap(amount);
-    hevm.stopPrank();
+  //   fwaumNote.unwrap(amount);
+  //   hevm.stopPrank();
 
-    uint256 fee = amount / 100;
-    assertEq(fwaum.balanceOf(caller), amount - fee);
-    assertEq(fwaumNote.balanceOf(caller), 0);
-    assertEq(fwaumNote.balanceOf(address(fwaumNote)), fee);
-  }
+  //   uint256 fee = amount / 100;
+  //   assertEq(fwaum.balanceOf(caller), amount - fee);
+  //   assertEq(fwaumNote.balanceOf(caller), 0);
+  //   assertEq(fwaumNote.balanceOf(address(fwaumNote)), fee);
+  // }
+
+  // function testFailWrapNullToken() public {
+  //   note.wrap(42);
+  // }
 
   function testMintTo(address to, uint256 amount) public {
     hevm.assume(to != address(0));
@@ -61,9 +65,5 @@ contract NoteTest is ChainEnvironmentTest {
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
     hevm.prank(caller);
     note.burn(caller, amount);
-  }
-
-  function testFailWrapNullToken() public {
-    note.wrap(42);
   }
 }

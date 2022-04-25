@@ -56,31 +56,31 @@ contract OmnigatewayTest is ChainEnvironmentTest {
     );
   }
 
-  function testMessaging() public {
-    uint256 amount = 42e18;
+  // function xtestMessaging() public {
+  //   uint256 amount = 42e18;
 
-    fwaum.mint(address(this), amount);
-    assertEq(fwaum.balanceOf(address(this)), amount);
+  //   fwaum.mint(address(this), amount);
+  //   assertEq(fwaum.balanceOf(address(this)), amount);
 
-    fwaum.approve(address(fwaumNote), amount);
-    fwaumNote.wrap(amount);
-    assertEq(fwaumNote.balanceOf(address(this)), amount);
+  //   fwaum.approve(address(fwaumNote), amount);
+  //   fwaumNote.wrap(amount);
+  //   assertEq(fwaumNote.balanceOf(address(this)), amount);
 
-    gateway.sendNote{value: 1 ether}(
-      address(fwaumNote),
-      amount,
-      bridgeToChainId,
-      abi.encodePacked(address(this)),
-      address(0),
-      bytes("")
-    );
+  //   gateway.sendNote{value: 1 ether}(
+  //     address(fwaumNote),
+  //     amount,
+  //     bridgeToChainId,
+  //     abi.encodePacked(address(this)),
+  //     address(0),
+  //     bytes("")
+  //   );
 
-    uint256 fee = (amount * gateway.goodPercent()) / 1e18;
+  //   uint256 fee = (amount * gateway.goodPercent()) / 1e18;
 
-    assertEq(fwaumNote.balanceOf(address(this)), amount - fee);
-    assertEq(fwaumNote.balanceOf(address(gateway)), fee);
+  //   assertEq(fwaumNote.balanceOf(address(this)), amount - fee);
+  //   assertEq(fwaumNote.balanceOf(address(gateway)), fee);
 
-    gateway.withdrawToken(address(fwaumNote), fee);
-    assertEq(fwaumNote.balanceOf(address(comptroller)), fee);
-  }
+  //   gateway.withdrawToken(address(fwaumNote), fee);
+  //   assertEq(fwaumNote.balanceOf(address(comptroller)), fee);
+  // }
 }

@@ -55,12 +55,12 @@ contract Omnigateway is Omnichain, PublicGood {
     bytes calldata toAddress,
     address lzPaymentAddress,
     bytes calldata lzTransactionParams
-  ) external payable {
+  ) external payable returns (uint256 flowAmount, uint256 goodAmount) {
     INote note = INote(payable(noteAddress));
 
     note.burn(msg.sender, amount);
 
-    (uint256 flowAmount, uint256 goodAmount) = goodAmounts(amount);
+    (flowAmount, goodAmount) = goodAmounts(amount);
     note.mint(address(this), goodAmount);
 
     lzSend(
@@ -69,6 +69,8 @@ contract Omnigateway is Omnichain, PublicGood {
       lzPaymentAddress,
       lzTransactionParams
     );
+
+    emit DidGood(msg.sender, flowAmount, goodAmount);
 
     emit SendNote(
       toChainId,
