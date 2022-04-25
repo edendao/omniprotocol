@@ -67,13 +67,13 @@ As an ERC20 Note, what you use this for is up to you:
 ```solidity
 Comptroller comptroller = ComptrollerFactory(comptrollerFactoryAddress).create(); // msg.sender is now the owner
 
-Note note = NoteFactory(noteFactoryAddress).deployNote(
+Note note = NoteFactory(noteFactoryAddress).deployNote(abi.encode(
   address(TokenToWrapOrAddress0),
   address(comptroller),
   "My Token Name",
   "SYM",
   uint8(18)
-)
+))
 
 uint8 minterRole = 0;
 bytes4[] memory selectors = new bytes4[](2);
