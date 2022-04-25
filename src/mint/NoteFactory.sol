@@ -19,17 +19,18 @@ contract NoteFactory is Factory, Comptrolled {
   event NoteDeployed(Note note, string name, string symbol, uint8 decimals);
 
   function deployNote(
+    address underlying,
     address noteComptroller,
     string memory name,
     string memory symbol,
     uint8 decimals
   ) public payable returns (Note note) {
-    name = string(abi.encodePacked("eden dao note of ", name));
-    symbol = string(abi.encodePacked("edn-", symbol));
     note = Note(
-      payable(_create(abi.encode(noteComptroller, name, symbol, decimals)))
+      payable(
+        _create(abi.encode(underlying, noteComptroller, name, symbol, decimals))
+      )
     );
 
-    emit NoteDeployed(note, name, symbol, decimals);
+    emit NoteDeployed(note, note.name(), note.symbol(), note.decimals());
   }
 }

@@ -25,7 +25,8 @@ contract ChainEnvironmentTest is DSTestPlus {
 
   Comptroller public comptroller = new Comptroller(address(this));
 
-  Note public note = new Note(address(comptroller), "Eden Dao", "EDN", 3);
+  Note public note =
+    new Note(address(0), address(comptroller), "Eden Dao", "EDN", 3);
 
   Omnichannel public omnichannel =
     new Omnichannel(

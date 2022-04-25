@@ -8,13 +8,31 @@ import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 
 contract Note is ERC20, Comptrolled, Pausable, ReentrancyGuard {
+  address public immutable underlying;
+
   constructor(
+    address _underlying,
     address _comptroller,
     string memory name,
     string memory symbol,
     uint8 decimals
-  ) Comptrolled(_comptroller) ERC20(name, symbol, decimals) {
-    this;
+  )
+    Comptrolled(_comptroller)
+    ERC20(name, string(abi.encodePacked("edn-", symbol)), decimals)
+  {
+    underlying = _underlying;
+  }
+
+  function wrap(uint256 amount) external {
+    ERC20(underlying).transferFrom(msg.sender, address(this), amount);
+    _mint(msg.sender, amount);
+  }
+
+  function unwrap(uint256 amount) external {
+    _burn(msg.sender, amount);
+    uint256 fee = amount / 100;
+    _mint(address(this), fee);
+    ERC20(underlying).transfer(msg.sender, amount - fee);
   }
 
   function burn(uint256 amount) external {

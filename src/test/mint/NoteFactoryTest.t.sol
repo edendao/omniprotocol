@@ -10,6 +10,7 @@ contract NoteFactoryTest is ChainEnvironmentTest {
 
   function _deploy() internal returns (Note note) {
     note = factory.deployNote(
+      address(0),
       address(comptroller),
       "Friends with Assets Under Management",
       "FWAUM",
@@ -19,10 +20,7 @@ contract NoteFactoryTest is ChainEnvironmentTest {
 
   function testDeploy() public {
     note = _deploy();
-    assertEq(
-      "eden dao note of Friends with Assets Under Management",
-      note.name()
-    );
+    assertEq("Friends with Assets Under Management", note.name());
     assertEq("edn-FWAUM", note.symbol());
     assertEq(18, note.decimals());
   }

@@ -7,7 +7,6 @@ import {MockERC20} from "@rari-capital/solmate/test/utils/mocks/MockERC20.sol";
 
 import {Omnigateway} from "@protocol/mint/Omnigateway.sol";
 import {Note} from "@protocol/mint/Note.sol";
-import {Omnivault} from "@protocol/mint/Omnivault.sol";
 
 contract OmnigatewayTest is ChainEnvironmentTest {
   Omnigateway public gateway =
@@ -15,12 +14,12 @@ contract OmnigatewayTest is ChainEnvironmentTest {
 
   MockERC20 public fwaum =
     new MockERC20("Friends with Assets Under Management", "FWAUM", 18);
-  Omnivault public fwaumOmnivault = new Omnivault(address(comptroller), fwaum);
   Note public fwaumNote =
     new Note(
+      address(fwaum),
       address(comptroller),
-      "eden dao note of Friends with Assets Under Management",
-      "edn-FWAUM",
+      "Friends with Assets Under Management",
+      "FWAUM",
       fwaum.decimals()
     );
 
@@ -47,13 +46,13 @@ contract OmnigatewayTest is ChainEnvironmentTest {
       abi.encodePacked(address(gateway))
     );
 
-    fwaumOmnivault.setRemoteNote(
+    fwaumNote.setRemoteNote(
       bridgeToChainId,
       abi.encodePacked(address(fwaumNote))
     );
     fwaumNote.setRemoteNote(
       currentChainId,
-      abi.encodePacked(address(fwaumOmnivault))
+      abi.encodePacked(address(fwaumNote))
     );
   }
 
@@ -63,12 +62,12 @@ contract OmnigatewayTest is ChainEnvironmentTest {
     fwaum.mint(address(this), amount);
     assertEq(fwaum.balanceOf(address(this)), amount);
 
-    fwaum.approve(address(fwaumOmnivault), amount);
-    fwaumOmnivault.deposit(amount, address(this));
-    assertEq(fwaumOmnivault.balanceOf(address(this)), amount);
+    fwaum.approve(address(fwaumNote), amount);
+    fwaumNote.wrap(amount);
+    assertEq(fwaumNote.balanceOf(address(this)), amount);
 
     gateway.sendNote{value: 1 ether}(
-      address(fwaumOmnivault),
+      address(fwaumNote),
       amount,
       bridgeToChainId,
       abi.encodePacked(address(this)),
@@ -79,9 +78,9 @@ contract OmnigatewayTest is ChainEnvironmentTest {
     uint256 fee = (amount * gateway.feePercent()) / 1e18;
 
     assertEq(fwaumNote.balanceOf(address(this)), amount - fee);
-    assertEq(fwaumOmnivault.balanceOf(address(gateway)), fee);
+    assertEq(fwaumNote.balanceOf(address(gateway)), fee);
 
-    gateway.withdrawToken(address(fwaumOmnivault), fee);
-    assertEq(fwaumOmnivault.balanceOf(address(comptroller)), fee);
+    gateway.withdrawToken(address(fwaumNote), fee);
+    assertEq(fwaumNote.balanceOf(address(comptroller)), fee);
   }
 }
