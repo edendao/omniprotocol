@@ -23,9 +23,8 @@ abstract contract Comptrolled {
     view
     returns (bool)
   {
-    return
-      comptroller.canCall(user, address(this), functionSig) ||
-      user == comptroller.owner();
+    return (comptroller.canCall(user, address(this), functionSig) ||
+      user == comptroller.owner());
   }
 
   function comptrollerAddress() public view returns (address) {

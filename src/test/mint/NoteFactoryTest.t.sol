@@ -10,13 +10,10 @@ contract NoteFactoryTest is ChainEnvironmentTest {
 
   function _deploy() internal returns (Note note) {
     note = factory.deployNote(
-      abi.encode(
-        address(0),
-        address(comptroller),
-        "Friends with Assets Under Management",
-        "FWAUM",
-        18
-      )
+      address(comptroller),
+      "Friends with Assets Under Management",
+      "FWAUM",
+      18
     );
   }
 

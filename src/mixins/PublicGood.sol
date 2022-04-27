@@ -4,7 +4,12 @@ pragma solidity ^0.8.13;
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 
 abstract contract PublicGood is Comptrolled {
-  uint256 public goodPercent = 1e15; // 0.1% for public goods
+  address public immutable beneficiary;
+  uint256 public goodPercent = 1e16; // 1% for the planet
+
+  constructor(address _beneficiary) {
+    beneficiary = _beneficiary;
+  }
 
   event DidGood(
     address indexed user,
@@ -14,8 +19,8 @@ abstract contract PublicGood is Comptrolled {
 
   event GoodPercentUpdated(address indexed user, uint256 newgoodPercent);
 
-  function setGoodPercent(uint256 newGoodPercent) external requiresAuth {
-    require(1e15 <= newGoodPercent, "Omniportal: INVALID_GOOD"); // 0.1% or more
+  function setGoodPercent(uint256 newGoodPercent) public requiresAuth {
+    require(1e15 <= newGoodPercent, "PublicGood: TOO_LOW"); // 0.1% or more
     goodPercent = newGoodPercent;
     emit GoodPercentUpdated(msg.sender, newGoodPercent);
   }

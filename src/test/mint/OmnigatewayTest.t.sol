@@ -16,7 +16,7 @@ contract OmnigatewayTest is ChainEnvironmentTest {
     new MockERC20("Friends with Assets Under Management", "FWAUM", 18);
   Note public fwaumNote =
     new Note(
-      address(fwaum),
+      address(comptroller),
       address(comptroller),
       "Friends with Assets Under Management",
       "FWAUM",
@@ -56,31 +56,25 @@ contract OmnigatewayTest is ChainEnvironmentTest {
     );
   }
 
-  // function xtestMessaging() public {
-  //   uint256 amount = 42e18;
+  function xtestMessaging() public {
+    uint256 amount = 42e18;
 
-  //   fwaum.mint(address(this), amount);
-  //   assertEq(fwaum.balanceOf(address(this)), amount);
+    fwaum.mint(address(this), amount);
+    assertEq(fwaum.balanceOf(address(this)), amount);
 
-  //   fwaum.approve(address(fwaumNote), amount);
-  //   fwaumNote.wrap(amount);
-  //   assertEq(fwaumNote.balanceOf(address(this)), amount);
+    fwaum.approve(address(fwaumNote), amount);
+    fwaumNote.mint(address(this), amount);
+    assertEq(fwaumNote.balanceOf(address(this)), amount);
 
-  //   gateway.sendNote{value: 1 ether}(
-  //     address(fwaumNote),
-  //     amount,
-  //     bridgeToChainId,
-  //     abi.encodePacked(address(this)),
-  //     address(0),
-  //     bytes("")
-  //   );
+    gateway.sendNote{value: 1 ether}(
+      address(fwaumNote),
+      amount,
+      bridgeToChainId,
+      abi.encodePacked(address(this)),
+      address(0),
+      bytes("")
+    );
 
-  //   uint256 fee = (amount * gateway.goodPercent()) / 1e18;
-
-  //   assertEq(fwaumNote.balanceOf(address(this)), amount - fee);
-  //   assertEq(fwaumNote.balanceOf(address(gateway)), fee);
-
-  //   gateway.withdrawToken(address(fwaumNote), fee);
-  //   assertEq(fwaumNote.balanceOf(address(comptroller)), fee);
-  // }
+    assertEq(fwaumNote.balanceOf(address(this)), amount);
+  }
 }

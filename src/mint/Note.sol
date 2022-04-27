@@ -1,30 +1,54 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
+import {SafeTransferLib} from "@rari-capital/solmate/utils/SafeTransferLib.sol";
 import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
 import {ReentrancyGuard} from "@rari-capital/solmate/utils/ReentrancyGuard.sol";
 
+import {INote} from "@protocol/interfaces/INote.sol";
+
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
+import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
-contract Note is ERC20, Pausable, ReentrancyGuard {
-  address public immutable underlying;
+contract Note is INote, PublicGood, ERC20, Pausable, ReentrancyGuard {
+  using SafeTransferLib for ERC20;
 
   constructor(
-    address _underlying,
     address _comptroller,
-    string memory name,
-    string memory symbol,
-    uint8 decimals
+    address _beneficiary,
+    string memory _name,
+    string memory _symbol,
+    uint8 _decimals
   )
     Comptrolled(_comptroller)
-    ERC20(name, string(abi.encodePacked("edn-", symbol)), decimals)
+    PublicGood(_beneficiary)
+    ERC20(_name, string(abi.encodePacked("edn-", _symbol)), _decimals)
   {
-    underlying = _underlying;
+    this;
   }
 
-  function burn(uint256 amount) external {
-    _burn(msg.sender, amount);
+  function mint(address to, uint256 amount)
+    external
+    nonReentrant
+    whenNotPaused
+    requiresAuth
+    returns (uint256)
+  {
+    _mint(to, amount);
+    _mint(beneficiary, amount * goodPercent);
+    return amount;
+  }
+
+  function burn(address from, uint256 amount)
+    external
+    nonReentrant
+    whenNotPaused
+    requiresAuth
+    returns (uint256)
+  {
+    _burn(from, amount);
+    return amount;
   }
 
   // ==========================
@@ -37,27 +61,5 @@ contract Note is ERC20, Pausable, ReentrancyGuard {
     requiresAuth
   {
     remoteNote[onChainId] = remoteNoteAddressB;
-  }
-
-  function mint(address to, uint256 amount)
-    external
-    requiresAuth
-    whenNotPaused
-    nonReentrant
-    returns (uint256)
-  {
-    _mint(to, amount);
-    return amount;
-  }
-
-  function burn(address from, uint256 amount)
-    external
-    requiresAuth
-    nonReentrant
-    whenNotPaused
-    returns (uint256)
-  {
-    _burn(from, amount);
-    return amount;
   }
 }

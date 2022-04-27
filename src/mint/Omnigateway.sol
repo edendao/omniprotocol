@@ -5,19 +5,12 @@ import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
 import {Auth, Authority} from "@rari-capital/solmate/auth/Auth.sol";
 
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
-import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
 import {Comptroller} from "@protocol/auth/Comptroller.sol";
 
-interface INote {
-  function mint(address receiver, uint256 amount) external returns (uint256);
+import {INote} from "@protocol/interfaces/INote.sol";
 
-  function burn(address owner, uint256 amount) external;
-
-  function remoteNote(uint16 onChainId) external view returns (bytes memory);
-}
-
-contract Omnigateway is Omnichain, PublicGood {
+contract Omnigateway is Omnichain {
   constructor(address _comptroller, address _lzEndpoint)
     Omnichain(_comptroller, _lzEndpoint)
   {
@@ -55,22 +48,16 @@ contract Omnigateway is Omnichain, PublicGood {
     bytes calldata toAddress,
     address lzPaymentAddress,
     bytes calldata lzTransactionParams
-  ) external payable returns (uint256 flowAmount, uint256 goodAmount) {
-    INote note = INote(payable(noteAddress));
-
+  ) external payable {
+    INote note = INote(noteAddress);
     note.burn(msg.sender, amount);
-
-    (flowAmount, goodAmount) = goodAmounts(amount);
-    note.mint(address(this), goodAmount);
 
     lzSend(
       toChainId,
-      abi.encode(note.remoteNote(toChainId), toAddress, flowAmount),
+      abi.encode(note.remoteNote(toChainId), toAddress, amount),
       lzPaymentAddress,
       lzTransactionParams
     );
-
-    emit DidGood(msg.sender, flowAmount, goodAmount);
 
     emit SendNote(
       toChainId,
@@ -78,7 +65,7 @@ contract Omnigateway is Omnichain, PublicGood {
       noteAddress,
       msg.sender,
       toAddress,
-      flowAmount
+      amount
     );
   }
 
@@ -102,12 +89,12 @@ contract Omnigateway is Omnichain, PublicGood {
     address noteAddress = addressFromPackedBytes(noteAddressB);
     address toAddress = addressFromPackedBytes(toAddressB);
 
-    INote(payable(noteAddress)).mint(toAddress, amount);
+    INote(noteAddress).mint(toAddress, amount);
 
     emit ReceiveNote(fromChainId, nonce, noteAddress, toAddress, amount);
   }
 
-  // Estimate LayerZero gas associated with .sendMessage
+  // Estimate LayerZero gas to pass with .sendNote{value: gasFees}
   function estimateLayerZeroGas(
     uint16 toChainId,
     bool useZRO,
