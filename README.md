@@ -108,10 +108,10 @@ In addition to being a flexible, mintable/burnable ERC20, token holders can also
 
 Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
 
-## Eden Dao Omnivaults are [Rari Vaults](https://github.com/Rari-Capital/vaults) that mint Notes
+## Coming Soon: Eden Dao Vaults are Yearn Vaults that mint Notes
 
-Rari Vaults are flexible, minimalist, gas-optimized yield aggregator for earning interest on any ERC20 token.
-Eden Dao Omnivaults mint Notes, which can be connected to other Notes (or other Omnivaults) for DAOs to create their own decentralized reserves.
+Yearn Vaults are the gold standard for yield aggregators that earn interest on any ERC20 token.
+Eden Dao Vaults mint Notes, which can be connected to other Notes (or other Vaults) for DAOs to create their own decentralized reserves.
 
 These enable DAOs to mint yield aggregator notes that can be simply bridged _to any other chain_.
 
