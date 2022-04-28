@@ -36,7 +36,7 @@ contract Note is INote, PublicGood, ERC20, Pausable, ReentrancyGuard {
     returns (uint256)
   {
     _mint(to, amount);
-    _mint(beneficiary, amount * goodPercent);
+    _mint(beneficiary, _mulDivDown(amount, goodPercent, 1e18));
     return amount;
   }
 

@@ -25,15 +25,6 @@ abstract contract PublicGood is Comptrolled {
     emit GoodPercentUpdated(msg.sender, newGoodPercent);
   }
 
-  function goodAmounts(uint256 amount)
-    public
-    view
-    returns (uint256 yourAmount, uint256 goodAmount)
-  {
-    goodAmount = _mulDivDown(amount, goodPercent, 1e18);
-    yourAmount = amount - goodAmount;
-  }
-
   // From Solmate
   function _mulDivDown(
     uint256 x,
