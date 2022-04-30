@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {BoringAddress} from "@boring/libraries/BoringAddress.sol";
 
-import {ChainEnvironmentTest} from "@protocol/test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest} from "@test/ChainEnvironmentTest.t.sol";
 
 contract ComptrollerTest is ChainEnvironmentTest {
   function testMulticallable() public {

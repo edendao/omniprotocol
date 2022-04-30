@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, Comptroller, console} from "@protocol/test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, Comptroller, console} from "@test/ChainEnvironmentTest.t.sol";
 
 import {MockERC20} from "@rari-capital/solmate/test/utils/mocks/MockERC20.sol";
 
-import {Omnigateway} from "@protocol/mint/Omnigateway.sol";
-import {Note} from "@protocol/mint/Note.sol";
+import {Omnibridge} from "@protocol/omnibridge/Omnibridge.sol";
+import {Note} from "@protocol/omnibridge/Note.sol";
 
-contract OmnigatewayTest is ChainEnvironmentTest {
-  Omnigateway public gateway =
-    new Omnigateway(address(comptroller), address(layerZeroEndpoint));
+contract OmnibridgeTest is ChainEnvironmentTest {
+  Omnibridge public bridge =
+    new Omnibridge(address(comptroller), address(layerZeroEndpoint));
 
   MockERC20 public fwaum =
     new MockERC20("Friends with Assets Under Management", "FWAUM", 18);
@@ -25,25 +25,38 @@ contract OmnigatewayTest is ChainEnvironmentTest {
 
   uint16 public constant bridgeToChainId = 10010; // rinkarby
 
-  function setUp() public {
-    bytes memory command = gateway.capabilities(0);
+  function setUp() public override {
+    super.setUp();
 
-    // emit log_named_bytes("[OMNIGATEWAY CAPABILITIES]", command);
+    uint8 bridgeRole = 0;
+    bytes4[] memory selectors = new bytes4[](2);
+    selectors[0] = Note.mint.selector;
+    selectors[1] = Note.burn.selector;
+
+    bytes memory command = abi.encodeWithSelector(
+      comptroller.setCapabilitiesTo.selector,
+      address(bridge),
+      bridgeRole,
+      selectors,
+      true
+    );
+
+    // emit log_named_bytes("[OMNIBRIDGE CAPABILITIES]", command);
     // solhint-disable-next-line avoid-low-level-calls
     (bool ok, ) = address(comptroller).call(command);
-    require(ok, "Failed to permission Omnigateway");
+    require(ok, "Failed to permission Omnibridge");
 
     layerZeroEndpoint.setDestLzEndpoint(
-      address(gateway),
+      address(bridge),
       address(layerZeroEndpoint)
     );
-    gateway.setTrustedRemoteContract(
+    bridge.setTrustedRemoteContract(
       currentChainId,
-      abi.encodePacked(address(gateway))
+      abi.encodePacked(address(bridge))
     );
-    gateway.setTrustedRemoteContract(
+    bridge.setTrustedRemoteContract(
       bridgeToChainId,
-      abi.encodePacked(address(gateway))
+      abi.encodePacked(address(bridge))
     );
 
     fwaumNote.setRemoteNote(
@@ -66,7 +79,7 @@ contract OmnigatewayTest is ChainEnvironmentTest {
     fwaumNote.mint(address(this), amount);
     assertEq(fwaumNote.balanceOf(address(this)), amount);
 
-    gateway.sendNote{value: 1 ether}(
+    bridge.sendNote{value: 1 ether}(
       address(fwaumNote),
       amount,
       bridgeToChainId,

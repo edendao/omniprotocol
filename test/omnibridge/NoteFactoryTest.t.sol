@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, Comptroller} from "@protocol/test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, Comptroller} from "@test/ChainEnvironmentTest.t.sol";
 
-import {Note, NoteFactory} from "@protocol/mint/NoteFactory.sol";
+import {Note, NoteFactory} from "@protocol/omnibridge/NoteFactory.sol";
 
 contract NoteFactoryTest is ChainEnvironmentTest {
   NoteFactory internal factory = new NoteFactory(address(comptroller));
@@ -20,7 +20,7 @@ contract NoteFactoryTest is ChainEnvironmentTest {
   function testDeploy() public {
     note = _deploy();
     assertEq("Friends with Assets Under Management", note.name());
-    assertEq("edn-FWAUM", note.symbol());
+    assertEq("FWAUM", note.symbol());
     assertEq(18, note.decimals());
   }
 

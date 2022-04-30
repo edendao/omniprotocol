@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";
 
-interface IOmnicast is IERC721, IERC721Metadata {
+interface IOmnicast {
   // Use nonce to correlate messages across chains from the frontend
   event Message(
     uint16 indexed chainId,
@@ -13,9 +13,9 @@ interface IOmnicast is IERC721, IERC721Metadata {
     bytes data
   );
 
-  function idOf(address account) external view returns (uint256 omnicastId);
+  function idOf(address account) external view returns (uint256 passportId);
 
-  function idOf(string memory name) external view returns (uint256 omnicastId);
+  function idOf(string memory name) external view returns (uint256 passportId);
 
   // Emits `Message` w/ a nonce
   // Mainnet Chain IDs
@@ -24,7 +24,7 @@ interface IOmnicast is IERC721, IERC721Metadata {
   // https://layerzero.gitbook.io/docs/technical-reference/testnet/testnet-addresses
   function writeMessage(
     uint256 toReceiverId, // use idOf(address account)
-    uint256 withSenderId, // use idOf(address account) or idOf(omnichannel name)
+    uint256 withSenderId, // use idOf(address account) or idOf(omnicast name)
     bytes memory payload, // abi.encode anything you please!
     uint16 onChainId,
     address lzPaymentAddress,
@@ -37,7 +37,7 @@ interface IOmnicast is IERC721, IERC721Metadata {
     view
     returns (bytes memory data);
 
-  // Load a message at a specific nonce
+  // Load a message at a specific index
   function receivedMessages(
     uint256 receiverId,
     uint256 senderId,

@@ -6,7 +6,7 @@ import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Factory} from "@protocol/mixins/Factory.sol";
 
-import {Note} from "./Note.sol";
+import {Note} from "@protocol/omnibridge/Note.sol";
 
 contract NoteFactory is Factory, Comptrolled {
   constructor(address _comptroller)

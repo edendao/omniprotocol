@@ -8,28 +8,13 @@ import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 
 import {Comptroller} from "@protocol/auth/Comptroller.sol";
 
-import {INote} from "@protocol/interfaces/INote.sol";
+import {IOmninote} from "@protocol/interfaces/IOmninote.sol";
 
-contract Omnigateway is Omnichain {
+contract Omnibridge is Omnichain {
   constructor(address _comptroller, address _lzEndpoint)
     Omnichain(_comptroller, _lzEndpoint)
   {
     this;
-  }
-
-  function capabilities(uint8 role) public view returns (bytes memory) {
-    bytes4[] memory selectors = new bytes4[](2);
-    selectors[0] = INote.mint.selector;
-    selectors[1] = INote.burn.selector;
-
-    return
-      abi.encodeWithSelector(
-        comptroller.setCapabilitiesTo.selector,
-        address(this),
-        role,
-        selectors,
-        true
-      );
   }
 
   event SendNote(
@@ -49,7 +34,7 @@ contract Omnigateway is Omnichain {
     address lzPaymentAddress,
     bytes calldata lzTransactionParams
   ) external payable {
-    INote note = INote(noteAddress);
+    IOmninote note = IOmninote(noteAddress);
     note.burn(msg.sender, amount);
 
     lzSend(
@@ -89,7 +74,7 @@ contract Omnigateway is Omnichain {
     address noteAddress = addressFromPackedBytes(noteAddressB);
     address toAddress = addressFromPackedBytes(toAddressB);
 
-    INote(noteAddress).mint(toAddress, amount);
+    IOmninote(noteAddress).mint(toAddress, amount);
 
     emit ReceiveNote(fromChainId, nonce, noteAddress, toAddress, amount);
   }

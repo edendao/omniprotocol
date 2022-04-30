@@ -1,69 +1,57 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, console} from "@protocol/test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, console} from "@test/ChainEnvironmentTest.t.sol";
+import {IOmninote} from "@protocol/interfaces/IOmninote.sol";
 
 contract OmnicastTest is ChainEnvironmentTest {
-  function testMintGas() public {
-    omnicast.mint(address(this));
-  }
+  function testSetTokenURI(address caller, string memory uri) public {
+    hevm.assume(
+      caller != address(0) &&
+        caller != address(this) &&
+        caller != address(comptroller)
+    );
 
-  function testMintTo(address to) public {
-    hevm.assume(to != address(0));
-
-    uint256 omnicastId = omnicast.mint(to);
-
-    assertEq(omnicast.balanceOf(to), 1);
-    assertEq(omnicast.ownerOf(omnicastId), to);
-  }
-
-  function testMintNotAvailable(address to) public {
-    hevm.assume(to != address(0));
-
-    omnicast.mint(to);
-    hevm.expectRevert("Omnicast: NOT_AVAILABLE");
-    omnicast.mint(to);
-  }
-
-  function testMintRequiresAuth(address caller) public {
-    hevm.assume(caller != address(0) && caller != address(this));
-
-    hevm.expectRevert("Comptrolled: UNAUTHORIZED");
-    hevm.prank(caller);
-    omnicast.mint(caller);
-  }
-
-  function testSettingTokenURI(address caller, string memory uri) public {
-    hevm.assume(caller != address(0) && caller != address(this));
-
-    uint256 omnicastId = omnicast.mint(caller);
+    uint256 passportId = passport.mint(caller, omnicast.idOf(caller));
+    uint256 tokenuriSpace = omnicast.idOf("tokenuri");
 
     hevm.prank(caller);
-    omnicast.setTokenURI(omnicastId, uri);
+    omnicast.writeMessage(
+      passportId,
+      tokenuriSpace,
+      bytes(uri),
+      currentChainId,
+      address(0),
+      ""
+    );
 
-    assertEq(uri, omnicast.tokenURI(omnicastId));
+    assertEq(uri, passport.tokenURI(passportId));
   }
 
-  function testFailSetInvalidTokenURI(address caller, string memory uri)
+  function testFailUnauthorizedSetTokenURI(address caller, string memory uri)
     public
   {
-    hevm.assume(caller != address(0) && caller != address(this));
+    hevm.assume(
+      caller != address(0) &&
+        caller != address(this) &&
+        caller != address(comptroller)
+    );
 
-    uint256 omnicastId = omnicast.mint(caller);
-
-    hevm.prank(caller);
-    omnicast.setTokenURI(omnicastId + 1, uri);
-  }
-
-  function testFailSettingOtherTokenURI(address caller, string memory uri)
-    public
-  {
-    hevm.assume(caller != address(0) && caller != address(this));
-
-    uint256 myOmnicastId = omnicast.mint(address(this));
+    uint256 passportId = passport.mint(
+      address(this),
+      omnicast.idOf(address(this))
+    );
+    uint256 tokenuriSpace = omnicast.idOf("tokenuri");
 
     hevm.prank(caller);
-    omnicast.setTokenURI(myOmnicastId, uri);
+    omnicast.writeMessage(
+      passportId,
+      tokenuriSpace,
+      bytes(uri),
+      currentChainId,
+      address(0),
+      ""
+    );
   }
 
   function testMessageGas() public {
@@ -136,7 +124,7 @@ contract OmnicastTest is ChainEnvironmentTest {
     assertEq0(payload, omnicast.readMessage(receiverId, senderId));
   }
 
-  function testFailUnauthorizedSend(
+  function testFailUnauthorizedWrite(
     address receiverAddress,
     address senderAddress,
     bytes memory payload

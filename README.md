@@ -8,15 +8,15 @@ Interested in building with eden dao protocol? **[Let's collaborate!](https://ed
 
 **Omnichain infrastructure** in that it liberates DAOs from a single chain with new primitives. Eden Dao Protocol is a collection of immutable contracts for omnispace travel.
 
-## Eden Dao Omnicast is an omnichain user store
+## Eden Dao Passport is an omnichain user store
 
-[Omnicast](./src/omnicast/Omnicast.sol) is a simple protocol to read and write arbitrary bytes messages across any LayerZero chain on a specific "channel" scoped to a wallet address.
+[Passport](./src/passport/Passport.sol) is a simple protocol to read and write arbitrary bytes messages across any LayerZero chain on a specific "cast" scoped to a wallet address.
 
 As an arbitrary bytes store, what you use this for is up to you. You could:
 
 1. Sign people's ledgers across chains
 2. Certify a credential across chains
-3. Leave art on people's Omnicasts
+3. Leave art on people's Passports
 4. Write user data to another chain
 
 ```solidity
@@ -41,10 +41,10 @@ As an arbitrary bytes store, what you use this for is up to you. You could:
     bytes memory lzTransactionParams
   ) public payable {
     require(
-      (msg.sender == ownerOf[toReceiverId] || // write on your own omnicast
-        withSenderId == idOf(msg.sender) || // write on your own channel
-        msg.sender == omnichannel.ownerOf(toReceiverId)), // write on a branded channel name
-      "Omnicast: UNAUTHORIZED_CHANNEL"
+      (msg.sender == ownerOf[toReceiverId] || // write on your own passport
+        withSenderId == idOf(msg.sender) || // write on your own cast
+        msg.sender == omnicast.ownerOf(toReceiverId)), // write on a branded cast name
+      "Passport: UNAUTHORIZED_CAST"
     );
     // implementation
   }
@@ -68,7 +68,6 @@ As an ERC20 Note, what you use this for is up to you:
 Comptroller comptroller = ComptrollerFactory(comptrollerFactoryAddress).create(); // msg.sender is now the owner
 
 Note note = NoteFactory(noteFactoryAddress).deployNote(abi.encode(
-  address(TokenToWrapOrAddress0),
   address(comptroller),
   "My Token Name",
   "SYM",
@@ -79,7 +78,7 @@ uint8 minterRole = 0;
 bytes4[] memory selectors = new bytes4[](2);
 selectors[0] = Note.mint.selector;
 selectors[1] = Note.burn.selector;
-comptroller.setCapabilitiesTo(address(omnigateway), minterRole, [], true);
+comptroller.setCapabilitiesTo(address(omnibridge), minterRole, [], true);
 ```
 
 For the next chain, repeat the same steps. Then, hook both Notes up to each other:
@@ -94,7 +93,7 @@ Note(noteAddressOnChainB).setRemoteNote(chainAId, abi.encodePacked(noteAddressOn
 In addition to being a flexible, mintable/burnable ERC20, token holders can also send their tokens across chains with a simple call to:
 
 ```solidity
-  Omnigateway(address(omnigateway)).sendNote( // from msg.sender
+  Omnibridge(address(omnibridge)).sendNote( // from msg.sender
     address noteAddress, // on this chain
     uint256 amount, // amount
     uint16 toChainId, // LayerZero chain id

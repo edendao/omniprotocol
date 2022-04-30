@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {MockERC20} from "@rari-capital/solmate/test/utils/mocks/MockERC20.sol";
 
-import {ChainEnvironmentTest, Note} from "@protocol/test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, Note} from "@test/ChainEnvironmentTest.t.sol";
 
 contract NoteTest is ChainEnvironmentTest {
   MockERC20 internal fwaum =
@@ -13,8 +13,8 @@ contract NoteTest is ChainEnvironmentTest {
     note.mint(address(this), 10_000_000);
   }
 
-  function testMintTo(address to, uint128 amount) public {
-    hevm.assume(to != address(0));
+  function testMint(address to, uint128 amount) public {
+    hevm.assume(to != address(0) && note.balanceOf(to) == 0);
     note.mint(to, amount);
 
     assertEq(note.balanceOf(to), amount);
