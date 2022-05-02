@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
+import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
+import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
 import {ERC20, ERC4626, SafeTransferLib} from "@protocol/mixins/ERC4626.sol";
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 
 import {Note} from "@protocol/Note.sol";
 
 contract Reserve is Note, ERC4626 {
+  using FixedPointMathLib for uint256;
   using SafeTransferLib for ERC20;
 
   uint64 public debtPoints;
@@ -150,7 +152,7 @@ contract Reserve is Note, ERC4626 {
 
   function _mint(address to, uint256 amount) internal override(ERC20, Note) {
     super._mint(to, amount);
-    lockedProfit += _mulDivDown(amount, goodPoints, MAX_BPS);
+    lockedProfit += amount.mulDivDown(goodPoints, MAX_BPS);
   }
 
   modifier onlyValidStrategyParams(StrategyParams memory params) {
@@ -277,10 +279,9 @@ contract Reserve is Note, ERC4626 {
   function creditAvailable(address strategy) public view returns (uint256) {
     if (isPaused) return 0;
 
-    uint256 reserveDebtLimit = _mulDivDown(totalAssets(), debtPoints, MAX_BPS);
+    uint256 reserveDebtLimit = totalAssets().mulDivDown(debtPoints, MAX_BPS);
     uint256 strategyDebt = strategies[strategy].totalDebt;
-    uint256 strategyDebtLimit = _mulDivDown(
-      totalAssets(),
+    uint256 strategyDebtLimit = totalAssets().mulDivDown(
       strategies[strategy].debtPoints,
       MAX_BPS
     );
@@ -310,7 +311,7 @@ contract Reserve is Note, ERC4626 {
       return 0;
     }
 
-    return _mulDivDown(p.totalGain, timeSinceHarvest, totalHarvestTime);
+    return p.totalGain.mulDivDown(timeSinceHarvest, totalHarvestTime);
   }
 
   function _assessFees(address strategy, uint256 gain)
@@ -323,8 +324,8 @@ contract Reserve is Note, ERC4626 {
     }
 
     require(p.lastReportTimestamp != block.timestamp, "Reserve: INVARIANT");
-    uint256 performanceFee = _mulDivDown(gain, performancePoints, MAX_BPS);
-    uint256 strategistFee = _mulDivDown(gain, p.performancePoints, MAX_BPS);
+    uint256 performanceFee = gain.mulDivDown(performancePoints, MAX_BPS);
+    uint256 strategistFee = gain.mulDivDown(p.performancePoints, MAX_BPS);
     uint256 totalFee = performanceFee + strategistFee;
     if (totalFee > gain) {
       totalFee = gain;
@@ -332,8 +333,7 @@ contract Reserve is Note, ERC4626 {
 
     if (totalFee > 0) {
       uint256 totalReward = previewDeposit(totalFee);
-      uint256 strategistReward = _mulDivDown(
-        strategistFee,
+      uint256 strategistReward = strategistFee.mulDivDown(
         totalReward,
         totalFee
       );

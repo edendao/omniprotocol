@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
+import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+
 import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Omninote} from "@protocol/mixins/Omninote.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
@@ -8,6 +10,8 @@ import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
 
 contract Note is PublicGood, Omninote, Pausable, ReentrancyGuard, ERC20 {
+  using FixedPointMathLib for uint256;
+
   function initialize(address _beneficiary, bytes calldata params)
     external
     virtual
@@ -53,6 +57,6 @@ contract Note is PublicGood, Omninote, Pausable, ReentrancyGuard, ERC20 {
 
   function _mint(address to, uint256 amount) internal virtual override {
     super._mint(to, amount);
-    super._mint(beneficiary, _mulDivDown(amount, goodPoints, MAX_BPS));
+    super._mint(beneficiary, amount.mulDivDown(goodPoints, MAX_BPS));
   }
 }

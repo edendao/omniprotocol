@@ -15,31 +15,8 @@ abstract contract PublicGood is Comptrolled {
   event GoodPointsUpdated(address indexed user, uint16 points);
 
   function setGoodPoints(uint16 points) public requiresAuth {
-    require(10 <= points, "PublicGood: INVALID_BP"); // 0.1% or more
+    require(10 <= points && points <= MAX_BPS, "PublicGood: INVALID_BP");
     goodPoints = points;
     emit GoodPointsUpdated(msg.sender, points);
-  }
-
-  // From Solmate
-  function _mulDivDown(
-    uint256 x,
-    uint256 y,
-    uint256 denominator
-  ) internal pure returns (uint256 z) {
-    // solhint-disable-next-line no-inline-assembly
-    assembly {
-      // Store x * y in z for now.
-      z := mul(x, y)
-
-      // Equivalent to require(denominator != 0 && (x == 0 || (x * y) / x == y))
-      if iszero(
-        and(iszero(iszero(denominator)), or(iszero(x), eq(div(z, x), y)))
-      ) {
-        revert(0, 0)
-      }
-
-      // Divide z by the denominator.
-      z := div(z, denominator)
-    }
   }
 }
