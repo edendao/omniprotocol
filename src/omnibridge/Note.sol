@@ -50,6 +50,6 @@ contract Note is PublicGood, Omninote, Pausable, ReentrancyGuard, ERC20 {
 
   function _mint(address to, uint256 amount) internal virtual override {
     super._mint(to, amount);
-    super._mint(beneficiary, _mulDivDown(amount, goodBasisPoints, MAX_BPS));
+    super._mint(beneficiary, _mulDivDown(amount, goodPoints, MAX_BPS));
   }
 }

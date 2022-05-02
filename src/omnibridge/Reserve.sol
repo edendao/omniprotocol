@@ -11,17 +11,9 @@ import {Note, Comptrolled} from "@protocol/omnibridge/Note.sol";
 contract Reserve is Note, ERC4626 {
   using SafeTransferLib for ERC20;
 
-  uint8 public constant MAXIMUM_STRATEGIES = 20;
-  uint8 public constant SET_SIZE = 32;
-  uint32 public constant SECS_PER_YEAR = 31_556_952;
-
-  mapping(address => StrategyParams) public strategies;
-  address[MAXIMUM_STRATEGIES] public withdrawalQueue;
-  event UpdateWithdrawalQueue(address[20] queue);
-
-  uint64 public debtBasisPoints;
-  uint64 public performanceBasisPoints;
-  event UpdatePerformanceBasisPoints(uint64 performanceBasisPoints);
+  uint64 public debtPoints;
+  uint64 public performancePoints;
+  event UpdatePerformancePoints(uint64 performancePoints);
   uint64 public lastReportTimestamp;
   uint64 public activationTimestamp;
   uint256 public depositLimit;
@@ -29,27 +21,32 @@ contract Reserve is Note, ERC4626 {
   uint256 public totalDebt;
   uint256 public lockedProfit;
 
-  address public guardian;
-  event UpdateGuardian(address guardian);
-  address public healthCheck;
-  event UpdateHealthCheck(address healthCheck);
+  uint8 public constant MAX_STRATEGIES = 20;
+  uint8 public constant SET_SIZE = 32;
 
+  mapping(address => StrategyParams) public strategies;
   struct StrategyParams {
-    uint64 performanceBasisPoints;
+    // Timestamps
     uint64 activationTimestamp;
-    uint64 debtBasisPoints;
     uint64 lastReportTimestamp;
+    // Configuration
+    uint64 performancePoints;
+    uint64 debtPoints;
     uint256 minDebtPerHarvest;
     uint256 maxDebtPerHarvest;
+    // Aggregates
     uint256 totalDebt;
     uint256 totalGain;
     uint256 totalLoss;
   }
 
+  address[MAX_STRATEGIES] public withdrawalQueue;
+  event UpdateWithdrawalQueue(address[20] queue);
+
   event StrategyUpsert(
     address indexed strategy,
-    uint64 performanceBasisPoints,
-    uint64 debtBasisPoints,
+    uint64 performancePoints,
+    uint64 debtPoints,
     uint256 minDebtPerHarvest,
     uint256 maxDebtPerHarvest
   );
@@ -63,10 +60,8 @@ contract Reserve is Note, ERC4626 {
     uint256 totalLoss,
     uint256 totalDebt,
     uint256 debtAdded,
-    uint64 debtBasisPoints
+    uint64 debtPoints
   );
-
-  event Sweep(address indexed token, uint256 amount);
 
   constructor(
     address _comptroller,
@@ -78,25 +73,17 @@ contract Reserve is Note, ERC4626 {
     Note(
       _comptroller,
       _beneficiary,
-      string(abi.encodePacked(_name, " Eden Dao Vault")),
+      string(abi.encodePacked(_name, " Eden Dao Reserve")),
       string(abi.encodePacked("edn-", _symbol)),
       ERC20(_underlying).decimals()
     )
     ERC4626(ERC20(_underlying))
   {
-    performanceBasisPoints = 1000; // 10%
-    emit UpdatePerformanceBasisPoints(performanceBasisPoints);
-
-    // healthCheck = _healthCheck;
-    // emit UpdateHealthCheck(healthCheck);
+    performancePoints = 1000; // 10%
+    emit UpdatePerformancePoints(performancePoints);
 
     lastReportTimestamp = uint64(block.timestamp);
     activationTimestamp = uint64(block.timestamp);
-  }
-
-  function setHealthCheck(address _healthCheck) external requiresAuth {
-    healthCheck = _healthCheck;
-    emit UpdateHealthCheck(healthCheck);
   }
 
   function setDepositLimit(uint256 limit) external requiresAuth {
@@ -104,18 +91,18 @@ contract Reserve is Note, ERC4626 {
     emit UpdateDepositLimit(depositLimit);
   }
 
-  function setPerformanceBasisPoints(uint64 basisPoints) external requiresAuth {
-    require(basisPoints <= MAX_BPS / 2, "Reserve: INVALID_BP");
-    performanceBasisPoints = basisPoints;
-    emit UpdatePerformanceBasisPoints(performanceBasisPoints);
+  function setPerformancePoints(uint64 points) external requiresAuth {
+    require(points <= MAX_BPS / 2, "Reserve: INVALID_BP");
+    performancePoints = points;
+    emit UpdatePerformancePoints(performancePoints);
   }
 
-  function setWithdrawalQueue(address[MAXIMUM_STRATEGIES] memory queue)
+  function setWithdrawalQueue(address[MAX_STRATEGIES] memory queue)
     external
     requiresAuth
   {
     address[SET_SIZE] memory set;
-    for (uint256 i = 0; i < MAXIMUM_STRATEGIES; i++) {
+    for (uint256 i = 0; i < MAX_STRATEGIES; i++) {
       if (queue[i] == address(0)) {
         require(withdrawalQueue[i] == address(0), "Vault: UNAUTHORIZED");
         break;
@@ -142,6 +129,12 @@ contract Reserve is Note, ERC4626 {
     emit UpdateWithdrawalQueue(queue);
   }
 
+  function withdrawToken(address token, uint256 amount) public override {
+    // Disable authority withdrawals of the underlying asset
+    require(token != address(asset), "Reserve: INVALID_TOKEN");
+    super.withdrawToken(token, amount);
+  }
+
   function totalShares() public view returns (uint256) {
     return previewDeposit(totalAssets());
   }
@@ -150,27 +143,16 @@ contract Reserve is Note, ERC4626 {
     return asset.balanceOf(address(this)) + totalDebt - lockedProfit;
   }
 
-  function _reportLoss(address strategy, uint256 loss) internal {
-    uint256 strategyDebt = strategies[strategy].totalDebt;
-    require(strategyDebt >= loss, "Vault: INVALID_LOSS");
-    if (debtBasisPoints != 0) {
-      uint64 strategyDebtBasisPoints = strategies[strategy].debtBasisPoints;
-      uint64 lossBasisPoints = uint64((loss * debtBasisPoints) / totalDebt);
-      uint64 change = uint64(_min(strategyDebtBasisPoints, lossBasisPoints));
-      if (change != 0) {
-        strategies[strategy].debtBasisPoints -= change;
-        debtBasisPoints -= change;
-      }
-    }
-    strategies[strategy].totalLoss += loss;
-    strategies[strategy].totalDebt = strategyDebt - loss;
-    totalDebt -= loss;
+  function _mint(address to, uint256 amount) internal override(ERC20, Note) {
+    super._mint(to, amount); // Delegate to Note, which supports the public good
   }
 
-  modifier isActiveStrategy(address strategy) {
+  modifier onlyValidStrategyParams(StrategyParams memory params) {
     require(
-      strategies[strategy].activationTimestamp != 0,
-      "Reserve: INACTIVE_STRATEGY"
+      debtPoints + params.debtPoints <= MAX_BPS &&
+        params.minDebtPerHarvest <= params.maxDebtPerHarvest &&
+        params.performancePoints <= MAX_BPS / 2,
+      "Reserve: INVALID_PARAMS"
     );
     _;
   }
@@ -178,9 +160,10 @@ contract Reserve is Note, ERC4626 {
   function addStrategy(address strategy, StrategyParams memory params)
     external
     whenNotPaused
+    onlyValidStrategyParams(params)
   {
     require(
-      withdrawalQueue[MAXIMUM_STRATEGIES - 1] == address(0),
+      withdrawalQueue[MAX_STRATEGIES - 1] == address(0),
       "Reserve: QUEUE_LIMIT"
     );
     require(
@@ -189,76 +172,78 @@ contract Reserve is Note, ERC4626 {
         address(asset) == address(ERC4626(strategy).asset()),
       "Reserve: INVALID_STRATEGY"
     );
-    require(
-      debtBasisPoints + params.debtBasisPoints <= MAX_BPS &&
-        params.minDebtPerHarvest <= params.maxDebtPerHarvest &&
-        params.performanceBasisPoints <= MAX_BPS / 2,
-      "Reserve: INVALID_PARAMS"
-    );
     params.lastReportTimestamp = uint64(block.timestamp);
     strategies[strategy] = params;
     emit StrategyUpsert(
       strategy,
-      params.performanceBasisPoints,
-      params.debtBasisPoints,
+      params.performancePoints,
+      params.debtPoints,
       params.minDebtPerHarvest,
       params.maxDebtPerHarvest
     );
 
-    debtBasisPoints += params.debtBasisPoints;
-    withdrawalQueue[MAXIMUM_STRATEGIES - 1] = strategy;
+    debtPoints += params.debtPoints;
+    withdrawalQueue[MAX_STRATEGIES - 1] = strategy;
     _organizeWithdrawalQueue();
+  }
+
+  modifier onlyActiveStrategy(address strategy) {
+    require(
+      strategies[strategy].activationTimestamp != 0,
+      "Reserve: INACTIVE_STRATEGY"
+    );
+    _;
   }
 
   function updateStrategy(address strategy, StrategyParams memory params)
     external
     requiresAuth
+    onlyActiveStrategy(strategy)
+    onlyValidStrategyParams(params)
   {
-    require(
-      strategies[strategy].activationTimestamp > 0,
-      "Reserve: INACTIVE_STRATEGY"
-    );
-    require(
-      debtBasisPoints + params.debtBasisPoints <= MAX_BPS &&
-        params.minDebtPerHarvest <= params.maxDebtPerHarvest &&
-        params.performanceBasisPoints <= MAX_BPS / 2,
-      "Reserve: INVALID_PARAMS"
-    );
-    emit StrategyUpsert(
-      strategy,
-      params.performanceBasisPoints,
-      params.debtBasisPoints,
-      params.minDebtPerHarvest,
-      params.maxDebtPerHarvest
-    );
+    StrategyParams storage p = strategies[strategy];
+    p.performancePoints = params.performancePoints;
+    p.debtPoints = params.debtPoints;
+    p.minDebtPerHarvest = params.minDebtPerHarvest;
+    p.maxDebtPerHarvest = params.maxDebtPerHarvest;
   }
 
   function revokeStrategy(address strategy) external {
-    if (strategies[strategy].debtBasisPoints != 0) {
-      _revokeStrategy(strategy);
+    if (strategies[strategy].debtPoints != 0) {
+      StrategyParams storage p = strategies[strategy];
+      debtPoints -= p.debtPoints;
+      p.debtPoints = 0;
+
+      emit StrategyUpsert(
+        strategy,
+        p.performancePoints,
+        p.debtPoints,
+        p.minDebtPerHarvest,
+        p.maxDebtPerHarvest
+      );
     }
   }
 
   function addStrategyToQueue(address strategy)
     external
     requiresAuth
-    isActiveStrategy(strategy)
+    onlyActiveStrategy(strategy)
   {
     uint256 i;
-    for (i = 0; i < MAXIMUM_STRATEGIES; i++) {
+    for (i = 0; i < MAX_STRATEGIES; i++) {
       address s = withdrawalQueue[i];
       require(s != strategy, "Reserve: ALREADY_QUEUED");
       if (s == address(0)) {
         break;
       }
     }
-    require(i < MAXIMUM_STRATEGIES, "Reserve: QUEUE_LIMIT");
-    withdrawalQueue[MAXIMUM_STRATEGIES - 1] = strategy;
+    require(i < MAX_STRATEGIES, "Reserve: QUEUE_LIMIT");
+    withdrawalQueue[MAX_STRATEGIES - 1] = strategy;
     _organizeWithdrawalQueue();
   }
 
   function removeStrategyFromQueue(address strategy) external requiresAuth {
-    for (uint256 i = 0; i < MAXIMUM_STRATEGIES; i++) {
+    for (uint256 i = 0; i < MAX_STRATEGIES; i++) {
       if (withdrawalQueue[i] == strategy) {
         withdrawalQueue[i] = address(0);
         _organizeWithdrawalQueue();
@@ -269,11 +254,11 @@ contract Reserve is Note, ERC4626 {
 
   function debtOutstanding(address strategy) public view returns (uint256) {
     uint256 strategyDebt = strategies[strategy].totalDebt;
-    if (isPaused || debtBasisPoints == 0) {
+    if (isPaused || debtPoints == 0) {
       return strategyDebt;
     }
 
-    uint256 strategyDebtLimit = (strategies[strategy].debtBasisPoints *
+    uint256 strategyDebtLimit = (strategies[strategy].debtPoints *
       totalAssets()) / MAX_BPS;
 
     if (strategyDebt <= strategyDebtLimit) {
@@ -286,15 +271,11 @@ contract Reserve is Note, ERC4626 {
   function creditAvailable(address strategy) public view returns (uint256) {
     if (isPaused) return 0;
 
-    uint256 reserveDebtLimit = _mulDivDown(
-      totalAssets(),
-      debtBasisPoints,
-      MAX_BPS
-    );
+    uint256 reserveDebtLimit = _mulDivDown(totalAssets(), debtPoints, MAX_BPS);
     uint256 strategyDebt = strategies[strategy].totalDebt;
     uint256 strategyDebtLimit = _mulDivDown(
       totalAssets(),
-      strategies[strategy].debtBasisPoints,
+      strategies[strategy].debtPoints,
       MAX_BPS
     );
 
@@ -335,15 +316,9 @@ contract Reserve is Note, ERC4626 {
       return 0;
     }
 
-    uint256 duration = block.timestamp - p.lastReportTimestamp;
-    require(duration != 0, "Reserve: INVARIANT");
-
-    uint256 performanceFee = _mulDivDown(gain, performanceBasisPoints, MAX_BPS);
-    uint256 strategistFee = _mulDivDown(
-      gain,
-      p.performanceBasisPoints,
-      MAX_BPS
-    );
+    require(p.lastReportTimestamp != block.timestamp, "Reserve: INVARIANT");
+    uint256 performanceFee = _mulDivDown(gain, performancePoints, MAX_BPS);
+    uint256 strategistFee = _mulDivDown(gain, p.performancePoints, MAX_BPS);
     uint256 totalFee = performanceFee + strategistFee;
     if (totalFee > gain) {
       totalFee = gain;
@@ -374,7 +349,7 @@ contract Reserve is Note, ERC4626 {
     uint256 gain,
     uint256 loss,
     uint256 debtPayment
-  ) external isActiveStrategy(msg.sender) returns (uint256) {
+  ) external onlyActiveStrategy(msg.sender) returns (uint256) {
     require(
       asset.balanceOf(msg.sender) >= gain + debtPayment,
       "Reserve: INVALID_PARAMS"
@@ -418,8 +393,7 @@ contract Reserve is Note, ERC4626 {
       ? lockedProfitBeforeLoss - loss
       : 0;
 
-    p.lastReportTimestamp = uint64(block.timestamp);
-    lastReportTimestamp = uint64(block.timestamp);
+    lastReportTimestamp = p.lastReportTimestamp = uint64(block.timestamp);
 
     emit StrategyReport(
       msg.sender,
@@ -430,42 +404,37 @@ contract Reserve is Note, ERC4626 {
       p.totalLoss,
       p.totalDebt,
       credit,
-      p.debtBasisPoints
+      p.debtPoints
     );
 
-    if (p.debtBasisPoints != 0 && !isPaused) {
-      return debt;
-    } else {
+    if (p.debtPoints == 0 || isPaused) {
+      // Revoked strategy or emergency shutdown, should return all assets
       return ERC4626(msg.sender).totalAssets();
+    } else {
+      return debt;
     }
   }
 
-  function withdrawToken(address token, uint256 amount) public override {
-    require(token != address(asset), "Reserve: INVALID_TOKEN");
-    super.withdrawToken(token, amount);
-  }
-
-  function _mint(address to, uint256 amount) internal override(ERC20, Note) {
-    super._mint(to, amount);
-  }
-
-  function _revokeStrategy(address strategy) internal {
-    StrategyParams storage p = strategies[strategy];
-    debtBasisPoints -= p.debtBasisPoints;
-    p.debtBasisPoints = 0;
-
-    emit StrategyUpsert(
-      strategy,
-      p.performanceBasisPoints,
-      p.debtBasisPoints,
-      p.minDebtPerHarvest,
-      p.maxDebtPerHarvest
-    );
+  function _reportLoss(address strategy, uint256 loss) internal {
+    uint256 strategyDebt = strategies[strategy].totalDebt;
+    require(strategyDebt >= loss, "Vault: INVALID_LOSS");
+    if (debtPoints != 0) {
+      uint64 strategyDebtPoints = strategies[strategy].debtPoints;
+      uint64 lossPoints = uint64((loss * debtPoints) / totalDebt);
+      uint64 change = uint64(_min(strategyDebtPoints, lossPoints));
+      if (change != 0) {
+        strategies[strategy].debtPoints -= change;
+        debtPoints -= change;
+      }
+    }
+    strategies[strategy].totalLoss += loss;
+    strategies[strategy].totalDebt = strategyDebt - loss;
+    totalDebt -= loss;
   }
 
   function _organizeWithdrawalQueue() internal {
     uint256 offset = 0;
-    for (uint256 i = 0; i < MAXIMUM_STRATEGIES; i++) {
+    for (uint256 i = 0; i < MAX_STRATEGIES; i++) {
       address strategy = withdrawalQueue[i];
       if (strategy == address(0)) {
         offset += 1;

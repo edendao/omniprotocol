@@ -32,7 +32,7 @@ contract ReserveTest is ChainEnvironmentTest {
     assertEq(reserve.balanceOf(caller), shares);
     assertEq(
       reserve.balanceOf(myAddress), // beneficiary
-      (shares * reserve.goodBasisPoints()) / reserve.MAX_BPS()
+      (shares * reserve.goodPoints()) / reserve.MAX_BPS()
     );
   }
 }
