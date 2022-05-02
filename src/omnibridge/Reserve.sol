@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {SafeTransferLib} from "@solmate/utils/SafeTransferLib.sol";
-import {ReentrancyGuard} from "@solmate/utils/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
 
-import {ERC20, ERC4626} from "@protocol/mixins/ERC4626.sol";
+import {ERC20, ERC4626, SafeTransferLib} from "@protocol/mixins/ERC4626.sol";
+import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 
-import {Note, Comptrolled} from "@protocol/omnibridge/Note.sol";
+import {Note} from "@protocol/omnibridge/Note.sol";
 
 contract Reserve is Note, ERC4626 {
   using SafeTransferLib for ERC20;
@@ -63,22 +63,27 @@ contract Reserve is Note, ERC4626 {
     uint64 debtPoints
   );
 
-  constructor(
-    address _comptroller,
-    address _beneficiary,
-    address _underlying,
-    string memory _name,
-    string memory _symbol
-  )
-    Note(
-      _comptroller,
-      _beneficiary,
+  function initialize(address _beneficiary, bytes calldata params)
+    external
+    override(Cloneable, Note)
+    initializer
+  {
+    (
+      address _comptroller,
+      address _asset,
+      string memory _name,
+      string memory _symbol
+    ) = abi.decode(params, (address, address, string, string));
+    __initPublicGood(_beneficiary);
+    __initReentrancyGuard();
+    __initERC20(
       string(abi.encodePacked(_name, " Eden Dao Reserve")),
       string(abi.encodePacked("edn-", _symbol)),
-      ERC20(_underlying).decimals()
-    )
-    ERC4626(ERC20(_underlying))
-  {
+      ERC20(_asset).decimals()
+    );
+    __initERC4626(ERC20(_asset));
+    __initComptrolled(_comptroller);
+
     performancePoints = 1000; // 10%
     emit UpdatePerformancePoints(performancePoints);
 
@@ -144,7 +149,8 @@ contract Reserve is Note, ERC4626 {
   }
 
   function _mint(address to, uint256 amount) internal override(ERC20, Note) {
-    super._mint(to, amount); // Delegate to Note, which supports the public good
+    super._mint(to, amount);
+    lockedProfit += _mulDivDown(amount, goodPoints, MAX_BPS);
   }
 
   modifier onlyValidStrategyParams(StrategyParams memory params) {

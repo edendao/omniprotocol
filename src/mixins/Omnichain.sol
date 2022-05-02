@@ -8,12 +8,10 @@ import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 
 abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
-  ILayerZeroEndpoint public immutable lzEndpoint;
-  uint16 public immutable currentChainId;
+  ILayerZeroEndpoint public lzEndpoint;
+  uint16 public currentChainId;
 
-  constructor(address _comptroller, address _lzEndpoint)
-    Comptrolled(_comptroller)
-  {
+  function __initOmnichain(address _lzEndpoint) internal {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
     currentChainId = uint16(block.chainid);
   }

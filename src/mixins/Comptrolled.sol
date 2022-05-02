@@ -5,10 +5,12 @@ import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
 
 import {Comptroller} from "@protocol/auth/Comptroller.sol";
 
-abstract contract Comptrolled {
+import {Cloneable} from "@protocol/mixins/Cloneable.sol";
+
+abstract contract Comptrolled is Cloneable {
   Comptroller public comptroller;
 
-  constructor(address _comptroller) {
+  function __initComptrolled(address _comptroller) internal {
     comptroller = Comptroller(payable(_comptroller));
   }
 
@@ -41,9 +43,5 @@ abstract contract Comptrolled {
     requiresAuth
   {
     TransferToken(token).transfer(comptrollerAddress(), amount);
-  }
-
-  receive() external payable virtual {
-    this;
   }
 }

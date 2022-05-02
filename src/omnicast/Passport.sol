@@ -12,16 +12,15 @@ import {Pausable} from "@protocol/mixins/Pausable.sol";
 // Passport is your on-chain identity in omni-chain space
 // ======================================================
 contract Passport is Omninote, Pausable, ERC721Soulbound {
-  IOmnicast public immutable omnicast;
+  IOmnicast public omnicast;
 
   string public name = "Eden Dao Passport";
   string public symbol = "DAO PASS";
 
   mapping(uint256 => address) public ownerOf;
 
-  constructor(address _comptroller, address _omnicast)
-    Comptrolled(_comptroller)
-  {
+  constructor(address _comptroller, address _omnicast) {
+    __initComptrolled(_comptroller);
     omnicast = IOmnicast(_omnicast);
   }
 
@@ -41,7 +40,7 @@ contract Passport is Omninote, Pausable, ERC721Soulbound {
     return id;
   }
 
-  receive() external payable override {
+  receive() external payable {
     mint();
   }
 

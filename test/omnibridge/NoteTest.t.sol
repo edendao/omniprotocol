@@ -1,11 +1,19 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {MockERC20} from "@solmate/test/utils/mocks/MockERC20.sol";
-
 import {ChainEnvironmentTest, Note} from "@test/ChainEnvironmentTest.t.sol";
 
 contract NoteTest is ChainEnvironmentTest {
+  function testCloneGas() public {
+    Note n = bridge.createNote(
+      address(comptroller),
+      "Frontier Carbon 2",
+      "TIME2",
+      3
+    );
+    assertEq(n.symbol(), "TIME2");
+  }
+
   function testMintGas() public {
     note.mintTo(address(this), 10_000_000);
   }

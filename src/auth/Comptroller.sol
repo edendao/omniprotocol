@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {MultiRolesAuthority, Authority} from "@solmate/auth/authorities/MultiRolesAuthority.sol";
-
 import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
 
+import {MultiRolesAuthority, Authority} from "@protocol/auth/MultiRolesAuthority.sol";
 import {Multicallable} from "@protocol/mixins/Multicallable.sol";
+import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 
-contract Comptroller is MultiRolesAuthority, Multicallable {
-  constructor(address _owner)
-    MultiRolesAuthority(_owner, Authority(address(0)))
+contract Comptroller is Cloneable, Multicallable, MultiRolesAuthority {
+  function initialize(address, bytes calldata params)
+    external
+    override
+    initializer
   {
-    setAuthority(this);
+    address _owner = abi.decode(params, (address));
+    __initAuth(_owner, this);
   }
 
   function setCapabilitiesTo(

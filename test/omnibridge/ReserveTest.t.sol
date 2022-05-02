@@ -1,38 +1,58 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {MockERC20} from "@solmate/test/utils/mocks/MockERC20.sol";
-
-import {ChainEnvironmentTest} from "@test/ChainEnvironmentTest.t.sol";
-import {Reserve} from "@protocol/omnibridge/Reserve.sol";
+import {ChainEnvironmentTest, Reserve, MockERC20, console} from "@test/ChainEnvironmentTest.t.sol";
 
 contract ReserveTest is ChainEnvironmentTest {
-  MockERC20 internal fwaum =
-    new MockERC20("Friends with Assets Under Management", "FWAUM", 18);
-  Reserve internal reserve =
-    new Reserve(
-      address(this),
-      address(this),
-      address(fwaum),
-      "Friends with Assets Under Management Vault",
-      "edn-FWAUM"
+  function testCloneGas() public {
+    Reserve r = bridge.createReserve(
+      address(comptroller),
+      address(note),
+      "Frontier Carbon 2",
+      "TIME2"
     );
+    assertEq(r.symbol(), "edn-TIME2");
+  }
+
+  function testNameAndSymbol() public {
+    assertEq(reserve.name(), "Frontier Carbon Eden Dao Reserve");
+    assertEq(reserve.symbol(), "edn-TIME");
+  }
 
   function testDeposit(address caller, uint128 amount) public {
     hevm.assume(caller != address(this) && caller != address(0) && amount != 0);
-    fwaum.mint(caller, amount);
+    note.mintTo(caller, amount);
 
     uint256 shares = reserve.previewDeposit(amount);
 
     hevm.startPrank(caller);
-    fwaum.approve(address(reserve), amount);
+    note.approve(address(reserve), amount);
     reserve.deposit(amount, caller);
     hevm.stopPrank();
 
     assertEq(reserve.balanceOf(caller), shares);
     assertEq(
-      reserve.balanceOf(myAddress), // beneficiary
+      reserve.balanceOf(address(comptroller)), // beneficiary
       (shares * reserve.goodPoints()) / reserve.MAX_BPS()
     );
+  }
+
+  function testRedeem(address caller, uint128 amount) public {
+    hevm.assume(caller != address(this) && caller != address(0) && amount != 0);
+    note.mintTo(caller, amount);
+
+    hevm.startPrank(caller);
+    note.approve(address(reserve), amount);
+
+    uint256 shares = reserve.deposit(amount, caller);
+    assertEq(reserve.balanceOf(caller), shares);
+    assertEq(
+      reserve.balanceOf(address(comptroller)), // beneficiary
+      (shares * reserve.goodPoints()) / reserve.MAX_BPS()
+    );
+
+    reserve.redeem(shares, caller, caller);
+    assertEq(reserve.balanceOf(caller), 0);
+    hevm.stopPrank();
   }
 }

@@ -1,27 +1,31 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ERC20} from "@solmate/tokens/ERC20.sol";
-import {ReentrancyGuard} from "@solmate/utils/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
 
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Omninote} from "@protocol/mixins/Omninote.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
 contract Note is PublicGood, Omninote, Pausable, ReentrancyGuard, ERC20 {
-  constructor(
-    address _comptroller,
-    address _beneficiary,
-    string memory _name,
-    string memory _symbol,
-    uint8 _decimals
-  )
-    PublicGood(_beneficiary)
-    Comptrolled(_comptroller)
-    ERC20(_name, _symbol, _decimals)
+  function initialize(address _beneficiary, bytes calldata params)
+    external
+    virtual
+    override
+    initializer
   {
-    this;
+    (
+      address _comptroller,
+      string memory _name,
+      string memory _symbol,
+      uint8 _decimals
+    ) = abi.decode(params, (address, string, string, uint8));
+
+    __initPublicGood(_beneficiary);
+    __initReentrancyGuard();
+    __initERC20(_name, _symbol, _decimals);
+    __initComptrolled(_comptroller);
   }
 
   function mintTo(address to, uint256 amount)

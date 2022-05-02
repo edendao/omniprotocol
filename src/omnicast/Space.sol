@@ -16,7 +16,8 @@ contract Space is Omninote, ERC721 {
     address _comptroller,
     address _omnicast,
     uint16 _primaryChainId
-  ) ERC721("Eden Dao Space", "DAO SPACE") Comptrolled(_comptroller) {
+  ) ERC721("Eden Dao Space", "DAO SPACE") {
+    __initComptrolled(_comptroller);
     omnicast = IOmnicast(_omnicast);
     primaryChainId = _primaryChainId;
     uint256[10] memory premint = [

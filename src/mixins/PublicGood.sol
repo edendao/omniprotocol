@@ -6,13 +6,13 @@ import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 abstract contract PublicGood is Comptrolled {
   uint16 public constant MAX_BPS = 10_000;
   uint16 public goodPoints = 100; // 1% for the planet
-  address public immutable beneficiary;
+  address public beneficiary;
 
-  constructor(address _beneficiary) {
+  function __initPublicGood(address _beneficiary) internal {
     beneficiary = _beneficiary;
   }
 
-  event GoodPointsUpdated(address indexed user, uint256 newgoodPoints);
+  event GoodPointsUpdated(address indexed user, uint16 points);
 
   function setGoodPoints(uint16 points) public requiresAuth {
     require(10 <= points, "PublicGood: INVALID_BP"); // 0.1% or more

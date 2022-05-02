@@ -3,9 +3,14 @@ pragma solidity ^0.8.13;
 
 import {BoringAddress} from "@boring/libraries/BoringAddress.sol";
 
-import {ChainEnvironmentTest} from "@test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, Comptroller} from "@test/ChainEnvironmentTest.t.sol";
 
 contract ComptrollerTest is ChainEnvironmentTest {
+  function testCloneGas() public {
+    Comptroller c = bridge.createComptroller(address(this));
+    assertEq(c.owner(), address(this));
+  }
+
   function testMulticallable() public {
     bytes[] memory functions = new bytes[](4);
     functions[0] = abi.encodeWithSignature(

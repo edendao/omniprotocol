@@ -1,2 +1,3 @@
 lib/**/*.sol
-src/test/mocks/LZEndpointMock.sol
+src/mocks/LZEndpointMock.sol
+src/libraries/SafeTransferLib.sol

@@ -13,28 +13,16 @@ contract Omnicast is Omnichain, IOmnicast, EdenDaoNS {
   address public space;
   address public passport;
 
-  constructor(address _comptroller, address _lzEndpoint)
-    Omnichain(_comptroller, _lzEndpoint)
+  constructor(address _lzEndpoint, address _comptroller) {
+    __initOmnichain(_lzEndpoint);
+    __initComptrolled(_comptroller);
+  }
+
+  function setContracts(address _space, address _passport)
+    external
+    requiresAuth
   {
-    this;
-  }
-
-  // Setting Passports and Spaces
-  event SetSpace(address space);
-
-  function setSpace(address _space) public requiresAuth {
-    if (space != _space) {
-      emit SetSpace(_space);
-    }
     space = _space;
-  }
-
-  event SetPassport(address space);
-
-  function setPassport(address _passport) public requiresAuth {
-    if (passport != _passport) {
-      emit SetPassport(_passport);
-    }
     passport = _passport;
   }
 
