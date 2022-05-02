@@ -61,12 +61,7 @@ contract Space is Omninote, ERC721 {
   mapping(uint256 => string) private _tokenURI;
 
   function tokenURI(uint256 id) public view override returns (string memory) {
-    return _tokenURI[id];
-  }
-
-  function setTokenURI(uint256 id, string memory uri) external {
-    require(msg.sender == ownerOf(id), "Space: ONLY_OWNER");
-    _tokenURI[id] = uri;
+    return string(omnicast.readMessage(id, omnicast.idOf("tokenuri")));
   }
 
   // ======================
