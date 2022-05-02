@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {console} from "forge-std/console.sol";
-import {DSTestPlus} from "@rari-capital/solmate/test/utils/DSTestPlus.sol";
+import {DSTestPlus} from "@solmate/test/utils/DSTestPlus.sol";
 
 import {LZEndpointMock} from "@test/mocks/LZEndpointMock.sol";
 

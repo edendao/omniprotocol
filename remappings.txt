@@ -3,7 +3,7 @@
 @protocol/=src/
 @test/=test/
 @proxy/=lib/prb-proxy/contracts/
-@rari-capital/solmate/=lib/solmate/src/
+@solmate/=lib/solmate/src/
 ds-proxy/=lib/ds-proxy/src/
 ds-test/=lib/ds-test/src/
 forge-std/=lib/forge-std/src/

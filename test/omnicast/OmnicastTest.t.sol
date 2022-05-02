@@ -12,7 +12,7 @@ contract OmnicastTest is ChainEnvironmentTest {
         caller != address(comptroller)
     );
 
-    uint256 passportId = passport.mint(caller, omnicast.idOf(caller));
+    uint256 passportId = passport.mintTo(caller, omnicast.idOf(caller));
     uint256 tokenuriSpace = omnicast.idOf("tokenuri");
 
     hevm.prank(caller);
@@ -37,7 +37,7 @@ contract OmnicastTest is ChainEnvironmentTest {
         caller != address(comptroller)
     );
 
-    uint256 passportId = passport.mint(
+    uint256 passportId = passport.mintTo(
       address(this),
       omnicast.idOf(address(this))
     );

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
+import {ERC20} from "@solmate/tokens/ERC20.sol";
 
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Factory} from "@protocol/mixins/Factory.sol";

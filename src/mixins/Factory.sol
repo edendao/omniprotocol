@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {CREATE3} from "@rari-capital/solmate/utils/CREATE3.sol";
+import {CREATE3} from "@solmate/utils/CREATE3.sol";
 
 contract Factory {
   bytes internal creationCode;

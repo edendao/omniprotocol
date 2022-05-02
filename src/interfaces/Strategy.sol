@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.10;
 
-import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
+import {ERC20} from "@solmate/tokens/ERC20.sol";
 
 /// @notice Minimal interface for Vault compatible strategies.
 /// @dev Designed for out of the box compatibility with Fuse cTokens.

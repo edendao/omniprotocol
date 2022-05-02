@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ERC721} from "@rari-capital/solmate/tokens/ERC721.sol";
+import {ERC721} from "@solmate/tokens/ERC721.sol";
 
 import {IOmnicast} from "@protocol/interfaces/IOmnicast.sol";
 
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omninote} from "@protocol/mixins/Omninote.sol";
 
-contract Space is ERC721, Omninote {
+contract Space is Omninote, ERC721 {
   IOmnicast public immutable omnicast;
   uint16 public primaryChainId;
 
@@ -82,7 +82,7 @@ contract Space is ERC721, Omninote {
   // ==========================
   // ======= OMNIBRIDGE =======
   // ==========================
-  function mint(address to, uint256 id)
+  function mintTo(address to, uint256 id)
     public
     override
     requiresAuth
@@ -93,7 +93,7 @@ contract Space is ERC721, Omninote {
     return id;
   }
 
-  function burn(address, uint256 id)
+  function burnFrom(address, uint256 id)
     public
     override
     requiresAuth

@@ -25,13 +25,13 @@ contract SpaceTest is ChainEnvironmentTest {
   }
 
   function testNoteMintGas() public {
-    space.mint(address(this), spaceId);
+    space.mintTo(address(this), spaceId);
   }
 
   function testNoteMint(address to) public {
     hevm.assume(to != address(0));
 
-    space.mint(to, spaceId);
+    space.mintTo(to, spaceId);
 
     assertEq(space.ownerOf(spaceId), to);
   }
@@ -41,6 +41,6 @@ contract SpaceTest is ChainEnvironmentTest {
 
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
     hevm.prank(caller);
-    space.mint(caller, spaceId);
+    space.mintTo(caller, spaceId);
   }
 }

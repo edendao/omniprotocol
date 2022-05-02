@@ -11,7 +11,7 @@ import {Pausable} from "@protocol/mixins/Pausable.sol";
 // ======================================================
 // Passport is your on-chain identity in omni-chain space
 // ======================================================
-contract Passport is ERC721Soulbound, Omninote, Pausable {
+contract Passport is Omninote, Pausable, ERC721Soulbound {
   IOmnicast public immutable omnicast;
 
   string public name = "Eden Dao Passport";
@@ -46,7 +46,7 @@ contract Passport is ERC721Soulbound, Omninote, Pausable {
   }
 
   // Omnibridge mints
-  function mint(address to, uint256 id)
+  function mintTo(address to, uint256 id)
     public
     override
     requiresAuth
@@ -58,7 +58,7 @@ contract Passport is ERC721Soulbound, Omninote, Pausable {
   }
 
   // Cannot be burned
-  function burn(address, uint256) public pure override returns (uint256) {
+  function burnFrom(address, uint256) public pure override returns (uint256) {
     return 0;
   }
 

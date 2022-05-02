@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {DSTestPlus} from "@rari-capital/solmate/test/utils/DSTestPlus.sol";
+import {DSTestPlus} from "@solmate/test/utils/DSTestPlus.sol";
 
 import {GCounter} from "@protocol/libraries/GCounter.sol";
 

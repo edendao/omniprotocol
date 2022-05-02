@@ -5,7 +5,7 @@ import {ChainEnvironmentTest, console} from "@test/ChainEnvironmentTest.t.sol";
 
 contract PassportTest is ChainEnvironmentTest {
   function testMintGas() public {
-    passport.mint(address(this), omnicast.idOf(address(this)));
+    passport.mintTo(address(this), omnicast.idOf(address(this)));
   }
 
   function testMint(address caller, uint256 value) public {
@@ -43,6 +43,6 @@ contract PassportTest is ChainEnvironmentTest {
     uint256 id = omnicast.idOf(caller);
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
     hevm.prank(caller);
-    passport.mint(caller, id);
+    passport.mintTo(caller, id);
   }
 }

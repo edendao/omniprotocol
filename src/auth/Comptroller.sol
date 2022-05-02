@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {MultiRolesAuthority, Authority} from "@rari-capital/solmate/auth/authorities/MultiRolesAuthority.sol";
+import {MultiRolesAuthority, Authority} from "@solmate/auth/authorities/MultiRolesAuthority.sol";
 
 import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
 

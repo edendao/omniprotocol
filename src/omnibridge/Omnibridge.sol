@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ERC20} from "@rari-capital/solmate/tokens/ERC20.sol";
-import {Auth, Authority} from "@rari-capital/solmate/auth/Auth.sol";
+import {ERC20} from "@solmate/tokens/ERC20.sol";
+import {Auth, Authority} from "@solmate/auth/Auth.sol";
 
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 
@@ -35,7 +35,7 @@ contract Omnibridge is Omnichain {
     bytes calldata lzTransactionParams
   ) external payable {
     IOmninote note = IOmninote(noteAddress);
-    note.burn(msg.sender, amount);
+    note.burnFrom(msg.sender, amount);
 
     lzSend(
       toChainId,
@@ -74,7 +74,7 @@ contract Omnibridge is Omnichain {
     address noteAddress = addressFromPackedBytes(noteAddressB);
     address toAddress = addressFromPackedBytes(toAddressB);
 
-    IOmninote(noteAddress).mint(toAddress, amount);
+    IOmninote(noteAddress).mintTo(toAddress, amount);
 
     emit ReceiveNote(fromChainId, nonce, noteAddress, toAddress, amount);
   }

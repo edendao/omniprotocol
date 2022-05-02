@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {ChainEnvironmentTest, Comptroller, console} from "@test/ChainEnvironmentTest.t.sol";
 
-import {MockERC20} from "@rari-capital/solmate/test/utils/mocks/MockERC20.sol";
+import {MockERC20} from "@solmate/test/utils/mocks/MockERC20.sol";
 
 import {Omnibridge} from "@protocol/omnibridge/Omnibridge.sol";
 import {Note} from "@protocol/omnibridge/Note.sol";
@@ -30,8 +30,8 @@ contract OmnibridgeTest is ChainEnvironmentTest {
 
     uint8 bridgeRole = 0;
     bytes4[] memory selectors = new bytes4[](2);
-    selectors[0] = Note.mint.selector;
-    selectors[1] = Note.burn.selector;
+    selectors[0] = Note.mintTo.selector;
+    selectors[1] = Note.burnFrom.selector;
 
     bytes memory command = abi.encodeWithSelector(
       comptroller.setCapabilitiesTo.selector,
@@ -76,7 +76,7 @@ contract OmnibridgeTest is ChainEnvironmentTest {
     assertEq(fwaum.balanceOf(address(this)), amount);
 
     fwaum.approve(address(fwaumNote), amount);
-    fwaumNote.mint(address(this), amount);
+    fwaumNote.mintTo(address(this), amount);
     assertEq(fwaumNote.balanceOf(address(this)), amount);
 
     bridge.sendNote{value: 1 ether}(
