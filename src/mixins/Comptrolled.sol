@@ -2,10 +2,8 @@
 pragma solidity ^0.8.13;
 
 import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
-
-import {Comptroller} from "@protocol/auth/Comptroller.sol";
-
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
+import {Comptroller} from "@protocol/Comptroller.sol";
 
 abstract contract Comptrolled is Cloneable {
   Comptroller public comptroller;

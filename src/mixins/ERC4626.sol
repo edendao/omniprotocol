@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+
 import {SafeTransferLib} from "@protocol/libraries/SafeTransferLib.sol";
 import {ERC20} from "@protocol/mixins/ERC20.sol";
 

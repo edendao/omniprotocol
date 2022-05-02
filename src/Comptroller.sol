@@ -3,9 +3,9 @@ pragma solidity ^0.8.13;
 
 import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
 
-import {MultiRolesAuthority, Authority} from "@protocol/auth/MultiRolesAuthority.sol";
-import {Multicallable} from "@protocol/mixins/Multicallable.sol";
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
+import {Multicallable} from "@protocol/mixins/Multicallable.sol";
+import {MultiRolesAuthority} from "@protocol/auth/MultiRolesAuthority.sol";
 
 contract Comptroller is Cloneable, Multicallable, MultiRolesAuthority {
   function initialize(address, bytes calldata params)

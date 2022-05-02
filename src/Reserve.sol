@@ -6,7 +6,7 @@ import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
 import {ERC20, ERC4626, SafeTransferLib} from "@protocol/mixins/ERC4626.sol";
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 
-import {Note} from "@protocol/omnibridge/Note.sol";
+import {Note} from "@protocol/Note.sol";
 
 contract Reserve is Note, ERC4626 {
   using SafeTransferLib for ERC20;

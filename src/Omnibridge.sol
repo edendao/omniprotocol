@@ -6,9 +6,9 @@ import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 
-import {Comptroller} from "@protocol/auth/Comptroller.sol";
-import {Note} from "@protocol/omnibridge/Note.sol";
-import {Reserve} from "@protocol/omnibridge/Reserve.sol";
+import {Comptroller} from "@protocol/Comptroller.sol";
+import {Note} from "@protocol/Note.sol";
+import {Reserve} from "@protocol/Reserve.sol";
 
 contract Omnibridge is Omnichain {
   address public noteImplementation;

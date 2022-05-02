@@ -8,15 +8,14 @@ import {DSTestPlus} from "@solmate/test/utils/DSTestPlus.sol";
 import {LZEndpointMock} from "@test/mocks/LZEndpointMock.sol";
 
 import {Proxy} from "@protocol/auth/Proxy.sol";
-import {Comptroller} from "@protocol/auth/Comptroller.sol";
+import {Comptroller} from "@protocol/Comptroller.sol";
 
-import {Passport} from "@protocol/omnicast/Passport.sol";
-import {Space} from "@protocol/omnicast/Space.sol";
-import {Omnicast} from "@protocol/omnicast/Omnicast.sol";
-
-import {Note} from "@protocol/omnibridge/Note.sol";
-import {Reserve} from "@protocol/omnibridge/Reserve.sol";
-import {Omnibridge} from "@protocol/omnibridge/Omnibridge.sol";
+import {Note} from "@protocol/Note.sol";
+import {Omnibridge} from "@protocol/Omnibridge.sol";
+import {Omnicast} from "@protocol/Omnicast.sol";
+import {Passport} from "@protocol/Passport.sol";
+import {Reserve} from "@protocol/Reserve.sol";
+import {Space} from "@protocol/Space.sol";
 
 contract ChainEnvironmentTest is DSTestPlus {
   address public myAddress = address(this);

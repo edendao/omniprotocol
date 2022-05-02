@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
-
 import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Omninote} from "@protocol/mixins/Omninote.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
+import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
 
 contract Note is PublicGood, Omninote, Pausable, ReentrancyGuard, ERC20 {
   function initialize(address _beneficiary, bytes calldata params)
