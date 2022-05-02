@@ -4,13 +4,14 @@ pragma solidity ^0.8.13;
 import {IOmninote} from "@protocol/interfaces/IOmninote.sol";
 import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
+import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 
 import {Comptroller} from "@protocol/Comptroller.sol";
 import {Note} from "@protocol/Note.sol";
 import {Reserve} from "@protocol/Reserve.sol";
 
-contract Omnibridge is Omnichain {
+contract Omnibridge is Omnichain, ReentrancyGuard {
   address public noteImplementation;
   address public reserveImplementation;
 
@@ -20,6 +21,7 @@ contract Omnibridge is Omnichain {
     address _noteImplementation,
     address _reserveImplementation
   ) {
+    __initReentrancyGuard();
     __initOmnichain(_lzEndpoint);
     __initComptrolled(_comptroller);
 
@@ -119,7 +121,7 @@ contract Omnibridge is Omnichain {
     bytes calldata toAddress,
     address lzPaymentAddress,
     bytes calldata lzTransactionParams
-  ) external payable {
+  ) external payable nonReentrant {
     IOmninote note = IOmninote(noteAddress);
     note.burnFrom(msg.sender, amount);
 

@@ -2,7 +2,6 @@
 pragma solidity ^0.8.13;
 
 import {IOmninote} from "@protocol/interfaces/IOmninote.sol";
-
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 
 abstract contract Omninote is IOmninote, Comptrolled {
