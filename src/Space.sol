@@ -78,24 +78,12 @@ contract Space is Omninote, ERC721 {
   // ==========================
   // ======= OMNIBRIDGE =======
   // ==========================
-  function mintTo(address to, uint256 id)
-    public
-    override
-    requiresAuth
-    returns (uint256)
-  {
+  function mintTo(address to, uint256 id) public override requiresAuth {
     require(id > type(uint160).max, "Space: RESERVED_SPACE");
     _mint(to, id);
-    return id;
   }
 
-  function burnFrom(address, uint256 id)
-    public
-    override
-    requiresAuth
-    returns (uint256)
-  {
+  function burnFrom(address, uint256 id) public override requiresAuth {
     _burn(id);
-    return id;
   }
 }

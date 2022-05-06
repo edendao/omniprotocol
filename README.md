@@ -85,9 +85,9 @@ For the next chain, repeat the same steps. Then, hook both Notes up to each othe
 
 ```solidity
 // on chain A
-Note(noteAddressOnChainA).setRemoteNote(chainBId, abi.encodePacked(noteAddressOnChainB));
+Note(noteAddressOnChainA).setRemoteContract(chainBId, abi.encodePacked(noteAddressOnChainB));
 // on chain B
-Note(noteAddressOnChainB).setRemoteNote(chainAId, abi.encodePacked(noteAddressOnChainA));
+Note(noteAddressOnChainB).setRemoteContract(chainAId, abi.encodePacked(noteAddressOnChainA));
 ```
 
 In addition to being a flexible, mintable/burnable ERC20, token holders can also send their tokens across chains with a simple call to:

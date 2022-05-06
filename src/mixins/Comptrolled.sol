@@ -31,12 +31,12 @@ abstract contract Comptrolled is Cloneable {
     return address(comptroller);
   }
 
-  function withdraw(uint256 amount) public requiresAuth {
+  function withdraw(uint256 amount) external requiresAuth {
     payable(comptrollerAddress()).transfer(amount);
   }
 
   function withdrawToken(address token, uint256 amount)
-    public
+    external
     virtual
     requiresAuth
   {

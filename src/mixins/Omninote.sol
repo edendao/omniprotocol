@@ -5,12 +5,12 @@ import {IOmninote} from "@protocol/interfaces/IOmninote.sol";
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 
 abstract contract Omninote is IOmninote, Comptrolled {
-  mapping(uint16 => bytes) public remoteNote;
+  mapping(uint16 => bytes) public remoteContract;
 
-  function setRemoteNote(uint16 onChainId, bytes memory remoteNoteAddressB)
-    external
-    requiresAuth
-  {
-    remoteNote[onChainId] = remoteNoteAddressB;
+  function setRemoteContract(
+    uint16 onChainId,
+    bytes memory remoteContractAddressB
+  ) external requiresAuth {
+    remoteContract[onChainId] = remoteContractAddressB;
   }
 }

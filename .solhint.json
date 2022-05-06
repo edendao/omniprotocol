@@ -6,7 +6,7 @@
   "rules": {
     "code-complexity": [
       "error",
-      8
+      5
     ],
     "no-empty-blocks": "off",
     "var-name-mixedcase": "off",

@@ -5,7 +5,7 @@ import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 
 abstract contract PublicGood is Comptrolled {
   uint16 public constant MAX_BPS = 10_000;
-  uint16 public goodPoints = 100; // 1% for the planet
+  uint16 public goodPoints = 25; // 0.25% for the planet
   address public beneficiary;
 
   function __initPublicGood(address _beneficiary) internal {

@@ -45,21 +45,13 @@ contract Passport is Omninote, Pausable, ERC721Soulbound {
   }
 
   // Omnibridge mints
-  function mintTo(address to, uint256 id)
-    public
-    override
-    requiresAuth
-    returns (uint256)
-  {
+  function mintTo(address to, uint256 id) public override requiresAuth {
     require(id == omnicast.idOf(to), "Passport: INVALID_MINT");
     _mint(to, id);
-    return id;
   }
 
   // Cannot be burned
-  function burnFrom(address, uint256) public pure override returns (uint256) {
-    return 0;
-  }
+  function burnFrom(address, uint256) public pure {}
 
   function _mint(address to, uint256 id) internal whenNotPaused {
     if (ownerOf[id] == address(0)) {

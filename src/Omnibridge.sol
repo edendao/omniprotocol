@@ -85,7 +85,7 @@ contract Omnibridge is Omnichain, ReentrancyGuard {
 
   function createClone(address target, bytes memory params)
     internal
-    returns (address result)
+    returns (address deployedAddress)
   {
     bytes20 targetBytes = bytes20(target);
     // solhint-disable-next-line no-inline-assembly
@@ -100,9 +100,9 @@ contract Omnibridge is Omnichain, ReentrancyGuard {
         add(clone, 0x28),
         0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
       )
-      result := create(0, clone, 0x37)
+      deployedAddress := create(0, clone, 0x37)
     }
-    Cloneable(result).initialize(comptrollerAddress(), params);
+    Cloneable(deployedAddress).initialize(comptrollerAddress(), params);
   }
 
   event SendNote(
@@ -127,7 +127,7 @@ contract Omnibridge is Omnichain, ReentrancyGuard {
 
     lzSend(
       toChainId,
-      abi.encode(note.remoteNote(toChainId), toAddress, amount),
+      abi.encode(note.remoteContract(toChainId), toAddress, amount),
       lzPaymentAddress,
       lzTransactionParams
     );
@@ -156,7 +156,7 @@ contract Omnibridge is Omnichain, ReentrancyGuard {
     bytes calldata, // _fromContractAddress,
     uint64 nonce,
     bytes calldata payload
-  ) internal override {
+  ) internal override nonReentrant {
     (bytes memory noteAddressB, bytes memory toAddressB, uint256 amount) = abi
       .decode(payload, (bytes, bytes, uint256));
     address noteAddress = addressFromPackedBytes(noteAddressB);

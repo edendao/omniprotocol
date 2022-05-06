@@ -56,11 +56,11 @@ pragma solidity ^0.8.13;
 //       abi.encodePacked(address(bridge))
 //     );
 
-//     fwaumNote.setRemoteNote(
+//     fwaumNote.setRemoteContract(
 //       bridgeToChainId,
 //       abi.encodePacked(address(fwaumNote))
 //     );
-//     fwaumNote.setRemoteNote(
+//     fwaumNote.setRemoteContract(
 //       currentChainId,
 //       abi.encodePacked(address(fwaumNote))
 //     );

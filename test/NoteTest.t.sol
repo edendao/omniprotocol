@@ -4,14 +4,15 @@ pragma solidity ^0.8.13;
 import {ChainEnvironmentTest, Note} from "@test/ChainEnvironmentTest.t.sol";
 
 contract NoteTest is ChainEnvironmentTest {
-  function testCloneGas() public {
-    Note n = bridge.createNote(
-      address(comptroller),
-      "Frontier Carbon 2",
-      "TIME2",
-      3
-    );
-    assertEq(n.symbol(), "TIME2");
+  Note public note;
+
+  function setUp() public override {
+    super.setUp();
+    note = testCloneGas();
+  }
+
+  function testCloneGas() public returns (Note n) {
+    n = bridge.createNote(address(comptroller), "Frontier Carbon", "TIME", 3);
   }
 
   function testMintGas() public {
@@ -25,19 +26,19 @@ contract NoteTest is ChainEnvironmentTest {
     assertEq(note.balanceOf(to), amount);
   }
 
-  function testMintRequiresAuth(address caller, uint128 amount) public {
-    hevm.assume(caller != address(this));
+  function testMintRequiresAuth(address to, uint128 amount) public {
+    hevm.assume(to != address(0) && note.balanceOf(to) == 0);
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
-    hevm.prank(caller);
-    note.mintTo(caller, amount);
+    hevm.prank(to);
+    note.mintTo(to, amount);
   }
 
-  function testBurnRequiresAuth(address caller, uint128 amount) public {
-    hevm.assume(caller != address(this));
-    note.mintTo(caller, amount);
+  function testBurnRequiresAuth(address from, uint128 amount) public {
+    hevm.assume(!comptroller.isAuthorized(from, note.burnFrom.selector));
+    note.mintTo(from, amount);
 
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
-    hevm.prank(caller);
-    note.burnFrom(caller, amount);
+    hevm.prank(from);
+    note.burnFrom(from, amount);
   }
 }

@@ -2,7 +2,6 @@
 pragma solidity ^0.8.13;
 
 import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
-
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 import {Multicallable} from "@protocol/mixins/Multicallable.sol";
 import {MultiRolesAuthority} from "@protocol/auth/MultiRolesAuthority.sol";

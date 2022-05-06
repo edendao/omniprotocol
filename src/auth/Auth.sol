@@ -28,7 +28,7 @@ abstract contract Auth {
   }
 
   function isAuthorized(address user, bytes4 functionSig)
-    internal
+    public
     view
     virtual
     returns (bool)

@@ -37,10 +37,8 @@ contract Note is PublicGood, Omninote, Pausable, ReentrancyGuard, ERC20 {
     nonReentrant
     whenNotPaused
     requiresAuth
-    returns (uint256)
   {
     _mint(to, amount);
-    return amount;
   }
 
   function burnFrom(address from, uint256 amount)
@@ -49,10 +47,8 @@ contract Note is PublicGood, Omninote, Pausable, ReentrancyGuard, ERC20 {
     nonReentrant
     whenNotPaused
     requiresAuth
-    returns (uint256)
   {
     _burn(from, amount);
-    return amount;
   }
 
   function _mint(address to, uint256 amount) internal virtual override {
