@@ -25,6 +25,8 @@ abstract contract Vault is Comptrolled, ERC4626 {
     __initComptrolled(_comptroller);
     __initERC4626(ERC20(_asset));
     reserve = Reserve(_reserve);
+
+    asset.approve(_reserve, type(uint256).max);
   }
 
   // function totalAssets() public view override returns (uint256);
@@ -35,7 +37,21 @@ abstract contract Vault is Comptrolled, ERC4626 {
   // Deposit assets into yield strategies
   // function afterDeposit(uint256 assets, uint256) internal virtual;
 
-  // Adjust positions, should call .report()
+  // Harvests the Strategy, recognizing any profits or losses and adjusting
+  // the Strategy's position.
+  //
+  // In the rare case the Strategy is in emergency shutdown, this will exit
+  // the Strategy's position.
+  function tend() external virtual;
+
+  // Is it valuable to tend?
+  function tendable() external virtual returns (bool);
+
+  // Harvests the Strategy, recognizing any profits or losses and adjusting
+  // the Strategy's position.
+  //
+  // In the rare case the Strategy is in emergency shutdown, this will exit
+  // the Strategy's position.
   function harvest() external virtual;
 
   // Is it valuable to harvest?

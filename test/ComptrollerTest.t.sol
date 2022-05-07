@@ -41,7 +41,7 @@ contract ComptrollerTest is ChainEnvironmentTest {
   }
 
   function testOwner() public {
-    assertEq(comptroller.owner(), myAddress);
+    assertEq(comptroller.owner(), address(this));
   }
 
   function testSetOwner() public {
@@ -54,7 +54,7 @@ contract ComptrollerTest is ChainEnvironmentTest {
   }
 
   function comptrollerTransfer(uint256 amount) internal {
-    hevm.assume(amount < myAddress.balance);
+    hevm.assume(amount < address(this).balance);
     payable(address(comptroller)).transfer(amount);
   }
 

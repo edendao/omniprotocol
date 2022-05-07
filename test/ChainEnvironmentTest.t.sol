@@ -5,11 +5,9 @@ import {console} from "forge-std/console.sol";
 import {DSTestPlus} from "@solmate/test/utils/DSTestPlus.sol";
 
 import {LZEndpointMock} from "@test/mocks/LZEndpointMock.sol";
+import {NoteMock} from "@test/mocks/NoteMock.sol";
 
-import {IOmninote} from "@protocol/interfaces/IOmninote.sol";
-import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Comptroller} from "@protocol/Comptroller.sol";
-
 import {Note} from "@protocol/Note.sol";
 import {Omnibridge} from "@protocol/Omnibridge.sol";
 import {Omnicast} from "@protocol/Omnicast.sol";
@@ -17,35 +15,12 @@ import {Passport} from "@protocol/Passport.sol";
 import {Reserve} from "@protocol/Reserve.sol";
 import {Space} from "@protocol/Space.sol";
 
-contract MockERC20 is IOmninote, ERC20 {
-  constructor(
-    string memory _name,
-    string memory _symbol,
-    uint8 _decimals
-  ) {
-    __initERC20(_name, _symbol, _decimals);
-  }
-
-  function mintTo(address receiver, uint256 amount) public {
-    _mint(receiver, amount);
-  }
-
-  function burnFrom(address account, uint256 amount) public {
-    _burn(account, amount);
-  }
-
-  function remoteContract(uint16) public pure returns (bytes memory) {
-    return bytes("");
-  }
-}
-
 contract ChainEnvironmentTest is DSTestPlus {
-  address public myAddress = address(this);
   address public ownerAddress = hevm.addr(42);
 
   uint16 public currentChainId = uint16(block.chainid);
 
-  MockERC20 public dai = new MockERC20("DAI", "DAI", 18);
+  NoteMock public dai = new NoteMock("DAI", "DAI", 18);
   LZEndpointMock public layerZeroEndpoint = new LZEndpointMock(currentChainId);
 
   Comptroller public comptroller = new Comptroller();
@@ -68,7 +43,7 @@ contract ChainEnvironmentTest is DSTestPlus {
     );
 
   function setUp() public virtual {
-    comptroller.initialize(address(0), abi.encode(myAddress));
+    comptroller.initialize(address(0), abi.encode(address(this)));
     omnicast.setContracts(address(space), address(passport));
   }
 }

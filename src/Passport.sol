@@ -6,12 +6,11 @@ import {IOmnicast} from "@protocol/interfaces/IOmnicast.sol";
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {ERC721Soulbound} from "@protocol/mixins/ERC721Soulbound.sol";
 import {Omninote} from "@protocol/mixins/Omninote.sol";
-import {Pausable} from "@protocol/mixins/Pausable.sol";
 
 // ======================================================
 // Passport is your on-chain identity in omni-chain space
 // ======================================================
-contract Passport is Omninote, Pausable, ERC721Soulbound {
+contract Passport is Omninote, ERC721Soulbound {
   IOmnicast public omnicast;
 
   string public name = "Eden Dao Passport";
@@ -53,7 +52,7 @@ contract Passport is Omninote, Pausable, ERC721Soulbound {
   // Cannot be burned
   function burnFrom(address, uint256) public pure {}
 
-  function _mint(address to, uint256 id) internal whenNotPaused {
+  function _mint(address to, uint256 id) internal {
     if (ownerOf[id] == address(0)) {
       ownerOf[id] = to;
       emit Transfer(address(0), to, id);

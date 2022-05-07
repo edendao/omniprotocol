@@ -14,14 +14,14 @@ contract SpaceTest is ChainEnvironmentTest {
     hevm.assume(
       caller != address(this) &&
         caller != address(0) &&
-        value >= (space.spacesRegisteredBy(caller) + 1) * 0.05 ether
+        value >= (space.countRegisteredBy(caller) + 1) * 0.05 ether
     );
     hevm.deal(caller, value);
 
     hevm.prank(caller);
     uint256 omnicastId = space.mint{value: value}("prosperity");
 
-    assertEq(omnicastId, omnicast.idOf("prosperity"));
+    assertEq(omnicastId, spaceId);
   }
 
   function testNoteMintGas() public {
@@ -37,7 +37,7 @@ contract SpaceTest is ChainEnvironmentTest {
   }
 
   function testMintRequiresAuth(address caller) public {
-    hevm.assume(caller != address(0) && caller != myAddress);
+    hevm.assume(caller != address(0) && caller != address(this));
 
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
     hevm.prank(caller);

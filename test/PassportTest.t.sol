@@ -10,7 +10,7 @@ contract PassportTest is ChainEnvironmentTest {
 
   function testMint(address caller, uint256 value) public {
     hevm.assume(
-      caller != address(0) && caller != myAddress && value >= 0.01 ether
+      caller != address(0) && caller != address(this) && value >= 0.01 ether
     );
     hevm.deal(caller, value);
 

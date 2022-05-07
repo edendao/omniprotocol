@@ -56,7 +56,7 @@ contract OmnicastTest is ChainEnvironmentTest {
   function testMessageGas() public {
     omnicast.writeMessage(
       omnicast.idOf(ownerAddress),
-      omnicast.idOf(myAddress),
+      omnicast.idOf(address(this)),
       "prosperity",
       currentChainId,
       address(0),
@@ -68,7 +68,7 @@ contract OmnicastTest is ChainEnvironmentTest {
       string(
         omnicast.readMessage(
           omnicast.idOf(ownerAddress),
-          omnicast.idOf(myAddress)
+          omnicast.idOf(address(this))
         )
       )
     );
@@ -78,7 +78,7 @@ contract OmnicastTest is ChainEnvironmentTest {
     hevm.assume(to != address(0));
 
     uint256 receiverId = omnicast.idOf(to);
-    uint256 senderId = omnicast.idOf(myAddress);
+    uint256 senderId = omnicast.idOf(address(this));
 
     omnicast.writeMessage(
       receiverId,
@@ -108,7 +108,7 @@ contract OmnicastTest is ChainEnvironmentTest {
     );
 
     uint256 receiverId = omnicast.idOf(to);
-    uint256 senderId = omnicast.idOf(myAddress);
+    uint256 senderId = omnicast.idOf(address(this));
 
     omnicast.writeMessage{value: 0.1 ether}(
       receiverId,
@@ -131,8 +131,8 @@ contract OmnicastTest is ChainEnvironmentTest {
     hevm.assume(
       receiverAddress != address(0) &&
         senderAddress != address(0) &&
-        receiverAddress != myAddress &&
-        senderAddress != myAddress
+        receiverAddress != address(this) &&
+        senderAddress != address(this)
     );
 
     uint256 receiverId = omnicast.idOf(receiverAddress);

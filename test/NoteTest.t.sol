@@ -27,7 +27,9 @@ contract NoteTest is ChainEnvironmentTest {
   }
 
   function testMintRequiresAuth(address to, uint128 amount) public {
-    hevm.assume(to != address(0) && note.balanceOf(to) == 0);
+    hevm.assume(
+      to != address(0) && to != address(this) && note.balanceOf(to) == 0
+    );
     hevm.expectRevert("Comptrolled: UNAUTHORIZED");
     hevm.prank(to);
     note.mintTo(to, amount);

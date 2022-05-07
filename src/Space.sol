@@ -37,17 +37,17 @@ contract Space is Omninote, ERC721 {
     }
   }
 
-  mapping(address => uint256) public spacesRegisteredBy;
+  mapping(address => uint256) public countRegisteredBy;
 
   function mint(string memory name) public payable returns (uint256) {
-    uint256 mints = spacesRegisteredBy[msg.sender];
+    uint256 mints = countRegisteredBy[msg.sender];
     require(
       primaryChainId == block.chainid &&
         mints < 10 &&
         msg.value >= (mints + 1) * 0.05 ether,
       "Space: INVALID_MINT"
     );
-    spacesRegisteredBy[msg.sender] = mints + 1;
+    countRegisteredBy[msg.sender] = mints + 1;
 
     uint256 id = omnicast.idOf(name);
     _mint(msg.sender, id);

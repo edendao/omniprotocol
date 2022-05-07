@@ -144,7 +144,6 @@ abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
     uint64 nonce,
     bytes calldata payload
   ) external {
-    // assert there is message to retry
     bytes32 payloadHash = failedMessagesHash[fromChainId][fromContract][nonce];
     require(payloadHash != bytes32(0), "Omnichain: MESSAGE_NOT_FOUND");
     require(keccak256(payload) == payloadHash, "Omnichain: INVALID_PAYLOAD");

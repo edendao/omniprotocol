@@ -40,7 +40,5 @@ contract Comptroller is Cloneable, Multicallable, MultiRolesAuthority {
     TransferToken(token).transfer(to, amount);
   }
 
-  receive() external payable {
-    this;
-  }
+  receive() external payable {}
 }

@@ -1,35 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, Reserve, MockERC20, console} from "@test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, console} from "@test/ChainEnvironmentTest.t.sol";
 
-import {Vault} from "@protocol/mixins/Vault.sol";
-import {ReserveVaultState} from "@protocol/Reserve.sol";
+import {Vault, VaultMock} from "@test/mocks/VaultMock.sol";
 
-contract MockVault is Vault {
-  constructor(
-    address _comptroller,
-    address _asset,
-    address _reserve,
-    string memory _name,
-    string memory _symbol
-  ) {
-    __initVault(_comptroller, _asset, _reserve);
-    __initERC20(_name, _symbol, 18);
-  }
-
-  function totalAssets() public view override returns (uint256) {
-    return asset.balanceOf(address(this));
-  }
-
-  function harvest() external view override {
-    this;
-  }
-
-  function harvestable() external pure override returns (bool) {
-    return false;
-  }
-}
+import {Reserve, ReserveVaultState} from "@protocol/Reserve.sol";
 
 contract ReserveTest is ChainEnvironmentTest {
   Reserve public reserve;
@@ -53,8 +29,8 @@ contract ReserveTest is ChainEnvironmentTest {
     assertEq(reserve.symbol(), "edn-DAI");
   }
 
-  function testAddVault() public {
-    Vault s = new MockVault(
+  function testAddVault() public returns (VaultMock v) {
+    v = new VaultMock(
       address(comptroller),
       address(dai),
       address(reserve),
@@ -63,14 +39,28 @@ contract ReserveTest is ChainEnvironmentTest {
     );
 
     ReserveVaultState memory rs;
-    rs.minDebtPerHarvest = 100;
-    rs.maxDebtPerHarvest = 1000000000;
+    rs.minDebtPerHarvest = 1e18;
+    rs.maxDebtPerHarvest = 1e32;
     rs.performancePoints = 1000;
     rs.debtPoints = 1000;
 
-    reserve.addVault(address(s), rs);
+    hevm.warp(256); // to set activationTimestamp != 0
+    reserve.addVault(address(v), rs);
+  }
 
-    hevm.label(address(reserve), "edn-DAI");
+  function xtestVaultHarvest() public {
+    dai.mintTo(address(this), 1e24);
+    dai.approve(address(reserve), 1e24);
+    reserve.deposit(1e24, address(this));
+
+    VaultMock v = testAddVault();
+    (, , , , uint64 activationTimestamp, , , , ) = reserve.vaultStateOf(
+      address(v)
+    );
+    assertTrue(activationTimestamp != 0);
+
+    reserve.depositTo(address(v));
+    v.harvest(1e23, 0, 0);
   }
 
   function testDeposit(address caller, uint128 amount) public {

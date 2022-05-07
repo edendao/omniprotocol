@@ -41,7 +41,7 @@ contract Reserve is Note, ERC4626 {
   uint256 public totalDebt;
   uint256 public lockedProfit;
 
-  mapping(address => ReserveVaultState) public vaults;
+  mapping(address => ReserveVaultState) public vaultStateOf;
 
   address[MAX_STRATEGIES] public withdrawalQueue;
   event UpdateWithdrawalQueue(address[MAX_STRATEGIES] queue);
@@ -54,7 +54,7 @@ contract Reserve is Note, ERC4626 {
     uint256 maxDebtPerHarvest
   );
 
-  event ReserveVaultStateReport(
+  event ReserveVaultReport(
     address indexed vault,
     uint64 debtPoints,
     uint256 gain,
@@ -94,26 +94,52 @@ contract Reserve is Note, ERC4626 {
     activationTimestamp = uint64(block.timestamp);
   }
 
-  function _mint(address to, uint256 amount) internal override(ERC20, Note) {
+  function _mint(address to, uint256 amount)
+    internal
+    override(ERC20, Note)
+    whenNotPaused
+  {
     super._mint(to, amount);
   }
 
-  function beforeWithdraw(uint256 assets, uint256) internal override {
+  // solhint-disable-next-line code-complexity
+  function beforeWithdraw(uint256 assets, uint256)
+    internal
+    override
+    whenNotPaused
+  {
     address reserve = address(this);
     for (
       uint256 i = 0;
       asset.balanceOf(reserve) < assets && i < MAX_STRATEGIES;
       i++
     ) {
+      uint256 balance = asset.balanceOf(reserve);
       address vaultAddress = withdrawalQueue[i];
-      ReserveVaultState memory s = vaults[vaultAddress];
+      ReserveVaultState memory s = vaultStateOf[vaultAddress];
       ERC4626 vault = ERC4626(vaultAddress);
-      uint256 assetsToWithdraw = _min(
-        assets,
-        _min(s.totalDebt, vault.maxWithdraw(reserve))
-      );
-      vault.withdraw(assetsToWithdraw, reserve, reserve);
-      assets -= assetsToWithdraw;
+      uint256 withdrawableAmount = _min(vault.maxWithdraw(reserve), assets);
+
+      vault.withdraw(withdrawableAmount, reserve, reserve);
+      uint256 withdrawnAmount = asset.balanceOf(reserve) - balance;
+
+      s.totalDebt -= withdrawnAmount;
+      totalDebt -= withdrawnAmount;
+      assets -= withdrawnAmount;
+
+      if (withdrawnAmount < withdrawableAmount) {
+        uint256 loss = withdrawableAmount - withdrawnAmount;
+        s.totalLoss += loss;
+
+        if (debtPoints != 0) {
+          uint64 lossPoints = uint64((loss * debtPoints) / totalDebt);
+          uint64 change = uint64(_min(s.debtPoints, lossPoints));
+          if (change != 0) {
+            s.debtPoints -= change;
+            debtPoints -= change;
+          }
+        }
+      }
     }
   }
 
@@ -153,20 +179,20 @@ contract Reserve is Note, ERC4626 {
     address[SET_SIZE] memory set;
     for (uint256 i = 0; i < MAX_STRATEGIES; i++) {
       if (queue[i] == address(0)) {
-        require(withdrawalQueue[i] == address(0), "Vault: UNAUTHORIZED");
+        require(withdrawalQueue[i] == address(0), "Reseve: UNAUTHORIZED");
         break;
       }
 
-      require(withdrawalQueue[i] != address(0), "Vault: UNAUTHORIZED");
+      require(withdrawalQueue[i] != address(0), "Reseve: UNAUTHORIZED");
       require(
-        vaults[queue[i]].activationTimestamp != 0,
-        "Vault: INACTIVE_VAULT"
+        vaultStateOf[queue[i]].activationTimestamp != 0,
+        "Reserve: INACTIVE_VAULT"
       );
 
       uint256 key = uint256(uint160(queue[i])) & (SET_SIZE - 1);
       for (uint256 j = 0; j < SET_SIZE; j++) {
         uint256 idx = (key + j) % SET_SIZE;
-        require(set[idx] != queue[i], "Vault: DUPLICATE_VAULT");
+        require(set[idx] != queue[i], "Reserve: DUPLICATE_VAULT");
         if (set[idx] == address(0)) {
           set[idx] = queue[i];
           break;
@@ -200,12 +226,19 @@ contract Reserve is Note, ERC4626 {
     );
     require(vault != address(0), "Reserve: INVALID_ADDRESS");
     require(
+      vaultStateOf[vault].activationTimestamp == 0,
+      "Reserve: ACTIVE_VAULT"
+    );
+    require(
       address(asset) == address(ERC4626(vault).asset()),
       "Reserve: INVALID_ASSET"
     );
-    require(vaults[vault].activationTimestamp == 0, "Reserve: ACTIVE_VAULT");
-    initialState.lastReportTimestamp = uint64(block.timestamp);
-    vaults[vault] = initialState;
+
+    uint64 timestamp = uint64(block.timestamp);
+    vaultStateOf[vault] = initialState;
+    vaultStateOf[vault].activationTimestamp = timestamp;
+    vaultStateOf[vault].lastReportTimestamp = timestamp;
+
     emit ReserveVaultStateUpsert(
       vault,
       initialState.performancePoints,
@@ -220,7 +253,10 @@ contract Reserve is Note, ERC4626 {
   }
 
   modifier onlyActiveVault(address vault) {
-    require(vaults[vault].activationTimestamp != 0, "Reserve: INACTIVE_VAULT");
+    require(
+      vaultStateOf[vault].activationTimestamp != 0,
+      "Reserve: INACTIVE_VAULT"
+    );
     _;
   }
 
@@ -230,7 +266,7 @@ contract Reserve is Note, ERC4626 {
     onlyActiveVault(vault)
     onlyValidState(state)
   {
-    ReserveVaultState storage s = vaults[vault];
+    ReserveVaultState storage s = vaultStateOf[vault];
     s.performancePoints = state.performancePoints;
     s.debtPoints = state.debtPoints;
     s.minDebtPerHarvest = state.minDebtPerHarvest;
@@ -266,28 +302,26 @@ contract Reserve is Note, ERC4626 {
   }
 
   function debtOutstanding(address vault) public view returns (uint256) {
-    uint256 vaultDebt = vaults[vault].totalDebt;
+    ReserveVaultState memory s = vaultStateOf[vault];
     if (isPaused || debtPoints == 0) {
-      return vaultDebt;
+      return s.totalDebt;
     }
 
-    uint256 vaultDebtLimit = (vaults[vault].debtPoints * totalAssets()) /
-      MAX_BPS;
-
-    if (vaultDebt <= vaultDebtLimit) {
+    uint256 vaultDebtLimit = (s.debtPoints * totalAssets()) / MAX_BPS;
+    if (s.totalDebt <= vaultDebtLimit) {
       return 0;
     }
 
-    return vaultDebt - vaultDebtLimit;
+    return s.totalDebt - vaultDebtLimit;
   }
 
   function creditAvailable(address vault) public view returns (uint256) {
     if (isPaused) return 0;
 
     uint256 reserveDebtLimit = totalAssets().mulDivDown(debtPoints, MAX_BPS);
-    uint256 vaultDebt = vaults[vault].totalDebt;
+    uint256 vaultDebt = vaultStateOf[vault].totalDebt;
     uint256 vaultDebtLimit = totalAssets().mulDivDown(
-      vaults[vault].debtPoints,
+      vaultStateOf[vault].debtPoints,
       MAX_BPS
     );
 
@@ -300,15 +334,19 @@ contract Reserve is Note, ERC4626 {
       _min(vaultDebtLimit - vaultDebt, reserveDebtLimit - totalDebt)
     );
 
-    if (availableDebt < vaults[vault].minDebtPerHarvest) {
+    if (availableDebt < vaultStateOf[vault].minDebtPerHarvest) {
       return 0;
     }
 
-    return _min(availableDebt, vaults[vault].maxDebtPerHarvest);
+    return _min(availableDebt, vaultStateOf[vault].maxDebtPerHarvest);
+  }
+
+  function depositTo(address vault) public onlyActiveVault(vault) {
+    Vault(vault).deposit(creditAvailable(vault), address(this));
   }
 
   function expectedReturn(address vault) public view returns (uint256) {
-    ReserveVaultState memory s = vaults[vault];
+    ReserveVaultState memory s = vaultStateOf[vault];
     uint256 timeSinceHarvest = block.timestamp - s.lastReportTimestamp;
     uint256 totalHarvestTime = s.lastReportTimestamp - s.activationTimestamp;
 
@@ -325,19 +363,14 @@ contract Reserve is Note, ERC4626 {
     uint256 loss,
     uint256 debtPayment
   ) external onlyActiveVault(msg.sender) returns (uint256) {
-    // When paused or when revoked vault should return all assets
-    if (isPaused || vaults[msg.sender].debtPoints == 0) {
-      return ERC4626(msg.sender).totalAssets();
-    }
-
     require(
       asset.balanceOf(msg.sender) >= gain + debtPayment,
       "Reserve: INVALID_STATE"
     );
-    ReserveVaultState storage s = vaults[msg.sender];
+    ReserveVaultState storage s = vaultStateOf[msg.sender];
 
     if (loss > 0) {
-      require(loss <= s.totalDebt, "Vault: INVALID_LOSS");
+      require(loss <= s.totalDebt, "Reserve: INVALID_LOSS");
 
       s.totalLoss += loss;
       s.totalDebt -= loss;
@@ -418,7 +451,7 @@ contract Reserve is Note, ERC4626 {
       : lockedProfitBeforeLoss - loss;
     lastReportTimestamp = s.lastReportTimestamp = uint64(block.timestamp);
 
-    emit ReserveVaultStateReport(
+    emit ReserveVaultReport(
       msg.sender,
       s.debtPoints,
       gain,
@@ -429,6 +462,11 @@ contract Reserve is Note, ERC4626 {
       s.totalDebt,
       credit
     );
+
+    // When paused or when revoked vault should return all assets
+    if (isPaused || vaultStateOf[msg.sender].debtPoints == 0) {
+      return ERC4626(msg.sender).totalAssets();
+    }
 
     return outstandingDebt;
   }
