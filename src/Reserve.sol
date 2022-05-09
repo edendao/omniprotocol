@@ -129,7 +129,7 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
         s.totalLoss += loss;
 
         if (debtPoints != 0) {
-          uint64 lossPoints = uint64((loss * debtPoints) / totalDebt);
+          uint64 lossPoints = uint64(loss.mulDivDown(debtPoints, totalDebt));
           uint64 change = uint64(_min(s.debtPoints, lossPoints));
           if (change != 0) {
             s.debtPoints -= change;
@@ -145,13 +145,13 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
     override
     requiresAuth
   {
-    // Disable authority withdrawals of the underlying asset
+    // Disable withdrawals of the underlying asset
     require(token != address(asset), "Reserve: INVALID_TOKEN");
     TransferToken(token).transfer(comptrollerAddress(), amount);
   }
 
   function totalShares() public view returns (uint256) {
-    return previewDeposit(totalAssets());
+    return previewDeposit(asset.balanceOf(address(this)) + totalDebt);
   }
 
   function totalAssets() public view override returns (uint256) {
@@ -338,22 +338,6 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
     return _min(availableDebt, vaultStateOf[vault].maxDebtPerHarvest);
   }
 
-  function depositTo(address vault) public onlyActiveVault(vault) {
-    Vault(vault).deposit(creditAvailable(vault), address(this));
-  }
-
-  function expectedReturn(address vault) public view returns (uint256) {
-    ReserveVaultState memory s = vaultStateOf[vault];
-    uint256 timeSinceHarvest = block.timestamp - s.lastReportTimestamp;
-    uint256 totalHarvestTime = s.lastReportTimestamp - s.activationTimestamp;
-
-    if (timeSinceHarvest == 0 || totalHarvestTime == 0) {
-      return 0;
-    }
-
-    return s.totalGain.mulDivDown(timeSinceHarvest, totalHarvestTime);
-  }
-
   // solhint-disable-next-line code-complexity
   function report(
     uint256 gain,
@@ -384,7 +368,7 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
     }
 
     s.totalGain += gain;
-    uint256 credit = creditAvailable(msg.sender);
+    uint256 availableCredit = creditAvailable(msg.sender);
     uint256 outstandingDebt = debtOutstanding(msg.sender);
     debtPayment = _min(debtPayment, outstandingDebt);
 
@@ -394,54 +378,54 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
       outstandingDebt -= debtPayment;
     }
 
-    if (credit > 0) {
-      s.totalDebt += credit;
-      totalDebt += credit;
+    if (availableCredit > 0) {
+      s.totalDebt += availableCredit;
+      totalDebt += availableCredit;
     }
 
-    uint256 totalAvailable = gain + debtPayment;
-    if (totalAvailable < credit) {
-      asset.safeTransfer(msg.sender, credit - totalAvailable);
-    } else if (totalAvailable > credit) {
+    uint256 netAdditionalCapital = gain + debtPayment;
+    if (netAdditionalCapital < availableCredit) {
+      asset.safeTransfer(msg.sender, availableCredit - netAdditionalCapital);
+    } else if (netAdditionalCapital > availableCredit) {
       asset.safeTransferFrom(
         msg.sender,
         address(this),
-        totalAvailable - credit
+        netAdditionalCapital - availableCredit
       );
     }
 
     uint256 publicGoodGains;
-    uint256 vaultegistGains;
+    uint256 strategistGains;
     if (
       gain == 0 ||
       s.activationTimestamp == block.timestamp || // Only valid for active contracts
       s.lastReportTimestamp != block.timestamp // Only valid for this timestamp
     ) {
       publicGoodGains = 0;
-      vaultegistGains = 0;
+      strategistGains = 0;
     } else {
       publicGoodGains = gain.mulDivDown(performancePoints, MAX_BPS);
-      vaultegistGains = gain.mulDivDown(s.performancePoints, MAX_BPS);
+      strategistGains = gain.mulDivDown(s.performancePoints, MAX_BPS);
     }
 
-    uint256 performanceGains = publicGoodGains + vaultegistGains;
-    if (performanceGains != 0) {
-      uint256 reward = previewDeposit(performanceGains);
-      uint256 vaultegistReward = vaultegistGains.mulDivDown(
+    uint256 performanceFees = publicGoodGains + strategistGains;
+    if (performanceFees != 0) {
+      uint256 reward = previewDeposit(performanceFees);
+      uint256 strategistReward = strategistGains.mulDivDown(
         reward,
-        performanceGains
+        performanceFees
       );
-      uint256 publicGoodReward = reward - vaultegistReward;
+      uint256 publicGoodReward = reward - strategistReward;
 
       if (publicGoodReward > 0) {
         _mint(beneficiary, publicGoodReward);
       }
-      if (vaultegistReward > 0) {
-        _mint(msg.sender, vaultegistReward);
+      if (strategistReward > 0) {
+        _mint(msg.sender, strategistReward);
       }
     }
 
-    uint256 lockedProfitBeforeLoss = lockedProfit + gain - performanceGains;
+    uint256 lockedProfitBeforeLoss = lockedProfit + gain - performanceFees;
 
     lockedProfit = loss > lockedProfitBeforeLoss
       ? 0
@@ -457,7 +441,7 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
       s.totalGain,
       s.totalLoss,
       s.totalDebt,
-      credit
+      availableCredit
     );
 
     // When paused or when revoked vault should return all assets

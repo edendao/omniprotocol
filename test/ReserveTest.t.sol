@@ -10,6 +10,11 @@ import {Reserve, ReserveVaultState} from "@protocol/Reserve.sol";
 contract ReserveTest is ChainEnvironmentTest {
   Reserve public reserve;
 
+  function setUp() public override {
+    super.setUp();
+    reserve = xtestCloneGas();
+  }
+
   function xtestCloneGas() public pure returns (Reserve r) {
     r = Reserve(address(0));
     // r = bridge.createReserve(address(comptroller), address(dai), "DAI", "DAI");
@@ -55,7 +60,7 @@ contract ReserveTest is ChainEnvironmentTest {
     );
     assertTrue(activationTimestamp != 0);
 
-    reserve.depositTo(address(v));
+    // reserve.depositTo(address(v));
     v.harvest(1e23, 0, 0);
   }
 

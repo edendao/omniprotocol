@@ -12,7 +12,6 @@ import {Omnitoken} from "@protocol/Omnitoken.sol";
 import {Omnibridge} from "@protocol/Omnibridge.sol";
 import {Omnicast} from "@protocol/Omnicast.sol";
 import {Passport} from "@protocol/Passport.sol";
-import {Reserve} from "@protocol/Reserve.sol";
 import {Space} from "@protocol/Space.sol";
 
 contract ChainEnvironmentTest is DSTestPlus {
@@ -38,7 +37,7 @@ contract ChainEnvironmentTest is DSTestPlus {
     new Passport(address(comptroller), address(omnicast));
 
   Omnitoken public omnitokenImplementation = new Omnitoken();
-  Reserve public reserveImplementation = new Reserve();
+
   Omnibridge public bridge =
     new Omnibridge(address(comptroller), address(omnitokenImplementation));
 

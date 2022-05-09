@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {SafeTransferLib} from "@protocol/libraries/SafeTransferLib.sol";
-
-import {IOFT} from "@protocol/interfaces/IOFT.sol";
-
-import {ERC20} from "@protocol/mixins/ERC20.sol";
+import {ERC4626} from "@protocol/mixins/ERC4626.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
@@ -14,8 +10,6 @@ import {Comptroller} from "@protocol/Comptroller.sol";
 import {Omnitoken} from "@protocol/Omnitoken.sol";
 
 contract Omnibridge is PublicGood {
-  using SafeTransferLib for ERC20;
-
   address public immutable omnitoken;
 
   constructor(address _comptroller, address _omnitoken) {
@@ -78,71 +72,4 @@ contract Omnibridge is PublicGood {
     }
     Cloneable(deployedAddress).initialize(comptrollerAddress(), params);
   }
-
-  // mapping(address => Omnitoken) public noteOf;
-
-  // function redeemFor(address tokenAddress, uint256 amount) external {
-  //   ERC20 note = ERC20(noteOf[tokenAddress]);
-
-  //   note.safeTransferFrom(msg.sender, address(this), amount);
-
-  //   ERC20(tokenAddress).
-  // }
-
-  // function sendFrom(
-  //   address fromAddress,
-  //   uint16 toChainId,
-  //   bytes memory toAddress,
-  //   uint256 amount,
-  //   address payable,
-  //   address lzPaymentAddress,
-  //   bytes memory lzAdapterParams
-  // ) external payable {
-  //   address tokenAddress;
-  //   (tokenAddress, lzAdapterParams) = abi.decode(
-  //     lzAdapterParams,
-  //     (address, bytes)
-  //   );
-
-  //   ERC20(tokenAddress).safeTransferFrom(fromAddress, address(this), amount);
-
-  //   Omnitoken note = noteOf[tokenAddress];
-  //   note.mint(address(this), amount);
-  //   note.sendFrom{value: msg.value}(
-  //     address(this),
-  //     toChainId,
-  //     toAddress,
-  //     amount,
-  //     payable(address(0)),
-  //     lzPaymentAddress,
-  //     lzAdapterParams
-  //   );
-  // }
-
-  // function estimateSendFee(
-  //   uint16 toChainId,
-  //   bytes memory toAddress,
-  //   uint256 amount,
-  //   bool useZRO,
-  //   bytes memory adapterParams
-  // ) external view returns (uint256 nativeFee, uint256 zroFee) {
-  //   address tokenAddress;
-  //   (tokenAddress, adapterParams) = abi.decode(adapterParams, (address, bytes));
-
-  //   (nativeFee, zroFee) = noteOf[tokenAddress].estimateSendFee(
-  //     toChainId,
-  //     toAddress,
-  //     amount,
-  //     useZRO,
-  //     adapterParams
-  //   );
-  // }
-
-  // function withdrawToken(address, uint256) external pure override {
-  //   revert("Omnibridge: WITHDRAW_DISABLED");
-  // }
-
-  // function circulatingSupply() external pure returns (uint256) {
-  //   return 0;
-  // }
 }
