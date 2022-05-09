@@ -97,15 +97,26 @@ abstract contract ERC20 is Cloneable {
     return true;
   }
 
+  function _useAllowance(
+    address owner,
+    address spender,
+    uint256 amount
+  ) internal {
+    uint256 allowed = allowance[owner][spender]; // Saves gas for limited approvals.
+
+    if (allowed != type(uint256).max) {
+      allowance[owner][spender] = allowed - amount;
+    }
+  }
+
   function transferFrom(
     address from,
     address to,
     uint256 amount
   ) public virtual returns (bool) {
-    uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
-
-    if (allowed != type(uint256).max)
-      allowance[from][msg.sender] = allowed - amount;
+    if (from != msg.sender) {
+      _useAllowance(from, msg.sender, amount);
+    }
 
     balanceOf[from] -= amount;
 

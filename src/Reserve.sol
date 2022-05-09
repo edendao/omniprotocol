@@ -6,8 +6,9 @@ import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
 import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
 import {ERC20, ERC4626, SafeTransferLib} from "@protocol/mixins/ERC4626.sol";
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
+import {Pausable} from "@protocol/mixins/Pausable.sol";
+import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 import {Vault} from "@protocol/mixins/Vault.sol";
-import {Note} from "@protocol/Note.sol";
 
 struct ReserveVaultState {
   // Configuration
@@ -24,7 +25,7 @@ struct ReserveVaultState {
   uint256 totalLoss;
 }
 
-contract Reserve is Note, ERC4626 {
+contract Reserve is PublicGood, Pausable, ERC4626 {
   using FixedPointMathLib for uint256;
   using SafeTransferLib for ERC20;
 
@@ -68,7 +69,7 @@ contract Reserve is Note, ERC4626 {
 
   function initialize(address _beneficiary, bytes calldata _params)
     external
-    override(Cloneable, Note)
+    override
     initializer
   {
     (
@@ -77,14 +78,14 @@ contract Reserve is Note, ERC4626 {
       string memory _name,
       string memory _symbol
     ) = abi.decode(_params, (address, address, string, string));
+
     __initPublicGood(_beneficiary);
-    __initReentrancyGuard();
+    __initERC4626(ERC20(_asset));
     __initERC20(
       string(abi.encodePacked(_name, " Eden Dao Reserve")),
       string(abi.encodePacked("edn-", _symbol)),
       ERC20(_asset).decimals()
     );
-    __initERC4626(ERC20(_asset));
     __initComptrolled(_comptroller);
 
     performancePoints = 1000; // 10%
@@ -94,11 +95,7 @@ contract Reserve is Note, ERC4626 {
     activationTimestamp = uint64(block.timestamp);
   }
 
-  function _mint(address to, uint256 amount)
-    internal
-    override(ERC20, Note)
-    whenNotPaused
-  {
+  function _mint(address to, uint256 amount) internal override whenNotPaused {
     super._mint(to, amount);
   }
 

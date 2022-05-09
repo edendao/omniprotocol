@@ -7,6 +7,7 @@ contract SpaceTest is ChainEnvironmentTest {
   uint256 internal immutable spaceId = omnicast.idOf("prosperity");
 
   function testMintNameGas() public {
+    hevm.prank(address(this), address(this));
     space.mint{value: 1 ether}("prosperity");
   }
 
@@ -18,29 +19,9 @@ contract SpaceTest is ChainEnvironmentTest {
     );
     hevm.deal(caller, value);
 
-    hevm.prank(caller);
+    hevm.prank(caller, caller);
     uint256 omnicastId = space.mint{value: value}("prosperity");
 
     assertEq(omnicastId, spaceId);
-  }
-
-  function testNoteMintGas() public {
-    space.mintTo(address(this), spaceId);
-  }
-
-  function testNoteMint(address to) public {
-    hevm.assume(to != address(0));
-
-    space.mintTo(to, spaceId);
-
-    assertEq(space.ownerOf(spaceId), to);
-  }
-
-  function testMintRequiresAuth(address caller) public {
-    hevm.assume(caller != address(0) && caller != address(this));
-
-    hevm.expectRevert("Comptrolled: UNAUTHORIZED");
-    hevm.prank(caller);
-    space.mintTo(caller, spaceId);
   }
 }

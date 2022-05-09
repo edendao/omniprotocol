@@ -1,22 +1,29 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {IERC721} from "@boring/interfaces/IERC721.sol";
-
-import {IOmninote} from "@protocol/interfaces/IOmninote.sol";
+import {IOFT} from "@protocol/interfaces/IOFT.sol";
 import {IOmnicast} from "@protocol/interfaces/IOmnicast.sol";
 
 import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 
-contract Omnicast is Omnichain, IOmnicast, EdenDaoNS {
-  address public space;
-  address public passport;
+interface Ownable {
+  function ownerOf(uint256 id) external view returns (address);
+}
 
-  constructor(address _lzEndpoint, address _comptroller) {
+contract Omnicast is IOmnicast, Omnichain, EdenDaoNS {
+  uint16 public immutable currentChainId;
+  uint64 public nonce;
+
+  constructor(address _comptroller, address _lzEndpoint) {
     __initOmnichain(_lzEndpoint);
     __initComptrolled(_comptroller);
+
+    currentChainId = uint16(block.chainid);
   }
+
+  address public space;
+  address public passport;
 
   function setContracts(address _space, address _passport)
     external
@@ -29,16 +36,7 @@ contract Omnicast is Omnichain, IOmnicast, EdenDaoNS {
   // =====================================
   // ===== OMNICAST MESSAGING LAYER ======
   // =====================================
-  function idOf(address account) public pure returns (uint256 id) {
-    id = uint256(uint160(account));
-  }
-
-  function idOf(string memory name) public pure returns (uint256 id) {
-    id = namehash(name);
-    require(id > type(uint160).max, "Space: RESERVED_SPACE");
-  }
-
-  // (receiverId => senderId => data[])
+  // (receiverId => senderId => (uint64 nonce, bytes payload)[])
   mapping(uint256 => mapping(uint256 => bytes[])) public receivedMessages;
 
   function readMessage(uint256 receiverId, uint256 senderId)
@@ -47,7 +45,29 @@ contract Omnicast is Omnichain, IOmnicast, EdenDaoNS {
     returns (bytes memory)
   {
     bytes[] memory messages = receivedMessages[receiverId][senderId];
-    return messages[messages.length - 1];
+    (, bytes memory payload) = abi.decode(
+      messages[messages.length - 1],
+      (uint64, bytes)
+    );
+    return payload;
+  }
+
+  function readMessage(
+    uint256 receiverId,
+    uint256 senderId,
+    uint64 withNonce
+  ) public view returns (bytes memory) {
+    bytes[] memory messages = receivedMessages[receiverId][senderId];
+    for (uint256 i = messages.length - 1; i >= 0; i--) {
+      (uint64 msgNonce, bytes memory payload) = abi.decode(
+        messages[messages.length - 1],
+        (uint64, bytes)
+      );
+      if (msgNonce == withNonce) {
+        return payload;
+      }
+    }
+    return bytes("");
   }
 
   function receivedMessagesCount(uint256 receiverId, uint256 senderId)
@@ -61,7 +81,7 @@ contract Omnicast is Omnichain, IOmnicast, EdenDaoNS {
   function receiveMessage(
     uint16, // fromChainId
     bytes calldata, // fromContractAddress,
-    uint64 nonce,
+    uint64 msgNonce,
     bytes calldata payload
   ) internal override {
     (uint256 receiverId, uint256 senderId, bytes memory data) = abi.decode(
@@ -69,59 +89,62 @@ contract Omnicast is Omnichain, IOmnicast, EdenDaoNS {
       (uint256, uint256, bytes)
     );
 
-    receivedMessages[receiverId][senderId].push(data);
-    emit Message(currentChainId, nonce, receiverId, senderId, data);
+    receivedMessages[receiverId][senderId].push(abi.encode(msgNonce, data));
+    emit Message(currentChainId, msgNonce, receiverId, senderId, data);
   }
 
-  function estimateLayerZeroGas(
+  function estimateWriteFee(
     uint16 toChainId,
-    bytes calldata payload,
+    bytes calldata data,
     bool useZRO,
     bytes calldata adapterParams
-  ) public view returns (uint256, uint256) {
-    return
-      lzEstimateSendGas(
-        toChainId,
-        abi.encode(uint256(0), uint256(0), payload),
-        useZRO,
-        adapterParams
-      );
+  ) public view returns (uint256 nativeFee, uint256 zroFee) {
+    (nativeFee, zroFee) = lzEndpoint.estimateFees(
+      toChainId,
+      address(this),
+      abi.encode(uint256(0), uint256(0), data),
+      useZRO,
+      adapterParams
+    );
   }
 
   function writeMessage(
     uint256 toReceiverId,
     uint256 withSenderId,
-    bytes memory payload,
+    bytes memory data,
     uint16 onChainId,
     address lzPaymentAddress,
-    bytes memory lzTransactionParams
+    bytes memory lzAdapterParams
   ) public payable {
     require(
-      (msg.sender == IERC721(passport).ownerOf(toReceiverId) ||
+      (msg.sender == Ownable(passport).ownerOf(toReceiverId) ||
         idOf(msg.sender) == withSenderId ||
-        msg.sender == IERC721(space).ownerOf(withSenderId)),
+        msg.sender == Ownable(space).ownerOf(withSenderId)),
       "Omnicast: UNAUTHORIZED"
     );
 
-    uint64 nonce;
     if (onChainId == currentChainId) {
-      receivedMessages[toReceiverId][withSenderId].push(payload);
-      if (msg.value > 0) {
-        payable(msg.sender).transfer(msg.value);
-      }
+      uint64 msgNonce = nonce++;
+      receivedMessages[toReceiverId][withSenderId].push(
+        abi.encode(msgNonce, data)
+      );
 
-      nonce = 0;
+      emit Message(onChainId, msgNonce, toReceiverId, withSenderId, data);
     } else {
       lzSend(
         onChainId,
-        abi.encode(toReceiverId, withSenderId, payload),
+        abi.encode(toReceiverId, withSenderId, data),
         lzPaymentAddress,
-        lzTransactionParams
+        lzAdapterParams
       );
 
-      nonce = lzEndpoint.getOutboundNonce(onChainId, address(this));
+      emit Message(
+        onChainId,
+        lzEndpoint.getOutboundNonce(onChainId, address(this)),
+        toReceiverId,
+        withSenderId,
+        data
+      );
     }
-
-    emit Message(onChainId, nonce, toReceiverId, withSenderId, payload);
   }
 }

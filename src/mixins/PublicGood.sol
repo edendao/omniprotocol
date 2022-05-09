@@ -14,7 +14,7 @@ abstract contract PublicGood is Comptrolled {
 
   event GoodPointsUpdated(address indexed user, uint16 points);
 
-  function setGoodPoints(uint16 points) public requiresAuth {
+  function setGoodPoints(uint16 points) external requiresAuth {
     require(10 <= points && points <= MAX_BPS, "PublicGood: INVALID_BP");
     goodPoints = points;
     emit GoodPointsUpdated(msg.sender, points);

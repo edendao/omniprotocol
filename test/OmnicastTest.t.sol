@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {ChainEnvironmentTest, console} from "@test/ChainEnvironmentTest.t.sol";
-import {IOmninote} from "@protocol/interfaces/IOmninote.sol";
+import {IOFT} from "@protocol/interfaces/IOFT.sol";
 
 contract OmnicastTest is ChainEnvironmentTest {
   function testSetTokenURI(address caller, string memory uri) public {
@@ -12,8 +12,7 @@ contract OmnicastTest is ChainEnvironmentTest {
         caller != address(comptroller)
     );
 
-    uint256 passportId = omnicast.idOf(caller);
-    passport.mintTo(caller, passportId);
+    uint256 passportId = passport.mint{value: 0.1 ether}(caller);
     uint256 tokenuriSpace = omnicast.idOf("tokenuri");
 
     hevm.prank(caller);
@@ -39,7 +38,7 @@ contract OmnicastTest is ChainEnvironmentTest {
     );
 
     uint256 passportId = omnicast.idOf(address(this));
-    passport.mintTo(address(this), passportId);
+    passport.mint(address(this));
     uint256 tokenuriSpace = omnicast.idOf("tokenuri");
 
     hevm.prank(caller);

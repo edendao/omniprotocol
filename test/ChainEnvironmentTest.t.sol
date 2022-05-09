@@ -5,10 +5,10 @@ import {console} from "forge-std/console.sol";
 import {DSTestPlus} from "@solmate/test/utils/DSTestPlus.sol";
 
 import {LZEndpointMock} from "@test/mocks/LZEndpointMock.sol";
-import {NoteMock} from "@test/mocks/NoteMock.sol";
+import {MockERC20} from "@test/mocks/MockERC20.sol";
 
 import {Comptroller} from "@protocol/Comptroller.sol";
-import {Note} from "@protocol/Note.sol";
+import {Omnitoken} from "@protocol/Omnitoken.sol";
 import {Omnibridge} from "@protocol/Omnibridge.sol";
 import {Omnicast} from "@protocol/Omnicast.sol";
 import {Passport} from "@protocol/Passport.sol";
@@ -20,27 +20,27 @@ contract ChainEnvironmentTest is DSTestPlus {
 
   uint16 public currentChainId = uint16(block.chainid);
 
-  NoteMock public dai = new NoteMock("DAI", "DAI", 18);
+  MockERC20 public dai = new MockERC20("DAI", "DAI", 18);
   LZEndpointMock public layerZeroEndpoint = new LZEndpointMock(currentChainId);
 
   Comptroller public comptroller = new Comptroller();
 
   Omnicast internal omnicast =
-    new Omnicast(address(layerZeroEndpoint), address(comptroller));
+    new Omnicast(address(comptroller), address(layerZeroEndpoint));
   Space public space =
-    new Space(address(comptroller), address(omnicast), currentChainId);
+    new Space(
+      address(comptroller),
+      address(layerZeroEndpoint),
+      address(omnicast),
+      currentChainId
+    );
   Passport public passport =
     new Passport(address(comptroller), address(omnicast));
 
-  Note public noteImplementation = new Note();
+  Omnitoken public omnitokenImplementation = new Omnitoken();
   Reserve public reserveImplementation = new Reserve();
   Omnibridge public bridge =
-    new Omnibridge(
-      address(layerZeroEndpoint),
-      address(comptroller),
-      address(noteImplementation),
-      address(reserveImplementation)
-    );
+    new Omnibridge(address(comptroller), address(omnitokenImplementation));
 
   function setUp() public virtual {
     comptroller.initialize(address(0), abi.encode(address(this)));

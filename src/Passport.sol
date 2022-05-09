@@ -3,14 +3,14 @@ pragma solidity ^0.8.13;
 
 import {IOmnicast} from "@protocol/interfaces/IOmnicast.sol";
 
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {ERC721Soulbound} from "@protocol/mixins/ERC721Soulbound.sol";
-import {Omninote} from "@protocol/mixins/Omninote.sol";
+import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
 
 // ======================================================
 // Passport is your on-chain identity in omni-chain space
 // ======================================================
-contract Passport is Omninote, ERC721Soulbound {
+contract Passport is ERC721Soulbound, Comptrolled, EdenDaoNS {
   IOmnicast public omnicast;
 
   string public name = "Eden Dao Passport";
@@ -20,42 +20,48 @@ contract Passport is Omninote, ERC721Soulbound {
 
   constructor(address _comptroller, address _omnicast) {
     __initComptrolled(_comptroller);
+
+    emit SetMeta(name, symbol);
+
     omnicast = IOmnicast(_omnicast);
   }
 
+  event SetMeta(string name, string symbol);
+
+  function setMeta(string memory _name, string memory _symbol)
+    external
+    requiresAuth
+  {
+    name = _name;
+    symbol = _symbol;
+  }
+
   function balanceOf(address owner) public view returns (uint256) {
-    return ownerOf[omnicast.idOf(owner)] == address(0) ? 0 : 1;
+    return ownerOf[idOf(owner)] == address(0) ? 0 : 1;
   }
 
   function tokenURI(uint256 id) public view returns (string memory) {
-    return string(omnicast.readMessage(id, omnicast.idOf("tokenuri")));
+    return string(omnicast.readMessage(id, idOf("tokenuri")));
   }
-
-  // User mints
-  function mint() public payable returns (uint256) {
-    require(msg.value >= 0.01 ether, "Passport: INVALID_MINT");
-    uint256 id = omnicast.idOf(msg.sender);
-    _mint(msg.sender, id);
-    return id;
-  }
-
-  receive() external payable {
-    mint();
-  }
-
-  // Omnibridge mints
-  function mintTo(address to, uint256 id) public override requiresAuth {
-    require(id == omnicast.idOf(to), "Passport: INVALID_MINT");
-    _mint(to, id);
-  }
-
-  // Cannot be burned
-  function burnFrom(address, uint256) public pure {}
 
   function _mint(address to, uint256 id) internal {
     if (ownerOf[id] == address(0)) {
       ownerOf[id] = to;
       emit Transfer(address(0), to, id);
     }
+  }
+
+  function mint(address to) public payable returns (uint256 id) {
+    require(msg.value >= 0.01 ether, "Passport: INVALID_MINT");
+    id = idOf(to);
+    _mint(to, id);
+  }
+
+  function mint() public payable returns (uint256) {
+    return mint(msg.sender);
+  }
+
+  receive() external payable {
+    mint(msg.sender);
   }
 }

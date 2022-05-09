@@ -6,13 +6,13 @@ pragma solidity ^0.8.13;
 // import {MockERC20} from "@solmate/test/utils/mocks/MockERC20.sol";
 
 // import {Omnibridge} from "@protocol/omnibridge/Omnibridge.sol";
-// import {Note} from "@protocol/omnibridge/Note.sol";
+// import {Omnitoken} from "@protocol/omnibridge/Omnitoken.sol";
 
 // contract OmnibridgeTest is ChainEnvironmentTest {
 //   MockERC20 public fwaum =
 //     new MockERC20("Friends with Assets Under Management", "FWAUM", 18);
-//   Note public fwaumNote =
-//     new Note(
+//   Omnitoken public fwaumOmnitoken =
+//     new Omnitoken(
 //       address(comptroller),
 //       address(comptroller),
 //       "Friends with Assets Under Management",
@@ -27,8 +27,8 @@ pragma solidity ^0.8.13;
 
 //     uint8 bridgeRole = 0;
 //     bytes4[] memory selectors = new bytes4[](2);
-//     selectors[0] = Note.mintTo.selector;
-//     selectors[1] = Note.burnFrom.selector;
+//     selectors[0] = Omnitoken.bridgeTo.selector;
+//     selectors[1] = Omnitoken.bridgeFrom.selector;
 
 //     bytes memory command = abi.encodeWithSelector(
 //       comptroller.setCapabilitiesTo.selector,
@@ -56,13 +56,13 @@ pragma solidity ^0.8.13;
 //       abi.encodePacked(address(bridge))
 //     );
 
-//     fwaumNote.setRemoteContract(
+//     fwaumOmnitoken.setRemoteContract(
 //       bridgeToChainId,
-//       abi.encodePacked(address(fwaumNote))
+//       abi.encodePacked(address(fwaumOmnitoken))
 //     );
-//     fwaumNote.setRemoteContract(
+//     fwaumOmnitoken.setRemoteContract(
 //       currentChainId,
-//       abi.encodePacked(address(fwaumNote))
+//       abi.encodePacked(address(fwaumOmnitoken))
 //     );
 //   }
 
@@ -72,12 +72,12 @@ pragma solidity ^0.8.13;
 //     fwaum.mint(address(this), amount);
 //     assertEq(fwaum.balanceOf(address(this)), amount);
 
-//     fwaum.approve(address(fwaumNote), amount);
-//     fwaumNote.mintTo(address(this), amount);
-//     assertEq(fwaumNote.balanceOf(address(this)), amount);
+//     fwaum.approve(address(fwaumOmnitoken), amount);
+//     fwaumOmnitoken.bridgeTo(address(this), amount);
+//     assertEq(fwaumOmnitoken.balanceOf(address(this)), amount);
 
-//     bridge.sendNote{value: 1 ether}(
-//       address(fwaumNote),
+//     bridge.sendOmnitoken{value: 1 ether}(
+//       address(fwaumOmnitoken),
 //       amount,
 //       bridgeToChainId,
 //       abi.encodePacked(address(this)),
@@ -85,6 +85,6 @@ pragma solidity ^0.8.13;
 //       bytes("")
 //     );
 
-//     assertEq(fwaumNote.balanceOf(address(this)), amount);
+//     assertEq(fwaumOmnitoken.balanceOf(address(this)), amount);
 //   }
 // }

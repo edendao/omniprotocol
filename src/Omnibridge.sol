@@ -1,32 +1,28 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {IOmninote} from "@protocol/interfaces/IOmninote.sol";
+import {SafeTransferLib} from "@protocol/libraries/SafeTransferLib.sol";
+
+import {IOFT} from "@protocol/interfaces/IOFT.sol";
+
 import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
-import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
+import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 
 import {Comptroller} from "@protocol/Comptroller.sol";
-import {Note} from "@protocol/Note.sol";
-import {Reserve} from "@protocol/Reserve.sol";
+import {Omnitoken} from "@protocol/Omnitoken.sol";
 
-contract Omnibridge is Omnichain, ReentrancyGuard {
-  address public noteImplementation;
-  address public reserveImplementation;
+contract Omnibridge is PublicGood {
+  using SafeTransferLib for ERC20;
 
-  constructor(
-    address _lzEndpoint,
-    address _comptroller,
-    address _noteImplementation,
-    address _reserveImplementation
-  ) {
-    __initReentrancyGuard();
-    __initOmnichain(_lzEndpoint);
+  address public immutable omnitoken;
+
+  constructor(address _comptroller, address _omnitoken) {
+    __initPublicGood(_comptroller);
     __initComptrolled(_comptroller);
 
-    noteImplementation = _noteImplementation;
-    reserveImplementation = _reserveImplementation;
+    omnitoken = _omnitoken;
   }
 
   event CreateComptroller(address indexed owner, address comptroller);
@@ -38,49 +34,27 @@ contract Omnibridge is Omnichain, ReentrancyGuard {
     emit CreateComptroller(_owner, address(c));
   }
 
-  event CreateNote(
+  event CreateOmnitoken(
     address indexed comptroller,
     string name,
     string symbol,
     uint8 decimals
   );
 
-  function createNote(
+  function createOmnitoken(
     address _comptroller,
+    address _lzEndpoint,
     string memory _name,
     string memory _symbol,
     uint8 _decimals
-  ) external returns (Note n) {
-    n = Note(
+  ) external returns (Omnitoken n) {
+    n = Omnitoken(
       createClone(
-        noteImplementation,
-        abi.encode(_comptroller, _name, _symbol, _decimals)
+        omnitoken,
+        abi.encode(_comptroller, _lzEndpoint, _name, _symbol, _decimals)
       )
     );
-    emit CreateNote(_comptroller, _name, _symbol, _decimals);
-  }
-
-  event CreateReserve(
-    address comptroller,
-    address asset,
-    string name,
-    string symbol,
-    uint8 decimals
-  );
-
-  function createReserve(
-    address _comptroller,
-    address _asset,
-    string memory _name,
-    string memory _symbol
-  ) external returns (Reserve r) {
-    r = Reserve(
-      createClone(
-        reserveImplementation,
-        abi.encode(_comptroller, _asset, _name, _symbol)
-      )
-    );
-    emit CreateReserve(_comptroller, _asset, _name, _symbol, r.decimals());
+    emit CreateOmnitoken(_comptroller, _name, _symbol, _decimals);
   }
 
   function createClone(address target, bytes memory params)
@@ -105,79 +79,70 @@ contract Omnibridge is Omnichain, ReentrancyGuard {
     Cloneable(deployedAddress).initialize(comptrollerAddress(), params);
   }
 
-  event SendNote(
-    uint16 indexed toChainId,
-    uint64 nonce,
-    address indexed noteAddress,
-    address indexed fromAddress,
-    bytes toAddress,
-    uint256 amount
-  );
+  // mapping(address => Omnitoken) public noteOf;
 
-  function sendNote(
-    address noteAddress,
-    uint256 amount,
-    uint16 toChainId,
-    bytes calldata toAddress,
-    address lzPaymentAddress,
-    bytes calldata lzTransactionParams
-  ) external payable nonReentrant {
-    IOmninote note = IOmninote(noteAddress);
-    note.burnFrom(msg.sender, amount);
+  // function redeemFor(address tokenAddress, uint256 amount) external {
+  //   ERC20 note = ERC20(noteOf[tokenAddress]);
 
-    lzSend(
-      toChainId,
-      abi.encode(note.remoteContract(toChainId), toAddress, amount),
-      lzPaymentAddress,
-      lzTransactionParams
-    );
+  //   note.safeTransferFrom(msg.sender, address(this), amount);
 
-    emit SendNote(
-      toChainId,
-      lzEndpoint.getOutboundNonce(toChainId, address(this)),
-      noteAddress,
-      msg.sender,
-      toAddress,
-      amount
-    );
-  }
+  //   ERC20(tokenAddress).
+  // }
 
-  // Receive notes from omnispace
-  event ReceiveNote(
-    uint16 indexed fromChainId,
-    uint64 nonce,
-    address indexed noteAddress,
-    address indexed toAddress,
-    uint256 amount
-  );
+  // function sendFrom(
+  //   address fromAddress,
+  //   uint16 toChainId,
+  //   bytes memory toAddress,
+  //   uint256 amount,
+  //   address payable,
+  //   address lzPaymentAddress,
+  //   bytes memory lzAdapterParams
+  // ) external payable {
+  //   address tokenAddress;
+  //   (tokenAddress, lzAdapterParams) = abi.decode(
+  //     lzAdapterParams,
+  //     (address, bytes)
+  //   );
 
-  function receiveMessage(
-    uint16 fromChainId,
-    bytes calldata, // _fromContractAddress,
-    uint64 nonce,
-    bytes calldata payload
-  ) internal override nonReentrant {
-    (bytes memory noteAddressB, bytes memory toAddressB, uint256 amount) = abi
-      .decode(payload, (bytes, bytes, uint256));
-    address noteAddress = addressFromPackedBytes(noteAddressB);
-    address toAddress = addressFromPackedBytes(toAddressB);
+  //   ERC20(tokenAddress).safeTransferFrom(fromAddress, address(this), amount);
 
-    IOmninote(noteAddress).mintTo(toAddress, amount);
+  //   Omnitoken note = noteOf[tokenAddress];
+  //   note.mint(address(this), amount);
+  //   note.sendFrom{value: msg.value}(
+  //     address(this),
+  //     toChainId,
+  //     toAddress,
+  //     amount,
+  //     payable(address(0)),
+  //     lzPaymentAddress,
+  //     lzAdapterParams
+  //   );
+  // }
 
-    emit ReceiveNote(fromChainId, nonce, noteAddress, toAddress, amount);
-  }
+  // function estimateSendFee(
+  //   uint16 toChainId,
+  //   bytes memory toAddress,
+  //   uint256 amount,
+  //   bool useZRO,
+  //   bytes memory adapterParams
+  // ) external view returns (uint256 nativeFee, uint256 zroFee) {
+  //   address tokenAddress;
+  //   (tokenAddress, adapterParams) = abi.decode(adapterParams, (address, bytes));
 
-  // Estimate LayerZero gas to pass with .sendNote{value: gasFees}
-  function estimateLayerZeroGas(
-    uint16 toChainId,
-    bool useZRO,
-    bytes calldata lzTransactionParams
-  ) public view returns (uint256 gasFees, uint256 lzFees) {
-    (gasFees, lzFees) = lzEstimateSendGas(
-      toChainId,
-      abi.encode(bytes20(""), bytes20(""), 0),
-      useZRO,
-      lzTransactionParams
-    );
-  }
+  //   (nativeFee, zroFee) = noteOf[tokenAddress].estimateSendFee(
+  //     toChainId,
+  //     toAddress,
+  //     amount,
+  //     useZRO,
+  //     adapterParams
+  //   );
+  // }
+
+  // function withdrawToken(address, uint256) external pure override {
+  //   revert("Omnibridge: WITHDRAW_DISABLED");
+  // }
+
+  // function circulatingSupply() external pure returns (uint256) {
+  //   return 0;
+  // }
 }

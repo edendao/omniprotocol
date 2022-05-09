@@ -5,15 +5,13 @@ import {ILayerZeroEndpoint} from "@layerzerolabs/contracts/interfaces/ILayerZero
 import {ILayerZeroReceiver} from "@layerzerolabs/contracts/interfaces/ILayerZeroReceiver.sol";
 
 import {Pausable} from "@protocol/mixins/Pausable.sol";
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
-abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
+abstract contract Omnichain is PublicGood, ILayerZeroReceiver, Pausable {
   ILayerZeroEndpoint public lzEndpoint;
-  uint16 public currentChainId;
 
   function __initOmnichain(address _lzEndpoint) internal {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
-    currentChainId = uint16(block.chainid);
   }
 
   function addressFromPackedBytes(bytes memory toAddressBytes)
@@ -27,10 +25,7 @@ abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
     }
   }
 
-  // =============================
-  // ======= REMOTE CONFIG =======
-  // =============================
-  mapping(uint16 => bytes) public remoteContracts;
+  mapping(uint16 => bytes) public trustedRemoteLookup;
 
   event SetTrustedRemote(uint16 onChainId, bytes contractAddress);
 
@@ -38,7 +33,7 @@ abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
     uint16 onChainId,
     bytes calldata contractAddress
   ) external requiresAuth {
-    remoteContracts[onChainId] = contractAddress;
+    trustedRemoteLookup[onChainId] = contractAddress;
     emit SetTrustedRemote(onChainId, contractAddress);
   }
 
@@ -46,35 +41,20 @@ abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
     uint16 onChainId,
     bytes calldata contractAddress
   ) public view returns (bool) {
-    return keccak256(contractAddress) == keccak256(remoteContracts[onChainId]);
+    return
+      keccak256(contractAddress) == keccak256(trustedRemoteLookup[onChainId]);
   }
 
   // ===============================
   // ======= LAYER ZERO SEND =======
   // ===============================
-  function lzEstimateSendGas(
-    uint16 toChainId,
-    bytes memory payload,
-    bool useZRO,
-    bytes memory adapterParams
-  ) internal view returns (uint256, uint256) {
-    return
-      lzEndpoint.estimateFees(
-        toChainId,
-        address(this),
-        payload,
-        useZRO,
-        adapterParams
-      );
-  }
-
   function lzSend(
     uint16 toChainId,
     bytes memory payload,
     address lzPaymentAddress,
-    bytes memory lzTransactionParams
+    bytes memory lzAdapterParams
   ) internal whenNotPaused {
-    bytes memory remoteContract = remoteContracts[toChainId];
+    bytes memory remoteContract = trustedRemoteLookup[toChainId];
     require(remoteContract.length != 0, "Omnichain: INVALID_DESTINATION");
 
     // solhint-disable-next-line check-send-result
@@ -82,16 +62,16 @@ abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
       toChainId,
       remoteContract,
       payload,
-      payable(msg.sender),
+      payable(beneficiary),
       lzPaymentAddress,
-      lzTransactionParams
+      lzAdapterParams
     );
   }
 
   // ==================================
   // ======= LAYER ZERO RECEIVE =======
   // ==================================
-  mapping(uint16 => mapping(bytes => mapping(uint256 => bytes32)))
+  mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32)))
     public failedMessagesHash;
 
   event MessageFailed(
@@ -143,7 +123,7 @@ abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
     bytes calldata fromContract,
     uint64 nonce,
     bytes calldata payload
-  ) external {
+  ) external whenNotPaused {
     bytes32 payloadHash = failedMessagesHash[fromChainId][fromContract][nonce];
     require(payloadHash != bytes32(0), "Omnichain: MESSAGE_NOT_FOUND");
     require(keccak256(payload) == payloadHash, "Omnichain: INVALID_PAYLOAD");
@@ -156,21 +136,20 @@ abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
   // =================================
   // ======= LAYER ZERO CONFIG =======
   // =================================
-  function lzGetConfig(uint16 chainId, uint256 configType)
+  function getConfig(uint16 chainId, uint256 configType)
     public
     view
-    returns (bytes memory)
+    returns (bytes memory config)
   {
-    return
-      lzEndpoint.getConfig(
-        lzEndpoint.getSendVersion(address(this)),
-        chainId,
-        address(this),
-        configType
-      );
+    config = lzEndpoint.getConfig(
+      lzEndpoint.getSendVersion(address(this)),
+      chainId,
+      address(this),
+      configType
+    );
   }
 
-  function lzSetConfig(
+  function setConfig(
     uint16 version,
     uint16 chainId,
     uint256 configType,
@@ -179,15 +158,15 @@ abstract contract Omnichain is Comptrolled, Pausable, ILayerZeroReceiver {
     lzEndpoint.setConfig(version, chainId, configType, config);
   }
 
-  function lzSetSendVersion(uint16 version) external requiresAuth {
+  function setSendVersion(uint16 version) external requiresAuth {
     lzEndpoint.setSendVersion(version);
   }
 
-  function lzSetReceiveVersion(uint16 version) external requiresAuth {
+  function setReceiveVersion(uint16 version) external requiresAuth {
     lzEndpoint.setReceiveVersion(version);
   }
 
-  function lzForceResumeReceive(uint16 srcChainId, bytes calldata srcAddress)
+  function forceResumeReceive(uint16 srcChainId, bytes calldata srcAddress)
     external
     requiresAuth
   {

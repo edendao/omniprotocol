@@ -2,7 +2,7 @@
   "testnet": {
     "rinkeby": {
       "Comptroller": "0x003DD590DFb3f3A88189b96e75a8296108831B08",
-      "Note": "0xb08cf89a876c0b5a76116939453221ccfd8321ac",
+      "Omnitoken": "0xb08cf89a876c0b5a76116939453221ccfd8321ac",
       "Omnicast": "0xb1df13943a00f63be3f957147fe7bcc488d3a04c",
       "Passport": "0x72749cD108d7759b5E1Ce19f9A35360D964A93dF",
       "Proxy": "0x46f8873115b0ef162d2fb285a097d7ee3e4c8a35",
@@ -11,7 +11,7 @@
     },
     "rinkarby": {
       "Comptroller": "0xf705e8c22c09267e1339394758b9f0722d1fd852",
-      "Note": "0xe8e0f56fdb3570350cb78440f62b1ee1dbcb4435"
+      "Omnitoken": "0xe8e0f56fdb3570350cb78440f62b1ee1dbcb4435"
     }
   }
 }

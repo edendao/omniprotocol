@@ -38,7 +38,7 @@ As an arbitrary bytes store, what you use this for is up to you. You could:
     bytes memory payload,
     uint16 onChainId,
     address lzPaymentAddress,
-    bytes memory lzTransactionParams
+    bytes memory lzAdapterParams
   ) public payable {
     require(
       (msg.sender == ownerOf[toReceiverId] || // write on your own passport
@@ -52,12 +52,12 @@ As an arbitrary bytes store, what you use this for is up to you. You could:
 
 Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
 
-## Eden Dao Note is an Omnichain ERC20
+## Eden Dao Omnitoken is an Omnichain ERC20
 
-New DAOs spend too much wasted time agonizing on which chain to launch on. Eden Dao illuminates the omnichain path with Note: A gas-optimized, secure ERC20 with simple cross-chain bridging built in.
+New DAOs spend too much wasted time agonizing on which chain to launch on. Eden Dao illuminates the omnichain path with Omnitoken: A gas-optimized, secure ERC20 with simple cross-chain bridging built in.
 
-At a high level, to create your own Note, register a [Comptroller](./src/auth/ComptrollerFactory.sol), use that to create a [Note](./src/mint/NoteFactory.sol), and enable the [Omniportal](./src/mint/Omniportal.sol) to mint and burn your note. You can also specify an `address underlying` to create a Note "wrapper" token around your existing ERC20.
-As an ERC20 Note, what you use this for is up to you:
+At a high level, to create your own Omnitoken, register a [Comptroller](./src/auth/ComptrollerFactory.sol), use that to create a [Omnitoken](./src/mint/OmnitokenFactory.sol), and enable the [Omniportal](./src/mint/Omniportal.sol) to mint and burn your omnitoken. You can also specify an `address underlying` to create a Omnitoken "wrapper" token around your existing ERC20.
+As an ERC20 Omnitoken, what you use this for is up to you:
 
 0. Wrap your existing tokens to send them across chains
 1. Multi-chain liquidity
@@ -67,7 +67,7 @@ As an ERC20 Note, what you use this for is up to you:
 ```solidity
 Comptroller comptroller = ComptrollerFactory(comptrollerFactoryAddress).create(); // msg.sender is now the owner
 
-Note note = NoteFactory(noteFactoryAddress).deployNote(abi.encode(
+Omnitoken omnitoken = OmnitokenFactory(omnitokenFactoryAddress).deployOmnitoken(abi.encode(
   address(comptroller),
   "My Token Name",
   "SYM",
@@ -76,42 +76,42 @@ Note note = NoteFactory(noteFactoryAddress).deployNote(abi.encode(
 
 uint8 minterRole = 0;
 bytes4[] memory selectors = new bytes4[](2);
-selectors[0] = Note.mint.selector;
-selectors[1] = Note.burn.selector;
+selectors[0] = Omnitoken.mint.selector;
+selectors[1] = Omnitoken.burn.selector;
 comptroller.setCapabilitiesTo(address(omnibridge), minterRole, [], true);
 ```
 
-For the next chain, repeat the same steps. Then, hook both Notes up to each other:
+For the next chain, repeat the same steps. Then, hook both Omnitokens up to each other:
 
 ```solidity
 // on chain A
-Note(noteAddressOnChainA).setRemoteContract(chainBId, abi.encodePacked(noteAddressOnChainB));
+Omnitoken(omnitokenAddressOnChainA).setRemoteContract(chainBId, abi.encodePacked(omnitokenAddressOnChainB));
 // on chain B
-Note(noteAddressOnChainB).setRemoteContract(chainAId, abi.encodePacked(noteAddressOnChainA));
+Omnitoken(omnitokenAddressOnChainB).setRemoteContract(chainAId, abi.encodePacked(omnitokenAddressOnChainA));
 ```
 
 In addition to being a flexible, mintable/burnable ERC20, token holders can also send their tokens across chains with a simple call to:
 
 ```solidity
-  Omnibridge(address(omnibridge)).sendNote( // from msg.sender
-    address noteAddress, // on this chain
+  Omnibridge(address(omnibridge)).sendOmnitoken( // from msg.sender
+    address omnitokenAddress, // on this chain
     uint256 amount, // amount
     uint16 toChainId, // LayerZero chain id
     bytes calldata toAddress, // receiver address
     address lzPaymentAddress,
-    bytes calldata lzTransactionParams
-  ) external payable { // use estimateLayerZeroGas(uint8(toChainId), bool(useZRO), bytes(lzTransactionParams))
+    bytes calldata lzAdapterParams
+  ) external payable { // use estimateLayerZeroFee(uint8(toChainId), bool(useZRO), bytes(lzAdapterParams))
     // implementation
   }
 ```
 
 Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
 
-## Coming Soon: Eden Dao Vaults are Yearn Vaults that mint Notes
+## Coming Soon: Eden Dao Vaults are Yearn Vaults that mint Omnitokens
 
 Yearn Vaults are the gold standard for yield aggregators that earn interest on any ERC20 token.
-Eden Dao Vaults mint Notes, which can be connected to other Notes (or other Vaults) for DAOs to create their own decentralized reserves.
+Eden Dao Vaults mint Omnitokens, which can be connected to other Omnitokens (or other Vaults) for DAOs to create their own decentralized reserves.
 
-These enable DAOs to mint yield aggregator notes that can be simply bridged _to any other chain_.
+These enable DAOs to mint yield aggregator omnitokens that can be simply bridged _to any other chain_.
 
 Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**

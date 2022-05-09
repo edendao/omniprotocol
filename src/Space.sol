@@ -5,32 +5,37 @@ import {ERC721} from "@solmate/tokens/ERC721.sol";
 
 import {IOmnicast} from "@protocol/interfaces/IOmnicast.sol";
 
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
-import {Omninote} from "@protocol/mixins/Omninote.sol";
+import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
+import {Omnichain} from "@protocol/mixins/Omnichain.sol";
+import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
-contract Space is Omninote, ERC721 {
+contract Space is PublicGood, Omnichain, ERC721, EdenDaoNS {
   IOmnicast public immutable omnicast;
   uint16 public primaryChainId;
 
   constructor(
     address _comptroller,
+    address _lzEndpoint,
     address _omnicast,
     uint16 _primaryChainId
   ) ERC721("Eden Dao Space", "DAO SPACE") {
     __initComptrolled(_comptroller);
+    __initOmnichain(_lzEndpoint);
+
     omnicast = IOmnicast(_omnicast);
     primaryChainId = _primaryChainId;
+
     uint256[10] memory premint = [
-      omnicast.idOf("my"),
-      omnicast.idOf("profile"),
-      omnicast.idOf("app"),
-      omnicast.idOf("name"),
-      omnicast.idOf("tokenuri"),
-      omnicast.idOf("terexitarius"),
-      omnicast.idOf("gitcoin"),
-      omnicast.idOf("station"),
-      omnicast.idOf("refi"),
-      omnicast.idOf("space")
+      idOf("my"),
+      idOf("profile"),
+      idOf("app"),
+      idOf("name"),
+      idOf("tokenuri"),
+      idOf("terexitarius"),
+      idOf("gitcoin"),
+      idOf("station"),
+      idOf("refi"),
+      idOf("space")
     ];
     for (uint256 i = 0; i < premint.length; i++) {
       _mint(comptrollerAddress(), premint[i]);
@@ -39,7 +44,9 @@ contract Space is Omninote, ERC721 {
 
   mapping(address => uint256) public countRegisteredBy;
 
-  function mint(string memory name) public payable returns (uint256) {
+  function mint(string memory name) public payable returns (uint256 id) {
+    // solhint-disable-next-line avoid-tx-origin
+    require(msg.sender == tx.origin, "Space: NO_SPOOFING");
     uint256 mints = countRegisteredBy[msg.sender];
     require(
       primaryChainId == block.chainid &&
@@ -49,10 +56,8 @@ contract Space is Omninote, ERC721 {
     );
     countRegisteredBy[msg.sender] = mints + 1;
 
-    uint256 id = omnicast.idOf(name);
+    id = idOf(name);
     _mint(msg.sender, id);
-
-    return id;
   }
 
   // ==============================
@@ -61,7 +66,7 @@ contract Space is Omninote, ERC721 {
   mapping(uint256 => string) private _tokenURI;
 
   function tokenURI(uint256 id) public view override returns (string memory) {
-    return string(omnicast.readMessage(id, omnicast.idOf("tokenuri")));
+    return string(omnicast.readMessage(id, idOf("tokenuri")));
   }
 
   // ======================
@@ -72,18 +77,41 @@ contract Space is Omninote, ERC721 {
     view
     returns (address receiver, uint256 royaltyAmount)
   {
-    return (comptrollerAddress(), (salePrice * 10) / 100);
+    return (address(this), (salePrice * 10) / 100);
   }
 
-  // ==========================
-  // ======= OMNIBRIDGE =======
-  // ==========================
-  function mintTo(address to, uint256 id) public override requiresAuth {
-    require(id > type(uint160).max, "Space: RESERVED_SPACE");
-    _mint(to, id);
+  // =========================
+  // ======= OMNITOKEN =======
+  // =========================
+  function sendFrom(
+    address from,
+    uint16 toChainId,
+    bytes memory toAddressB,
+    uint256 id,
+    address,
+    address lzPaymentAddress,
+    bytes memory lzAdapterParams
+  ) external payable {
+    transferFrom(from, address(this), id);
+
+    lzSend(
+      toChainId,
+      abi.encode(toAddressB, id),
+      lzPaymentAddress,
+      lzAdapterParams
+    );
   }
 
-  function burnFrom(address, uint256 id) public override requiresAuth {
-    _burn(id);
+  function receiveMessage(
+    uint16,
+    bytes calldata,
+    uint64,
+    bytes calldata payload
+  ) internal override {
+    (bytes memory toAddressB, uint256 id) = abi.decode(
+      payload,
+      (bytes, uint256)
+    );
+    _mint(addressFromPackedBytes(toAddressB), id);
   }
 }

@@ -5,7 +5,7 @@ import {ChainEnvironmentTest, console} from "@test/ChainEnvironmentTest.t.sol";
 
 contract PassportTest is ChainEnvironmentTest {
   function testMintGas() public {
-    passport.mintTo(address(this), omnicast.idOf(address(this)));
+    passport.mint{value: 0.1 ether}(address(this));
   }
 
   function testMint(address caller, uint256 value) public {
@@ -24,10 +24,9 @@ contract PassportTest is ChainEnvironmentTest {
 
   function testReceiveMint(address caller, uint256 value) public {
     hevm.assume(
-      caller != address(this) && caller != address(0) && value >= 0.01 ether
+      caller != address(0) && caller != address(this) && value >= 0.01 ether
     );
     hevm.deal(caller, value);
-
     hevm.prank(caller);
     // solhint-disable-next-line avoid-low-level-calls
     (bool ok, ) = address(passport).call{value: value}("");
@@ -35,14 +34,5 @@ contract PassportTest is ChainEnvironmentTest {
     assertTrue(ok);
     assertEq(1, passport.balanceOf(caller));
     assertEq(caller, passport.ownerOf(omnicast.idOf(caller)));
-  }
-
-  function testNoteMintRequiresAuth(address caller) public {
-    hevm.assume(caller != address(0) && caller != address(this));
-
-    uint256 id = omnicast.idOf(caller);
-    hevm.expectRevert("Comptrolled: UNAUTHORIZED");
-    hevm.prank(caller);
-    passport.mintTo(caller, id);
   }
 }

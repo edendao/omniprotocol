@@ -13,10 +13,6 @@ interface IOmnicast {
     bytes data
   );
 
-  function idOf(address account) external view returns (uint256 passportId);
-
-  function idOf(string memory name) external view returns (uint256 passportId);
-
   // Emits `Message` w/ a nonce
   // Mainnet Chain IDs
   // https://layerzero.gitbook.io/docs/technical-reference/mainnet/supported-chain-ids
@@ -28,7 +24,7 @@ interface IOmnicast {
     bytes memory payload, // abi.encode anything you please!
     uint16 onChainId,
     address lzPaymentAddress,
-    bytes memory lzTransactionParams
+    bytes memory lzAdapterParams
   ) external payable;
 
   // Read the latest message
@@ -36,6 +32,13 @@ interface IOmnicast {
     external
     view
     returns (bytes memory data);
+
+  // Read the latest message
+  function readMessage(
+    uint256 receiverId,
+    uint256 senderId,
+    uint64 withNonce
+  ) external view returns (bytes memory data);
 
   // Load a message at a specific index
   function receivedMessages(

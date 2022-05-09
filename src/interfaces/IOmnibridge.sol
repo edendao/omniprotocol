@@ -2,27 +2,18 @@
 pragma solidity ^0.8.13;
 
 interface IOmnibridge {
-  function sendNote(
-    address noteAddress,
-    uint256 amount,
+  function sendFrom(
+    address omnitokenAddress,
     uint16 toChainId,
     bytes calldata toAddress,
+    uint256 amount,
     address lzPaymentAddress,
-    bytes calldata lzTransactionParams
+    bytes calldata lzAdapterParams
   ) external payable;
 
-  // Receive notes from omnispace
-  event ReceiveNote(
-    uint16 indexed fromChainId,
-    uint64 nonce,
-    address indexed noteAddress,
-    address indexed toAddress,
-    uint256 amount
-  );
-
-  function estimateLayerZeroGas(
+  function estimateSendFee(
     uint16 toChainId,
     bool useZRO,
-    bytes calldata lzTransactionParams
+    bytes calldata lzAdapterParams
   ) external view returns (uint256 gasFees, uint256 lzFees);
 }
