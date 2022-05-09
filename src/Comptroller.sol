@@ -2,18 +2,22 @@
 pragma solidity ^0.8.13;
 
 import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
-import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 import {Multicallable} from "@protocol/mixins/Multicallable.sol";
+import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 import {MultiRolesAuthority} from "@protocol/auth/MultiRolesAuthority.sol";
 
-contract Comptroller is Cloneable, Multicallable, MultiRolesAuthority {
-  function initialize(address, bytes calldata params)
+contract Comptroller is PublicGood, Multicallable, MultiRolesAuthority {
+  function initialize(address _beneficiary, bytes calldata _params)
     external
     override
     initializer
   {
-    address _owner = abi.decode(params, (address));
+    address _owner = abi.decode(_params, (address));
+
     __initAuth(_owner, this);
+
+    _setBeneficiary(_beneficiary);
+    _setComptroller(address(this));
   }
 
   function setCapabilitiesTo(

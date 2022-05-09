@@ -22,7 +22,7 @@ abstract contract Vault is Comptrolled, ERC4626 {
     address _asset,
     address _reserve
   ) internal {
-    __initComptrolled(_comptroller);
+    _setComptroller(_comptroller);
     __initERC4626(ERC20(_asset));
     reserve = Reserve(_reserve);
 

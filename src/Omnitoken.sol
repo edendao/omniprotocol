@@ -4,12 +4,10 @@ pragma solidity ^0.8.13;
 import {IOFT} from "@protocol/interfaces/IOFT.sol";
 import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
-import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
-contract Omnitoken is PublicGood, Omnichain, ERC20, IOFT {
+contract Omnitoken is Omnichain, ERC20, IOFT {
   function initialize(address _beneficiary, bytes calldata _params)
     external
-    virtual
     override
     initializer
   {
@@ -21,10 +19,11 @@ contract Omnitoken is PublicGood, Omnichain, ERC20, IOFT {
       uint8 _decimals
     ) = abi.decode(_params, (address, address, string, string, uint8));
 
-    __initPublicGood(_beneficiary);
-    __initOmnichain(_lzEndpoint);
     __initERC20(_name, _symbol, _decimals);
-    __initComptrolled(_comptroller);
+
+    _setBeneficiary(_beneficiary);
+    _setComptroller(_comptroller);
+    _setLayerZeroEndpoint(_lzEndpoint);
   }
 
   function _mint(address to, uint256 amount)
@@ -49,9 +48,13 @@ contract Omnitoken is PublicGood, Omnichain, ERC20, IOFT {
     _mint(to, amount);
   }
 
-  // =============================
-  // ========= OMNINOTE ==========
-  // =============================
+  // ========================
+  // ========= OFT ==========
+  // ========================
+  function circulatingSupply() public view virtual returns (uint256) {
+    return totalSupply;
+  }
+
   function estimateSendFee(
     uint16 toChainId,
     bytes memory toAddress,
@@ -121,9 +124,5 @@ contract Omnitoken is PublicGood, Omnichain, ERC20, IOFT {
       amount,
       nonce
     );
-  }
-
-  function circulatingSupply() public view virtual returns (uint256) {
-    return totalSupply;
   }
 }

@@ -5,7 +5,6 @@ import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
 import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
 import {ERC20, ERC4626, SafeTransferLib} from "@protocol/mixins/ERC4626.sol";
-import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 import {Vault} from "@protocol/mixins/Vault.sol";
@@ -79,14 +78,14 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
       string memory _symbol
     ) = abi.decode(_params, (address, address, string, string));
 
-    __initPublicGood(_beneficiary);
+    _setBeneficiary(_beneficiary);
     __initERC4626(ERC20(_asset));
     __initERC20(
       string(abi.encodePacked(_name, " Eden Dao Reserve")),
       string(abi.encodePacked("edn-", _symbol)),
       ERC20(_asset).decimals()
     );
-    __initComptrolled(_comptroller);
+    _setComptroller(_comptroller);
 
     performancePoints = 1000; // 10%
     emit UpdatePerformancePoints(performancePoints);

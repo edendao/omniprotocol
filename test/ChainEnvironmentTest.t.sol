@@ -9,13 +9,12 @@ import {MockERC20} from "@test/mocks/MockERC20.sol";
 
 import {Comptroller} from "@protocol/Comptroller.sol";
 import {Omnitoken} from "@protocol/Omnitoken.sol";
-import {Omnibridge} from "@protocol/Omnibridge.sol";
 import {Omnicast} from "@protocol/Omnicast.sol";
 import {Passport} from "@protocol/Passport.sol";
 import {Space} from "@protocol/Space.sol";
 
 contract ChainEnvironmentTest is DSTestPlus {
-  address public ownerAddress = hevm.addr(42);
+  address public beneficiary = hevm.addr(42);
 
   uint16 public currentChainId = uint16(block.chainid);
 
@@ -23,9 +22,7 @@ contract ChainEnvironmentTest is DSTestPlus {
   LZEndpointMock public layerZeroEndpoint = new LZEndpointMock(currentChainId);
 
   Comptroller public comptroller = new Comptroller();
-
-  Omnicast internal omnicast =
-    new Omnicast(address(comptroller), address(layerZeroEndpoint));
+  Omnicast internal omnicast = new Omnicast();
   Space public space =
     new Space(
       address(comptroller),
@@ -36,13 +33,19 @@ contract ChainEnvironmentTest is DSTestPlus {
   Passport public passport =
     new Passport(address(comptroller), address(omnicast));
 
-  Omnitoken public omnitokenImplementation = new Omnitoken();
-
-  Omnibridge public bridge =
-    new Omnibridge(address(comptroller), address(omnitokenImplementation));
+  Omnitoken public token = new Omnitoken();
 
   function setUp() public virtual {
     comptroller.initialize(address(0), abi.encode(address(this)));
-    omnicast.setContracts(address(space), address(passport));
+    omnicast.initialize(
+      beneficiary,
+      abi.encode(
+        address(comptroller),
+        address(layerZeroEndpoint),
+        address(space),
+        address(passport),
+        uint16(block.chainid)
+      )
+    );
   }
 }

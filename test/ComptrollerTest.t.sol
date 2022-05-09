@@ -7,7 +7,9 @@ import {ChainEnvironmentTest, Comptroller} from "@test/ChainEnvironmentTest.t.so
 
 contract ComptrollerTest is ChainEnvironmentTest {
   function testCloneGas() public {
-    Comptroller c = bridge.createComptroller(address(this));
+    Comptroller c = Comptroller(
+      payable(comptroller.clone(abi.encode(address(this))))
+    );
     assertEq(c.owner(), address(this));
   }
 
@@ -16,7 +18,7 @@ contract ComptrollerTest is ChainEnvironmentTest {
     functions[0] = abi.encodeWithSignature(
       "setRoleCapability(uint8,bytes4,bool)",
       0,
-      omnitokenImplementation.mint.selector,
+      token.mint.selector,
       true
     );
     functions[1] = abi.encodeWithSignature(
@@ -33,7 +35,7 @@ contract ComptrollerTest is ChainEnvironmentTest {
     functions[3] = abi.encodeWithSignature(
       "doesRoleHaveCapability(uint8,bytes4)",
       0,
-      omnitokenImplementation.mint.selector
+      token.mint.selector
     );
     bytes[] memory results = comptroller.multicall(functions);
     assertTrue(abi.decode(results[2], (bool)));
@@ -45,8 +47,8 @@ contract ComptrollerTest is ChainEnvironmentTest {
   }
 
   function testSetOwner() public {
-    comptroller.setOwner(ownerAddress);
-    assertEq(comptroller.owner(), ownerAddress);
+    comptroller.setOwner(beneficiary);
+    assertEq(comptroller.owner(), beneficiary);
   }
 
   function testAuthority() public {

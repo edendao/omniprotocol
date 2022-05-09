@@ -11,26 +11,34 @@ interface Ownable {
   function ownerOf(uint256 id) external view returns (address);
 }
 
-contract Omnicast is IOmnicast, Omnichain, EdenDaoNS {
-  uint16 public immutable currentChainId;
+contract Omnicast is Omnichain, IOmnicast, EdenDaoNS {
+  uint16 public currentChainId;
   uint64 public nonce;
-
-  constructor(address _comptroller, address _lzEndpoint) {
-    __initOmnichain(_lzEndpoint);
-    __initComptrolled(_comptroller);
-
-    currentChainId = uint16(block.chainid);
-  }
 
   address public space;
   address public passport;
 
-  function setContracts(address _space, address _passport)
+  function initialize(address _beneficiary, bytes calldata _params)
     external
-    requiresAuth
+    override
+    initializer
   {
+    (
+      address _comptroller,
+      address _lzEndpoint,
+      address _space,
+      address _passport,
+      uint16 _chainId
+    ) = abi.decode(_params, (address, address, address, address, uint16));
+
+    _setBeneficiary(_beneficiary);
+    _setLayerZeroEndpoint(_lzEndpoint);
+    _setComptroller(_comptroller);
+
     space = _space;
     passport = _passport;
+
+    currentChainId = _chainId;
   }
 
   // =====================================

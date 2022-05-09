@@ -10,7 +10,7 @@ import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
 // ======================================================
 // Passport is your on-chain identity in omni-chain space
 // ======================================================
-contract Passport is ERC721Soulbound, Comptrolled, EdenDaoNS {
+contract Passport is ERC721Soulbound, EdenDaoNS, Comptrolled {
   IOmnicast public omnicast;
 
   string public name = "Eden Dao Passport";
@@ -19,10 +19,9 @@ contract Passport is ERC721Soulbound, Comptrolled, EdenDaoNS {
   mapping(uint256 => address) public ownerOf;
 
   constructor(address _comptroller, address _omnicast) {
-    __initComptrolled(_comptroller);
+    _setComptroller(_comptroller);
 
     emit SetMeta(name, symbol);
-
     omnicast = IOmnicast(_omnicast);
   }
 
@@ -34,6 +33,7 @@ contract Passport is ERC721Soulbound, Comptrolled, EdenDaoNS {
   {
     name = _name;
     symbol = _symbol;
+    emit SetMeta(name, symbol);
   }
 
   function balanceOf(address owner) public view returns (uint256) {

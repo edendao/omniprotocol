@@ -54,7 +54,7 @@ contract OmnicastTest is ChainEnvironmentTest {
 
   function testMessageGas() public {
     omnicast.writeMessage(
-      omnicast.idOf(ownerAddress),
+      omnicast.idOf(beneficiary),
       omnicast.idOf(address(this)),
       "prosperity",
       currentChainId,
@@ -66,7 +66,7 @@ contract OmnicastTest is ChainEnvironmentTest {
       "prosperity",
       string(
         omnicast.readMessage(
-          omnicast.idOf(ownerAddress),
+          omnicast.idOf(beneficiary),
           omnicast.idOf(address(this))
         )
       )

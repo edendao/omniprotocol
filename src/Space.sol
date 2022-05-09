@@ -9,7 +9,7 @@ import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
-contract Space is PublicGood, Omnichain, ERC721, EdenDaoNS {
+contract Space is Omnichain, ERC721, EdenDaoNS {
   IOmnicast public immutable omnicast;
   uint16 public primaryChainId;
 
@@ -19,27 +19,20 @@ contract Space is PublicGood, Omnichain, ERC721, EdenDaoNS {
     address _omnicast,
     uint16 _primaryChainId
   ) ERC721("Eden Dao Space", "DAO SPACE") {
-    __initComptrolled(_comptroller);
-    __initOmnichain(_lzEndpoint);
+    _setComptroller(_comptroller);
+    _setLayerZeroEndpoint(_lzEndpoint);
 
     omnicast = IOmnicast(_omnicast);
     primaryChainId = _primaryChainId;
+  }
 
-    uint256[10] memory premint = [
-      idOf("my"),
-      idOf("profile"),
-      idOf("app"),
-      idOf("name"),
-      idOf("tokenuri"),
-      idOf("terexitarius"),
-      idOf("gitcoin"),
-      idOf("station"),
-      idOf("refi"),
-      idOf("space")
-    ];
-    for (uint256 i = 0; i < premint.length; i++) {
-      _mint(comptrollerAddress(), premint[i]);
-    }
+  function mint(address to, string memory name)
+    external
+    requiresAuth
+    returns (uint256 id)
+  {
+    id = idOf(name);
+    _mint(to, id);
   }
 
   mapping(address => uint256) public countRegisteredBy;
@@ -92,7 +85,9 @@ contract Space is PublicGood, Omnichain, ERC721, EdenDaoNS {
     address lzPaymentAddress,
     bytes memory lzAdapterParams
   ) external payable {
-    transferFrom(from, address(this), id);
+    require(msg.sender == from && from == ownerOf(id), "Space: UNAUTHORIZED");
+
+    _burn(id);
 
     lzSend(
       toChainId,
@@ -112,6 +107,7 @@ contract Space is PublicGood, Omnichain, ERC721, EdenDaoNS {
       payload,
       (bytes, uint256)
     );
+
     _mint(addressFromPackedBytes(toAddressB), id);
   }
 }

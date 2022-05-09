@@ -12,12 +12,16 @@ contract OmnitokenTest is ChainEnvironmentTest {
   }
 
   function testCloneGas() public returns (Omnitoken n) {
-    n = bridge.createOmnitoken(
-      address(comptroller),
-      address(layerZeroEndpoint),
-      "Frontier Carbon",
-      "TIME",
-      3
+    n = Omnitoken(
+      token.clone(
+        abi.encode(
+          address(comptroller),
+          address(layerZeroEndpoint),
+          "Frontier Carbon",
+          "TIME",
+          3
+        )
+      )
     );
   }
 
@@ -36,7 +40,7 @@ contract OmnitokenTest is ChainEnvironmentTest {
     hevm.assume(
       to != address(0) && to != address(this) && omnitoken.balanceOf(to) == 0
     );
-    hevm.expectRevert("Comptrolled: UNAUTHORIZED");
+    hevm.expectRevert("UNAUTHORIZED");
     hevm.prank(to);
     omnitoken.mint(to, amount);
   }

@@ -10,7 +10,7 @@ import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 abstract contract Omnichain is PublicGood, ILayerZeroReceiver, Pausable {
   ILayerZeroEndpoint public lzEndpoint;
 
-  function __initOmnichain(address _lzEndpoint) internal {
+  function _setLayerZeroEndpoint(address _lzEndpoint) internal {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
   }
 
