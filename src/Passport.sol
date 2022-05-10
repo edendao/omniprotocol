@@ -9,7 +9,7 @@ import {OmniTokenURI} from "@protocol/mixins/OmniTokenURI.sol";
 // ======================================================
 // Passport is your on-chain identity in omni-chain space
 // ======================================================
-contract Passport is ERC721Soulbound, Comptrolled, OmniTokenURI, EdenDaoNS {
+contract Passport is Comptrolled, ERC721Soulbound, OmniTokenURI, EdenDaoNS {
   string public name = "Eden Dao Passport";
   string public symbol = "DAO PASS";
 

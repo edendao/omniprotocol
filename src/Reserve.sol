@@ -26,7 +26,7 @@ struct ReserveVaultState {
   uint256 totalLoss;
 }
 
-contract Reserve is PublicGood, ERC4626, Comptrolled, Cloneable, Pausable {
+contract Reserve is Comptrolled, PublicGood, ERC4626, Cloneable, Pausable {
   using FixedPointMathLib for uint256;
   using SafeTransferLib for ERC20;
 

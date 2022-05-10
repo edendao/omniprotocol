@@ -11,10 +11,10 @@ import {OmniTokenURI} from "@protocol/mixins/OmniTokenURI.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
 contract Space is
+  Comptrolled,
   Omnichain,
   IOmnitoken,
   ERC721,
-  Comptrolled,
   OmniTokenURI,
   EdenDaoNS
 {

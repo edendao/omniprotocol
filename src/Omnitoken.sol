@@ -10,10 +10,10 @@ import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
 contract Omnitoken is
   PublicGood,
-  Omnichain,
-  IOmnitoken,
-  ERC20,
   Comptrolled,
+  IOmnitoken,
+  Omnichain,
+  ERC20,
   Cloneable
 {
   // ================================

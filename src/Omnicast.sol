@@ -16,9 +16,9 @@ interface Ownable {
 
 contract Omnicast is
   PublicGood,
-  Omnichain,
   Comptrolled,
   IOmnicast,
+  Omnichain,
   Multicallable,
   Initializable,
   EdenDaoNS
