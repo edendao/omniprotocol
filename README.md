@@ -1,117 +1,70 @@
-_eden dao protocol is in code review._ This is an opportunity for the community to get involved prior to testnet launch. PRs would be greatly appreciated!
+_eden dao omniprotocol is in code review._ This is an opportunity for the community to get involved prior to testnet launch. PRs would be greatly appreciated!
 
 Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
 
-# Eden Dao Protocol is Regenerative Omnichain Infrastructure
+# Eden Dao OmniProtocol is Regenerative Omnichain Infrastructure
 
-**Regenerative** in that protocol fees are directed for the public good towards carbon dioxide removal and renewable energy.
+**Regenerative** in that the usage of the protocol supports the regenerative mission of Eden Dao.
 
-**Omnichain infrastructure** in that it liberates DAOs from a single chain with new primitives. Eden Dao Protocol is a collection of immutable contracts for omnispace travel.
+**Omnichain Infrastructure** in that it unlocks a new world of cross-chain possibilities, powered by LayerZero.
 
-## Eden Dao Passport is an omnichain user store
+Gas-optimized, you can launch your own ERC20 with ≤0.1 ETH on mainnet. Here's the TL;DR:
 
-[Passport](./src/passport/Passport.sol) is a simple protocol to read and write arbitrary bytes messages across any LayerZero chain on a specific "cast" scoped to a wallet address.
+**These examples use `cast` to call functions, though you could use any tool you like.**
 
-As an arbitrary bytes store, what you use this for is up to you. You could:
+### A non-custodial protocol
 
-1. Sign people's ledgers across chains
-2. Certify a credential across chains
-3. Leave art on people's Passports
-4. Write user data to another chain
+It all begins with a `Comptroller` to self-custody your contracts with role-based authentication.
 
-```solidity
-  // (receiverId => senderId => data[])
-  mapping(uint256 => mapping(uint256 => bytes[])) public receivedMessages;
-
-  function readMessage(uint256 receiverId, uint256 senderId)
-    public
-    view
-    returns (bytes memory)
-  {
-    bytes[] memory messages = receivedMessages[receiverId][senderId];
-    return messages[messages.length - 1];
-  }
-
-  function writeMessage(
-    uint256 toReceiverId,
-    uint256 withSenderId,
-    bytes memory payload,
-    uint16 onChainId,
-    address lzPaymentAddress,
-    bytes memory lzAdapterParams
-  ) public payable {
-    require(
-      (msg.sender == ownerOf[toReceiverId] || // write on your own passport
-        withSenderId == idOf(msg.sender) || // write on your own cast
-        msg.sender == omnicast.ownerOf(toReceiverId)), // write on a branded cast name
-      "Passport: UNAUTHORIZED_CAST"
-    );
-    // implementation
-  }
+```bash
+cast send `eden-dao-comptroller` "clone(address)" 0xOwnerAddress
 ```
 
-Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
+### Launch and bridge across any chain with Omnitoken
 
-## Eden Dao Omnitoken is an Omnichain ERC20
+Stop wasting months deciding what chain to launch on because of lock-in and high switching costs, just launch an Omnitoken on the chain you want. If you ever need to move to another chain, launch an Omnitoken there and link the two up. Now your token is easily bridgeable across chains!
 
-New DAOs spend too much wasted time agonizing on which chain to launch on. Eden Dao illuminates the omnichain path with Omnitoken: A gas-optimized, secure ERC20 with simple cross-chain bridging built in.
-
-At a high level, to create your own Omnitoken, register a [Comptroller](./src/auth/ComptrollerFactory.sol), use that to create a [Omnitoken](./src/mint/OmnitokenFactory.sol), and enable the [Omniportal](./src/mint/Omniportal.sol) to mint and burn your omnitoken. You can also specify an `address underlying` to create a Omnitoken "wrapper" token around your existing ERC20.
-As an ERC20 Omnitoken, what you use this for is up to you:
-
-0. Wrap your existing tokens to send them across chains
-1. Multi-chain liquidity
-2. Omnichain DAO Partnerships
-3. Multi-chain DAO Ops for governance, payouts, etc.
-
-```solidity
-Comptroller comptroller = ComptrollerFactory(comptrollerFactoryAddress).create(); // msg.sender is now the owner
-
-Omnitoken omnitoken = OmnitokenFactory(omnitokenFactoryAddress).deployOmnitoken(abi.encode(
-  address(comptroller),
-  "My Token Name",
-  "SYM",
-  uint8(18)
-))
-
-uint8 minterRole = 0;
-bytes4[] memory selectors = new bytes4[](2);
-selectors[0] = Omnitoken.mint.selector;
-selectors[1] = Omnitoken.burn.selector;
-comptroller.setCapabilitiesTo(address(omnibridge), minterRole, [], true);
+```bash
+cast send `eden-dao-omnitoken` "clone(address,string,string,uint8)" \
+  0xComptrollerAddress \
+  "Friends with Assets Under Management" \
+  "FWAUM" \
+  18
 ```
 
-For the next chain, repeat the same steps. Then, hook both Omnitokens up to each other:
+### Bridge your existing ERC20 to other chains with Omnibridge
 
-```solidity
-// on chain A
-Omnitoken(omnitokenAddressOnChainA).setRemoteContract(chainBId, abi.encodePacked(omnitokenAddressOnChainB));
-// on chain B
-Omnitoken(omnitokenAddressOnChainB).setRemoteContract(chainAId, abi.encodePacked(omnitokenAddressOnChainA));
+If you already have an ERC20, you can launch a **non-custodial** Omnibridge on the source chain and an Omnitoken on the new chain, link the two up, and now your DAO token can be bridged!
+
+```bash
+cast send `eden-dao-omnitoken` "clone(address,string,string,uint8)" \
+  0xComptrollerAddress \
+  "Friends with Assets Under Management" \
+  "FWAUM" \
+  18
 ```
 
-In addition to being a flexible, mintable/burnable ERC20, token holders can also send their tokens across chains with a simple call to:
+This unlocks multi-chain DAO Ops and DAO2DAO collaborations.
+
+### Write on-chain messages across chains using Omnicast
+
+Omnicast lets you write arbitrary bytes to a destination chain, so `abi.encode` your data on the source chain and `abi.decode` it on the receiving chain.
 
 ```solidity
-  Omnibridge(address(omnibridge)).sendOmnitoken( // from msg.sender
-    address omnitokenAddress, // on this chain
-    uint256 amount, // amount
-    uint16 toChainId, // LayerZero chain id
-    bytes calldata toAddress, // receiver address
-    address lzPaymentAddress,
-    bytes calldata lzAdapterParams
-  ) external payable { // use estimateLayerZeroFee(uint8(toChainId), bool(useZRO), bytes(lzAdapterParams))
-    // implementation
-  }
+// First Chain
+omnicast.writeMessage(
+  omnicast.idOf(secondChainContractAddress), // receiver
+  omnicast.idOf(firstChainContractAddress), // sender
+  bytes("Gardener of the Galaxy"),
+  4, // LayerZero Chain ID
+  address(0), // LayerZero Payment Address
+  bytes("") // LayerZero Adapter Params
+)
+
+// Second Chain
+string memory message = string(omnicast.readMessage(
+  omnicast.idOf(secondChainContractAddress),
+  omnicast.idOf(firstChainContractAddress)
+));
+assertEq(message, "Gardener of the Galaxy");
 ```
-
-Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
-
-## Coming Soon: Eden Dao Vaults are Yearn Vaults that mint Omnitokens
-
-Yearn Vaults are the gold standard for yield aggregators that earn interest on any ERC20 token.
-Eden Dao Vaults mint Omnitokens, which can be connected to other Omnitokens (or other Vaults) for DAOs to create their own decentralized reserves.
-
-These enable DAOs to mint yield aggregator omnitokens that can be simply bridged _to any other chain_.
-
-Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
