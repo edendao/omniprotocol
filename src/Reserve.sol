@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
+pragma abicoder v2;
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
@@ -26,7 +27,7 @@ struct ReserveVaultState {
   uint256 totalLoss;
 }
 
-contract Reserve is Comptrolled, PublicGood, ERC4626, Cloneable, Pausable {
+contract Reserve is ERC4626, PublicGood, Comptrolled, Cloneable, Pausable {
   using FixedPointMathLib for uint256;
   using SafeTransferLib for ERC20;
 
@@ -181,12 +182,8 @@ contract Reserve is Comptrolled, PublicGood, ERC4626, Cloneable, Pausable {
     }
   }
 
-  function withdrawToken(address token, uint256 amount)
-    external
-    override
-    requiresAuth
-  {
-    // Disable withdrawals of the underlying asset
+  // Disable withdrawals of the underlying asset
+  function withdrawToken(address token, uint256 amount) public override {
     require(token != address(asset), "Reserve: INVALID_TOKEN");
     TransferToken(token).transfer(address(authority), amount);
   }

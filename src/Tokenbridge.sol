@@ -1,21 +1,25 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
+import {SafeTransferLib} from "@protocol/libraries/SafeTransferLib.sol";
 import {IOmnitoken} from "@protocol/interfaces/IOmnitoken.sol";
+
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
-import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
-contract Omnitoken is
-  ERC20,
+contract Tokenbridge is
   PublicGood,
   Comptrolled,
   IOmnitoken,
   Omnichain,
   Cloneable
 {
+  using SafeTransferLib for ERC20;
+  ERC20 public asset;
+
   constructor(address _beneficiary, address _lzEndpoint) {
     __initPublicGood(_beneficiary);
     __initOmnichain(_lzEndpoint);
@@ -26,77 +30,41 @@ contract Omnitoken is
   // ================================
   function initialize(address _beneficiary, bytes calldata _params)
     external
-    virtual
     override
     initializer
   {
     __initPublicGood(_beneficiary);
 
-    (
-      address _lzEndpoint,
-      address _comptroller,
-      string memory _name,
-      string memory _symbol,
-      uint8 _decimals
-    ) = abi.decode(_params, (address, address, string, string, uint8));
+    (address _lzEndpoint, address _comptroller, address _asset) = abi.decode(
+      _params,
+      (address, address, address)
+    );
 
     __initOmnichain(_lzEndpoint);
     __initComptrolled(_comptroller);
-    __initERC20(_name, _symbol, _decimals);
+
+    asset = ERC20(_asset);
   }
 
-  function clone(
-    address _comptroller,
-    string memory _name,
-    string memory _symbol,
-    uint8 _decimals
-  ) external payable returns (address cloneAddress) {
+  function clone(address _comptroller, address _asset)
+    external
+    payable
+    returns (address cloneAddress)
+  {
     cloneAddress = clone();
     Cloneable(cloneAddress).initialize(
       beneficiary,
-      abi.encode(address(lzEndpoint), _comptroller, _name, _symbol, _decimals)
+      abi.encode(address(lzEndpoint), _comptroller, _asset)
     );
-  }
-
-  // ================================
-  // ========= Public Good ==========
-  // ================================
-  uint16 public constant MAX_BPS = 10_000;
-  uint16 public goodPoints = 25; // 0.25% for the planet
-
-  event SetGoodPoints(uint16 points);
-
-  function setGoodPoints(uint16 basisPoints) external requiresAuth {
-    require(
-      10 <= basisPoints && basisPoints <= MAX_BPS,
-      "PublicGood: INVALID_BP"
-    );
-    goodPoints = basisPoints;
-    emit SetGoodPoints(basisPoints);
-  }
-
-  function _mint(address to, uint256 amount) internal virtual override {
-    uint256 goodAmount = (amount * goodPoints) / MAX_BPS;
-    totalSupply += amount + goodAmount;
-
-    unchecked {
-      balanceOf[to] += amount;
-      balanceOf[beneficiary] += goodAmount;
-    }
-
-    emit Transfer(address(0), to, amount);
-    emit Transfer(address(0), beneficiary, goodAmount);
-  }
-
-  function mint(address to, uint256 amount) external virtual requiresAuth {
-    _mint(to, amount);
   }
 
   // ===============================
   // ========= IOmnitoken ==========
   // ===============================
-  function circulatingSupply() public view virtual returns (uint256) {
-    return totalSupply;
+  function circulatingSupply() public view virtual override returns (uint256) {
+    unchecked {
+      return asset.totalSupply() - asset.balanceOf(address(this));
+    }
   }
 
   function estimateSendFee(
@@ -124,12 +92,8 @@ contract Omnitoken is
     address payable,
     address lzPaymentAddress,
     bytes calldata lzAdapterParams
-  ) external payable virtual {
-    if (fromAddress != msg.sender) {
-      _useAllowance(fromAddress, msg.sender, amount);
-    }
-
-    _burn(fromAddress, amount);
+  ) external payable override {
+    asset.safeTransferFrom(fromAddress, address(this), amount);
 
     lzSend(
       toChainId,
@@ -159,7 +123,7 @@ contract Omnitoken is
     );
     address toAddress = _addressFromPackedBytes(toAddressB);
 
-    _mint(toAddress, amount);
+    asset.safeTransfer(toAddress, amount);
 
     emit ReceiveFromChain(
       fromChainId,
@@ -168,5 +132,13 @@ contract Omnitoken is
       amount,
       nonce
     );
+  }
+
+  // ==============================
+  // ======= Comptrollable ========
+  // ==============================
+  function withdrawToken(address token, uint256 amount) public override {
+    require(address(token) != address(asset), "Tokenbridge: INVALID_TOKEN");
+    super.withdrawToken(token, amount);
   }
 }

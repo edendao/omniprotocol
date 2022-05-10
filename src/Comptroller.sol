@@ -8,8 +8,8 @@ import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 import {MultiRolesAuthority} from "@protocol/auth/MultiRolesAuthority.sol";
 
 contract Comptroller is
-  PublicGood,
   MultiRolesAuthority,
+  PublicGood,
   Cloneable,
   Multicallable
 {
@@ -29,9 +29,7 @@ contract Comptroller is
     initializer
   {
     __initPublicGood(_beneficiary);
-
-    address _owner = abi.decode(_params, (address));
-    __initAuth(_owner, this);
+    __initAuth(abi.decode(_params, (address)), this);
   }
 
   function clone(address _owner)

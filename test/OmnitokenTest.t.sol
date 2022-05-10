@@ -4,12 +4,8 @@ pragma solidity ^0.8.13;
 import {ChainEnvironmentTest, Omnitoken} from "@test/ChainEnvironmentTest.t.sol";
 
 contract OmnitokenTest is ChainEnvironmentTest {
-  Omnitoken public omnitoken;
-
-  function setUp() public override {
-    super.setUp();
-    omnitoken = testCloneGas();
-  }
+  Omnitoken public omnitoken =
+    Omnitoken(token.clone(address(comptroller), "Frontier Carbon", "TIME", 3));
 
   function testCloneGas() public returns (Omnitoken n) {
     n = Omnitoken(

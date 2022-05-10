@@ -10,12 +10,12 @@ abstract contract Comptrolled is Auth {
     __initAuth(Auth(_comptroller).owner(), Authority(_comptroller));
   }
 
-  function withdraw(uint256 amount) external requiresAuth {
+  function withdraw(uint256 amount) public requiresAuth {
     payable(address(authority)).transfer(amount);
   }
 
   function withdrawToken(address token, uint256 amount)
-    external
+    public
     virtual
     requiresAuth
   {

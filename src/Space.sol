@@ -11,10 +11,10 @@ import {OmniTokenURI} from "@protocol/mixins/OmniTokenURI.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
 contract Space is
+  ERC721,
   Comptrolled,
   Omnichain,
   IOmnitoken,
-  ERC721,
   OmniTokenURI,
   EdenDaoNS
 {
@@ -92,10 +92,10 @@ contract Space is
   // =========================
   function estimateSendFee(
     uint16 toChainId,
-    bytes memory toAddress,
+    bytes calldata toAddress,
     uint256 amount,
     bool useZRO,
-    bytes memory adapterParams
+    bytes calldata adapterParams
   ) external view override returns (uint256 nativeFee, uint256 lzFee) {
     (nativeFee, lzFee) = lzEndpoint.estimateFees(
       toChainId,
@@ -114,14 +114,15 @@ contract Space is
     // solhint-disable-next-line no-unused-vars
     address payable,
     address lzPaymentAddress,
-    bytes memory lzAdapterParams
+    bytes calldata lzAdapterParams
   ) external payable {
-    require(
-      msg.sender == fromAddress && fromAddress == ownerOf(id),
-      "Space: UNAUTHORIZED"
-    );
-
-    _burn(id);
+    if (mintable) {
+      transferFrom(fromAddress, address(this), id);
+    } else if (msg.sender == fromAddress && fromAddress == ownerOf(id)) {
+      _burn(id);
+    } else {
+      revert("Space: UNAUTHORIZED");
+    }
 
     lzSend(
       toChainId,
@@ -151,7 +152,11 @@ contract Space is
     );
     address toAddress = _addressFromPackedBytes(toAddressB);
 
-    _mint(toAddress, id);
+    if (mintable) {
+      transferFrom(address(this), toAddress, id);
+    } else {
+      _mint(toAddress, id);
+    }
 
     emit ReceiveFromChain(
       fromChainId,

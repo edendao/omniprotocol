@@ -1,9 +1,18 @@
-// SPDX-License-Identifier: AGLP-3.0-only
-pragma solidity ^0.8.4;
+// SPDX-License-Identifier: MIT
 
-import {ILayerZeroEndpoint} from "@layerzerolabs/contracts/interfaces/ILayerZeroEndpoint.sol";
-import {ILayerZeroReceiver} from "@layerzerolabs/contracts/interfaces/ILayerZeroReceiver.sol";
+pragma solidity ^0.8.13;
+pragma abicoder v2;
 
+import "@layerzerolabs/contracts/interfaces/ILayerZeroReceiver.sol";
+import "@layerzerolabs/contracts/interfaces/ILayerZeroEndpoint.sol";
+
+/*
+mocking multi endpoint connection.
+- send() will short circuit to lzReceive() directly
+- no reentrancy guard. the real LayerZero endpoint on main net has a send and receive guard, respectively.
+if we run a ping-pong-like application, the recursive call might use all gas limit in the block.
+- not using any messaging library, hence all messaging library func, e.g. estimateFees, version, will not work
+*/
 contract LZEndpointMock is ILayerZeroEndpoint {
   mapping(address => address) public lzEndpointLookup;
 
@@ -84,13 +93,18 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     address payable, // _refundAddress
     address, // _zroPaymentAddress
     bytes memory _adapterParams
-  ) external payable {
+  ) external payable override {
     address destAddr = packedBytesToAddr(_destination);
     address lzEndpoint = lzEndpointLookup[destAddr];
 
     require(
       lzEndpoint != address(0),
       "LayerZeroMock: destination LayerZero Endpoint not found"
+    );
+
+    require(
+      msg.value >= nativeFee * _payload.length,
+      "LayerZeroMock: not enough native for fees"
     );
 
     uint64 nonce;
@@ -109,8 +123,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         dstNativeAddr := mload(add(_adapterParams, 86))
       }
 
-      // to simulate actually sending the ether, add a transfer call
-      // and ensure the LZEndpointMock contract has an ether balance
+      // to simulate actually sending the ether, add a transfer call and ensure the LZEndpointMock contract has an ether balance
     }
 
     bytes memory bytesSourceUserApplicationAddr = addrToPackedBytes(
@@ -118,6 +131,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     ); // cast this address to bytes
 
     // not using the extra gas parameter because this is a single tx call, not split between different chains
+    // LZEndpointMock(lzEndpoint).receivePayload(mockChainId, bytesSourceUserApplicationAddr, destAddr, nonce, extraGas, _payload);
     LZEndpointMock(lzEndpoint).receivePayload(
       mockChainId,
       bytesSourceUserApplicationAddr,
@@ -187,6 +201,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
       nextMsgBLocked = false;
     } else {
       // we ignore the gas limit because this call is made in one tx due to being "same chain"
+      // ILayerZeroReceiver(_dstAddress).lzReceive{gas: _gasLimit}(_srcChainId, _srcAddress, _nonce, _payload); // invoke lzReceive
       ILayerZeroReceiver(_dstAddress).lzReceive(
         _srcChainId,
         _srcAddress,
@@ -218,11 +233,11 @@ contract LZEndpointMock is ILayerZeroEndpoint {
   function estimateFees(
     uint16,
     address,
-    bytes memory,
+    bytes memory _payload,
     bool,
     bytes memory
   ) external view override returns (uint256 _nativeFee, uint256 _zroFee) {
-    _nativeFee = nativeFee;
+    _nativeFee = nativeFee * _payload.length;
     _zroFee = zroFee;
   }
 

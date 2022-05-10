@@ -161,7 +161,7 @@ contract Omnicast is
     bytes memory data,
     uint16 onChainId,
     address lzPaymentAddress,
-    bytes memory lzAdapterParams
+    bytes calldata lzAdapterParams
   ) public payable {
     require(
       canWriteMessage(msg.sender, toReceiverId, withSenderId),

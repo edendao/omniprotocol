@@ -9,6 +9,7 @@ import {MockERC20} from "@test/mocks/MockERC20.sol";
 
 import {Comptroller} from "@protocol/Comptroller.sol";
 import {Omnitoken} from "@protocol/Omnitoken.sol";
+import {Tokenbridge} from "@protocol/Tokenbridge.sol";
 import {Omnicast} from "@protocol/Omnicast.sol";
 import {Passport} from "@protocol/Passport.sol";
 import {Space} from "@protocol/Space.sol";
@@ -23,13 +24,14 @@ contract ChainEnvironmentTest is DSTestPlus {
 
   Comptroller public comptroller = new Comptroller(beneficiary, address(this));
 
-  Omnitoken public token = new Omnitoken();
+  Tokenbridge public bridge = new Tokenbridge(beneficiary, address(lzEndpoint));
+  Omnitoken public token = new Omnitoken(beneficiary, address(lzEndpoint));
 
   Omnicast public omnicast =
     new Omnicast(
       address(lzEndpoint),
       address(comptroller),
-      lzEndpoint.mockChainId()
+      lzEndpoint.getChainId()
     );
 
   Space public space =

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.13;
 
+import {console} from "forge-std/console.sol";
 import {ILayerZeroEndpoint} from "@layerzerolabs/contracts/interfaces/ILayerZeroEndpoint.sol";
 import {ILayerZeroReceiver} from "@layerzerolabs/contracts/interfaces/ILayerZeroReceiver.sol";
 
@@ -13,26 +14,6 @@ abstract contract Omnichain is PublicGood, Auth, Pausable, ILayerZeroReceiver {
 
   function __initOmnichain(address _lzEndpoint) internal {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
-  }
-
-  mapping(uint16 => bytes) public trustedRemoteLookup;
-
-  event SetTrustedRemote(uint16 onChainId, bytes contractAddress);
-
-  function setTrustedRemoteContract(
-    uint16 onChainId,
-    bytes calldata contractAddress
-  ) external requiresAuth {
-    trustedRemoteLookup[onChainId] = contractAddress;
-    emit SetTrustedRemote(onChainId, contractAddress);
-  }
-
-  function isTrustedRemoteContract(uint16 onChainId, bytes calldata remote)
-    public
-    view
-    returns (bool)
-  {
-    return keccak256(remote) == keccak256(trustedRemoteLookup[onChainId]);
   }
 
   function _addressFromPackedBytes(bytes memory toAddressBytes)
@@ -49,11 +30,31 @@ abstract contract Omnichain is PublicGood, Auth, Pausable, ILayerZeroReceiver {
   // ===================================
   // ========= LAYER ZERO SEND =========
   // ===================================
+  mapping(uint16 => bytes) public trustedRemoteLookup;
+
+  event SetTrustedRemote(uint16 onChainId, bytes contractAddress);
+
+  function setTrustedRemote(uint16 onChainId, bytes calldata contractAddress)
+    external
+    requiresAuth
+  {
+    trustedRemoteLookup[onChainId] = contractAddress;
+    emit SetTrustedRemote(onChainId, contractAddress);
+  }
+
+  function isTrustedRemote(uint16 onChainId, bytes calldata remote)
+    public
+    view
+    returns (bool)
+  {
+    return keccak256(remote) == keccak256(trustedRemoteLookup[onChainId]);
+  }
+
   function lzSend(
     uint16 toChainId,
     bytes memory payload,
     address lzPaymentAddress,
-    bytes memory lzAdapterParams
+    bytes calldata lzAdapterParams
   ) internal whenNotPaused {
     bytes memory remoteContract = trustedRemoteLookup[toChainId];
     require(remoteContract.length != 0, "Omnichain: INVALID_DESTINATION");
@@ -90,7 +91,7 @@ abstract contract Omnichain is PublicGood, Auth, Pausable, ILayerZeroReceiver {
   ) external override {
     require(
       msg.sender == address(lzEndpoint) &&
-        isTrustedRemoteContract(fromChainId, fromContract),
+        isTrustedRemote(fromChainId, fromContract),
       "Omnichain: INVALID_CALLER"
     );
 
