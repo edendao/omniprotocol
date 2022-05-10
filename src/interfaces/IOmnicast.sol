@@ -8,8 +8,8 @@ interface IOmnicast {
   event Message(
     uint16 indexed chainId,
     uint64 nonce,
-    uint256 indexed receiverId,
     uint256 indexed senderId,
+    uint256 indexed receiverId,
     bytes data
   );
 
@@ -19,35 +19,36 @@ interface IOmnicast {
   // Testnets Chain IDs
   // https://layerzero.gitbook.io/docs/technical-reference/testnet/testnet-addresses
   function writeMessage(
-    uint256 toReceiverId, // use idOf(address account)
     uint256 withSenderId, // use idOf(address account) or idOf(omnicast name)
-    bytes memory payload, // abi.encode anything you please!
     uint16 onChainId,
+    uint256 toReceiverId, // use idOf(address account)
+    bytes memory payload, // abi.encode anything you please!
     address lzPaymentAddress,
     bytes memory lzAdapterParams
   ) external payable;
 
   // Read the latest message
-  function readMessage(uint256 receiverId, uint256 senderId)
+  function readMessage(uint256 senderId, uint256 receiverId)
     external
     view
     returns (bytes memory data);
 
-  // Read the latest message
+  // Lookup by a nonce
   function readMessage(
-    uint256 receiverId,
     uint256 senderId,
+    uint256 receiverId,
     uint64 withNonce
   ) external view returns (bytes memory data);
 
-  // Load a message at a specific index
-  function receivedMessages(
-    uint256 receiverId,
+  // Lookup by index
+  function receivedMessage(
     uint256 senderId,
+    uint256 receiverId,
     uint256 messageIndex
   ) external view returns (bytes memory data);
 
-  function receivedMessagesCount(uint256 receiverId, uint256 senderId)
+  // Get count
+  function receivedMessageCount(uint256 senderId, uint256 receiverId)
     external
     view
     returns (uint256 messagesCount);

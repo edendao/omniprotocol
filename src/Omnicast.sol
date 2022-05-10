@@ -59,15 +59,15 @@ contract Omnicast is
   // =====================================
   // ===== OMNICAST MESSAGING LAYER ======
   // =====================================
-  // (receiverId => senderId => (uint64 nonce, bytes payload)[])
-  mapping(uint256 => mapping(uint256 => bytes[])) public receivedMessages;
+  // (senderId => receiverId => (uint64 nonce, bytes payload)[])
+  mapping(uint256 => mapping(uint256 => bytes[])) public receivedMessage;
 
-  function readMessage(uint256 receiverId, uint256 senderId)
+  function readMessage(uint256 senderId, uint256 receiverId)
     public
     view
     returns (bytes memory)
   {
-    bytes[] memory messages = receivedMessages[receiverId][senderId];
+    bytes[] memory messages = receivedMessage[senderId][receiverId];
     (, bytes memory payload) = abi.decode(
       messages[messages.length - 1],
       (uint64, bytes)
@@ -76,11 +76,11 @@ contract Omnicast is
   }
 
   function readMessage(
-    uint256 receiverId,
     uint256 senderId,
+    uint256 receiverId,
     uint64 withNonce
   ) public view returns (bytes memory) {
-    bytes[] memory messages = receivedMessages[receiverId][senderId];
+    bytes[] memory messages = receivedMessage[senderId][receiverId];
     for (uint256 i = messages.length - 1; i >= 0; i--) {
       (uint64 msgNonce, bytes memory payload) = abi.decode(
         messages[messages.length - 1],
@@ -93,12 +93,12 @@ contract Omnicast is
     return bytes("");
   }
 
-  function receivedMessagesCount(uint256 receiverId, uint256 senderId)
+  function receivedMessageCount(uint256 senderId, uint256 receiverId)
     public
     view
     returns (uint256)
   {
-    return receivedMessages[receiverId][senderId].length;
+    return receivedMessage[senderId][receiverId].length;
   }
 
   function receiveMessage(
@@ -107,13 +107,13 @@ contract Omnicast is
     uint64 msgNonce,
     bytes calldata payload
   ) internal override {
-    (uint256 receiverId, uint256 senderId, bytes memory data) = abi.decode(
+    (uint256 senderId, uint256 receiverId, bytes memory data) = abi.decode(
       payload,
       (uint256, uint256, bytes)
     );
 
-    receivedMessages[receiverId][senderId].push(abi.encode(msgNonce, data));
-    emit Message(currentChainId, msgNonce, receiverId, senderId, data);
+    receivedMessage[senderId][receiverId].push(abi.encode(msgNonce, data));
+    emit Message(currentChainId, msgNonce, senderId, receiverId, data);
   }
 
   function estimateWriteFee(
@@ -133,8 +133,8 @@ contract Omnicast is
 
   function canWriteMessage(
     address writer,
-    uint256 toReceiverId,
-    uint256 withSenderId
+    uint256 withSenderId,
+    uint256 toReceiverId
   ) public view returns (bool) {
     if (uint256(uint160(writer)) == toReceiverId) {
       return true;
@@ -156,29 +156,29 @@ contract Omnicast is
   }
 
   function writeMessage(
-    uint256 toReceiverId,
     uint256 withSenderId,
-    bytes memory data,
     uint16 onChainId,
+    uint256 toReceiverId,
+    bytes memory data,
     address lzPaymentAddress,
     bytes calldata lzAdapterParams
   ) public payable {
     require(
-      canWriteMessage(msg.sender, toReceiverId, withSenderId),
+      canWriteMessage(msg.sender, withSenderId, toReceiverId),
       "Omnicast: UNAUTHORIZED"
     );
 
     if (onChainId == currentChainId) {
       uint64 msgNonce = nonce++;
-      receivedMessages[toReceiverId][withSenderId].push(
+      receivedMessage[withSenderId][toReceiverId].push(
         abi.encode(msgNonce, data)
       );
 
-      emit Message(onChainId, msgNonce, toReceiverId, withSenderId, data);
+      emit Message(onChainId, msgNonce, withSenderId, toReceiverId, data);
     } else {
       lzSend(
         onChainId,
-        abi.encode(toReceiverId, withSenderId, data),
+        abi.encode(withSenderId, toReceiverId, data),
         lzPaymentAddress,
         lzAdapterParams
       );

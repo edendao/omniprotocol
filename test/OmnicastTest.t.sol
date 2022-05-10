@@ -26,15 +26,15 @@ contract OmnicastTest is ChainEnvironmentTest {
 
     hevm.prank(caller);
     omnicast.writeMessage(
-      callerPassportId,
       spaceId,
-      data,
       currentChainId,
+      callerPassportId,
+      data,
       address(0),
       ""
     );
 
-    assertEq0(data, omnicast.readMessage(callerPassportId, spaceId));
+    assertEq0(data, omnicast.readMessage(spaceId, callerPassportId));
   }
 
   function testFailUnauthorizedSetTokenURI(address caller, string memory uri)
@@ -50,10 +50,10 @@ contract OmnicastTest is ChainEnvironmentTest {
 
     hevm.prank(caller);
     omnicast.writeMessage(
-      passportId,
       tokenuriSpace,
-      bytes(uri),
       currentChainId,
+      passportId,
+      bytes(uri),
       address(0),
       ""
     );
@@ -61,10 +61,10 @@ contract OmnicastTest is ChainEnvironmentTest {
 
   function testMessageGas() public {
     omnicast.writeMessage(
-      omnicast.idOf(beneficiary),
       passportId,
-      "prosperity",
       currentChainId,
+      omnicast.idOf(beneficiary),
+      "prosperity",
       address(0),
       ""
     );
@@ -73,8 +73,8 @@ contract OmnicastTest is ChainEnvironmentTest {
       "prosperity",
       string(
         omnicast.readMessage(
-          omnicast.idOf(beneficiary),
-          omnicast.idOf(address(this))
+          omnicast.idOf(address(this)),
+          omnicast.idOf(beneficiary)
         )
       )
     );
@@ -86,15 +86,15 @@ contract OmnicastTest is ChainEnvironmentTest {
     uint256 receiverId = omnicast.idOf(to);
 
     omnicast.writeMessage(
-      receiverId,
       passportId,
-      payload,
       currentChainId,
+      receiverId,
+      payload,
       address(0),
       ""
     );
 
-    assertEq0(payload, omnicast.readMessage(receiverId, passportId));
+    assertEq0(payload, omnicast.readMessage(passportId, receiverId));
   }
 
   function testRemoteSendAndRead(
@@ -112,16 +112,16 @@ contract OmnicastTest is ChainEnvironmentTest {
     uint256 receiverId = omnicast.idOf(to);
 
     omnicast.writeMessage{value: 0.1 ether}(
-      receiverId,
       passportId,
-      payload,
       chainId,
+      receiverId,
+      payload,
       address(0),
       ""
     );
 
-    assertEq(1, omnicast.receivedMessagesCount(receiverId, passportId));
-    assertEq0(payload, omnicast.readMessage(receiverId, passportId));
+    assertEq(1, omnicast.receivedMessageCount(passportId, receiverId));
+    assertEq0(payload, omnicast.readMessage(passportId, receiverId));
   }
 
   function testFailUnauthorizedWrite(
@@ -140,10 +140,10 @@ contract OmnicastTest is ChainEnvironmentTest {
     uint256 senderId = passport.mint{value: 0.1 ether}(senderAddress);
 
     omnicast.writeMessage(
-      receiverId,
       senderId,
-      payload,
       currentChainId,
+      receiverId,
+      payload,
       address(0),
       ""
     );
