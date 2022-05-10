@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {IOFT} from "@protocol/interfaces/IOFT.sol";
 import {IOmnicast} from "@protocol/interfaces/IOmnicast.sol";
 
 import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
+import {Multicallable} from "@protocol/mixins/Multicallable.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 
 interface Ownable {
   function ownerOf(uint256 id) external view returns (address);
 }
 
-contract Omnicast is Omnichain, IOmnicast, EdenDaoNS {
+contract Omnicast is Omnichain, IOmnicast, Multicallable, EdenDaoNS {
   uint16 public currentChainId;
   uint64 public nonce;
 
@@ -28,17 +28,17 @@ contract Omnicast is Omnichain, IOmnicast, EdenDaoNS {
       address _lzEndpoint,
       address _space,
       address _passport,
-      uint16 _chainId
+      uint16 _currentChainId
     ) = abi.decode(_params, (address, address, address, address, uint16));
 
-    _setBeneficiary(_beneficiary);
-    _setLayerZeroEndpoint(_lzEndpoint);
-    _setComptroller(_comptroller);
+    __initPublicGood(_beneficiary);
+    __initOmnichain(_lzEndpoint);
+    __initComptrolled(_comptroller);
 
     space = _space;
     passport = _passport;
 
-    currentChainId = _chainId;
+    currentChainId = _currentChainId;
   }
 
   // =====================================

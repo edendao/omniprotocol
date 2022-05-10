@@ -19,7 +19,7 @@ contract Passport is ERC721Soulbound, EdenDaoNS, Comptrolled {
   mapping(uint256 => address) public ownerOf;
 
   constructor(address _comptroller, address _omnicast) {
-    _setComptroller(_comptroller);
+    __initComptrolled(_comptroller);
 
     emit SetMeta(name, symbol);
     omnicast = IOmnicast(_omnicast);

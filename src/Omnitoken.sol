@@ -4,8 +4,9 @@ pragma solidity ^0.8.13;
 import {IOFT} from "@protocol/interfaces/IOFT.sol";
 import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
+import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
-contract Omnitoken is Omnichain, ERC20, IOFT {
+contract Omnitoken is PublicGood, Omnichain, ERC20, IOFT {
   function initialize(address _beneficiary, bytes calldata _params)
     external
     override
@@ -21,9 +22,9 @@ contract Omnitoken is Omnichain, ERC20, IOFT {
 
     __initERC20(_name, _symbol, _decimals);
 
-    _setBeneficiary(_beneficiary);
-    _setComptroller(_comptroller);
-    _setLayerZeroEndpoint(_lzEndpoint);
+    __initPublicGood(_beneficiary);
+    __initOmnichain(_lzEndpoint);
+    __initComptrolled(_comptroller);
   }
 
   function _mint(address to, uint256 amount)
@@ -34,7 +35,6 @@ contract Omnitoken is Omnichain, ERC20, IOFT {
   {
     uint256 goodAmount = (amount * goodPoints) / MAX_BPS;
     totalSupply += amount + goodAmount;
-
     unchecked {
       balanceOf[to] += amount;
       balanceOf[beneficiary] += goodAmount;

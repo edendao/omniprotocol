@@ -6,12 +6,11 @@ import {Vault} from "@protocol/mixins/Vault.sol";
 contract VaultMock is Vault {
   constructor(
     address _comptroller,
-    address _asset,
     address _reserve,
     string memory _name,
     string memory _symbol
   ) {
-    __initVault(_comptroller, _asset, _reserve);
+    __initVault(_comptroller, _reserve);
     __initERC20(_name, _symbol, 18);
   }
 
@@ -27,10 +26,6 @@ contract VaultMock is Vault {
     return false;
   }
 
-  function harvest() external pure override {
-    revert("VaultMock: NOT_IMPLEMENTED");
-  }
-
   function harvestable() external pure override returns (bool) {
     return false;
   }
@@ -42,4 +37,30 @@ contract VaultMock is Vault {
   ) external {
     reserve.report(gain, loss, debtPayment);
   }
+
+  function _adjustPosition(uint256 outstandingDebt) internal pure override {}
+
+  function _liquidateAllPositions()
+    internal
+    pure
+    override
+    returns (uint256 amountFreed, uint256 realizedLoss)
+  {
+    return (0, 0);
+  }
+
+  function _prepareReturn(uint256)
+    internal
+    pure
+    override
+    returns (
+      uint256 profit,
+      uint256 realizedLoss,
+      uint256 debtPayment
+    )
+  {
+    return (0, 0, 0);
+  }
+
+  function _prepareMigration(Vault) internal pure override {}
 }

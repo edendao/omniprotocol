@@ -12,12 +12,9 @@ contract Comptroller is PublicGood, Multicallable, MultiRolesAuthority {
     override
     initializer
   {
-    address _owner = abi.decode(_params, (address));
+    __initAuth(abi.decode(_params, (address)), this);
 
-    __initAuth(_owner, this);
-
-    _setBeneficiary(_beneficiary);
-    _setComptroller(address(this));
+    __initPublicGood(_beneficiary);
   }
 
   function setCapabilitiesTo(

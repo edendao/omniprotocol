@@ -31,21 +31,10 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
   uint8 public constant MAX_STRATEGIES = 20;
   uint8 public constant SET_SIZE = 32;
 
-  uint64 public debtPoints;
-  uint64 public performancePoints;
-  event UpdatePerformancePoints(uint64 performancePoints);
-  uint64 public lastReportTimestamp;
-  uint64 public activationTimestamp;
-  uint256 public depositLimit;
-  event UpdateDepositLimit(uint256 depositLimit);
-  uint256 public totalDebt;
-  uint256 public lockedProfit;
+  address[MAX_STRATEGIES] public withdrawalQueue;
+  event SetWithdrawalQueue(address[MAX_STRATEGIES] queue);
 
   mapping(address => ReserveVaultState) public vaultStateOf;
-
-  address[MAX_STRATEGIES] public withdrawalQueue;
-  event UpdateWithdrawalQueue(address[MAX_STRATEGIES] queue);
-
   event ReserveVaultStateUpsert(
     address indexed vault,
     uint64 performancePoints,
@@ -53,7 +42,6 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
     uint256 minDebtPerHarvest,
     uint256 maxDebtPerHarvest
   );
-
   event ReserveVaultReport(
     address indexed vault,
     uint64 debtPoints,
@@ -64,6 +52,24 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
     uint256 totalLoss,
     uint256 totalDebt,
     uint256 debtAdded
+  );
+
+  uint256 public depositLimit;
+  event SetDepositLimit(uint256 depositLimit);
+
+  uint64 public debtPoints;
+  uint64 public performancePoints;
+  event SetPerformancePoints(uint64 performancePoints);
+
+  uint64 public lastReportTimestamp;
+  uint64 public activationTimestamp;
+
+  uint256 public totalDebt;
+  uint256 public lockedProfit;
+  event BalanceUpdated(
+    uint256 totalDebt,
+    uint256 lockedProfit,
+    uint256 debtPoints
   );
 
   function initialize(address _beneficiary, bytes calldata _params)
@@ -78,17 +84,18 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
       string memory _symbol
     ) = abi.decode(_params, (address, address, string, string));
 
-    _setBeneficiary(_beneficiary);
     __initERC4626(ERC20(_asset));
     __initERC20(
       string(abi.encodePacked(_name, " Eden Dao Reserve")),
       string(abi.encodePacked("edn-", _symbol)),
       ERC20(_asset).decimals()
     );
-    _setComptroller(_comptroller);
+
+    __initPublicGood(_beneficiary);
+    __initComptrolled(_comptroller);
 
     performancePoints = 1000; // 10%
-    emit UpdatePerformancePoints(performancePoints);
+    emit SetPerformancePoints(performancePoints);
 
     lastReportTimestamp = uint64(block.timestamp);
     activationTimestamp = uint64(block.timestamp);
@@ -159,13 +166,13 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
 
   function setDepositLimit(uint256 limit) external requiresAuth {
     depositLimit = limit;
-    emit UpdateDepositLimit(depositLimit);
+    emit SetDepositLimit(depositLimit);
   }
 
   function setPerformancePoints(uint64 points) external requiresAuth {
     require(points <= 500 && points <= MAX_BPS / 2, "Reserve: INVALID_BP");
     performancePoints = points;
-    emit UpdatePerformancePoints(performancePoints);
+    emit SetPerformancePoints(performancePoints);
   }
 
   function setWithdrawalQueue(address[MAX_STRATEGIES] memory queue)
@@ -174,31 +181,30 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
   {
     address[SET_SIZE] memory set;
     for (uint256 i = 0; i < MAX_STRATEGIES; i++) {
-      if (queue[i] == address(0)) {
-        require(withdrawalQueue[i] == address(0), "Reseve: UNAUTHORIZED");
+      address a = queue[i];
+
+      if (a == address(0)) {
+        require(withdrawalQueue[i] == address(0), "Reserve: CANNOT_REMOVE");
         break;
       }
 
-      require(withdrawalQueue[i] != address(0), "Reseve: UNAUTHORIZED");
-      require(
-        vaultStateOf[queue[i]].activationTimestamp != 0,
-        "Reserve: INACTIVE_VAULT"
-      );
+      require(withdrawalQueue[i] != address(0), "Reserve: CANNOT_ADD");
+      require(isActiveVault(a), "Reserve: INACTIVE_VAULT");
 
-      uint256 key = uint256(uint160(queue[i])) & (SET_SIZE - 1);
+      uint256 key = uint256(uint160(a)) & (SET_SIZE - 1);
       for (uint256 j = 0; j < SET_SIZE; j++) {
         uint256 idx = (key + j) % SET_SIZE;
-        require(set[idx] != queue[i], "Reserve: DUPLICATE_VAULT");
+        require(set[idx] != a, "Reserve: DUPLICATE_VAULT");
         if (set[idx] == address(0)) {
-          set[idx] = queue[i];
+          set[idx] = a;
           break;
         }
       }
 
-      withdrawalQueue[i] = queue[i];
+      withdrawalQueue[i] = a;
     }
 
-    emit UpdateWithdrawalQueue(queue);
+    emit SetWithdrawalQueue(queue);
   }
 
   modifier onlyValidState(ReserveVaultState memory state) {
@@ -216,10 +222,6 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
     whenNotPaused
     onlyValidState(initialState)
   {
-    require(
-      withdrawalQueue[MAX_STRATEGIES - 1] == address(0),
-      "Reserve: QUEUE_LIMIT"
-    );
     require(vault != address(0), "Reserve: INVALID_ADDRESS");
     require(
       vaultStateOf[vault].activationTimestamp == 0,
@@ -228,6 +230,10 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
     require(
       address(asset) == address(ERC4626(vault).asset()),
       "Reserve: INVALID_ASSET"
+    );
+    require(
+      withdrawalQueue[MAX_STRATEGIES - 1] == address(0),
+      "Reserve: QUEUE_LIMIT"
     );
 
     uint64 timestamp = uint64(block.timestamp);
@@ -248,15 +254,16 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
     _organizeWithdrawalQueue();
   }
 
+  function isActiveVault(address vault) public view returns (bool) {
+    return vaultStateOf[vault].activationTimestamp != 0;
+  }
+
   modifier onlyActiveVault(address vault) {
-    require(
-      vaultStateOf[vault].activationTimestamp != 0,
-      "Reserve: INACTIVE_VAULT"
-    );
+    require(isActiveVault(vault), "Reserve: INACTIVE_VAULT");
     _;
   }
 
-  function setReserveVaultState(address vault, ReserveVaultState memory state)
+  function setVaultState(address vault, ReserveVaultState memory state)
     external
     requiresAuth
     onlyActiveVault(vault)
@@ -314,12 +321,10 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
   function creditAvailable(address vault) public view returns (uint256) {
     if (isPaused) return 0;
 
+    ReserveVaultState memory s = vaultStateOf[vault];
     uint256 reserveDebtLimit = totalAssets().mulDivDown(debtPoints, MAX_BPS);
-    uint256 vaultDebt = vaultStateOf[vault].totalDebt;
-    uint256 vaultDebtLimit = totalAssets().mulDivDown(
-      vaultStateOf[vault].debtPoints,
-      MAX_BPS
-    );
+    uint256 vaultDebt = s.totalDebt;
+    uint256 vaultDebtLimit = totalAssets().mulDivDown(s.debtPoints, MAX_BPS);
 
     if (vaultDebtLimit <= vaultDebt || reserveDebtLimit <= totalDebt) {
       return 0;
@@ -330,11 +335,11 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
       _min(vaultDebtLimit - vaultDebt, reserveDebtLimit - totalDebt)
     );
 
-    if (availableDebt < vaultStateOf[vault].minDebtPerHarvest) {
+    if (availableDebt < s.minDebtPerHarvest) {
       return 0;
     }
 
-    return _min(availableDebt, vaultStateOf[vault].maxDebtPerHarvest);
+    return _min(availableDebt, s.maxDebtPerHarvest);
   }
 
   // solhint-disable-next-line code-complexity
@@ -342,7 +347,7 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
     uint256 gain,
     uint256 loss,
     uint256 debtPayment
-  ) external onlyActiveVault(msg.sender) returns (uint256) {
+  ) external onlyActiveVault(msg.sender) returns (uint256 outstandingDebt) {
     require(
       asset.balanceOf(msg.sender) >= gain + debtPayment,
       "Reserve: INVALID_STATE"
@@ -368,7 +373,7 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
 
     s.totalGain += gain;
     uint256 availableCredit = creditAvailable(msg.sender);
-    uint256 outstandingDebt = debtOutstanding(msg.sender);
+    outstandingDebt = debtOutstanding(msg.sender);
     debtPayment = _min(debtPayment, outstandingDebt);
 
     if (debtPayment > 0) {
@@ -444,7 +449,7 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
     );
 
     // When paused or when revoked vault should return all assets
-    if (isPaused || vaultStateOf[msg.sender].debtPoints == 0) {
+    if (isPaused || s.debtPoints == 0) {
       return ERC4626(msg.sender).totalAssets();
     }
 
@@ -462,7 +467,7 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
         withdrawalQueue[i] = address(0);
       }
     }
-    emit UpdateWithdrawalQueue(withdrawalQueue);
+    emit SetWithdrawalQueue(withdrawalQueue);
   }
 
   function _max(uint256 a, uint256 b) internal pure returns (uint256) {

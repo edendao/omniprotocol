@@ -33,7 +33,6 @@ contract ReserveTest is ChainEnvironmentTest {
   function xtestAddVault() public returns (VaultMock v) {
     v = new VaultMock(
       address(comptroller),
-      address(dai),
       address(reserve),
       "Mockingbird",
       "MOCK"

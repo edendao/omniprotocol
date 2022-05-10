@@ -10,7 +10,7 @@ abstract contract PublicGood is Comptrolled {
 
   event SetBeneficiary(address beneficiary);
 
-  function _setBeneficiary(address _beneficiary) internal {
+  function __initPublicGood(address _beneficiary) internal {
     beneficiary = _beneficiary;
     emit SetBeneficiary(_beneficiary);
   }
@@ -26,7 +26,7 @@ abstract contract PublicGood is Comptrolled {
   bool internal isInitialized;
 
   modifier initializer() {
-    require(!isInitialized, "Cloneable: INVARIANT");
+    require(!isInitialized, "ALREADY_INITIALIZED");
     _;
     isInitialized = true;
   }
@@ -35,26 +35,30 @@ abstract contract PublicGood is Comptrolled {
     revert("UNIMPLEMENTED");
   }
 
+  event CreateClone(address indexed implementation);
+
   function clone(bytes memory params)
     public
     payable
-    returns (address deployedAddress)
+    returns (address cloneAddress)
   {
     bytes20 targetBytes = bytes20(address(this));
     // solhint-disable-next-line no-inline-assembly
     assembly {
-      let cloneData := mload(0x40)
+      let code := mload(0x40)
       mstore(
-        cloneData,
+        code,
         0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
       )
-      mstore(add(cloneData, 0x14), targetBytes)
+      mstore(add(code, 0x14), targetBytes)
       mstore(
-        add(cloneData, 0x28),
+        add(code, 0x28),
         0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
       )
-      deployedAddress := create(0, cloneData, 0x37)
+      cloneAddress := create(0, code, 0x37)
     }
-    PublicGood(deployedAddress).initialize(beneficiary, params);
+
+    PublicGood(cloneAddress).initialize(beneficiary, params);
+    emit CreateClone(cloneAddress);
   }
 }

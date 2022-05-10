@@ -6,7 +6,7 @@ import {Auth} from "@protocol/auth/Auth.sol";
 import {Comptroller} from "@protocol/Comptroller.sol";
 
 abstract contract Comptrolled is Auth {
-  function _setComptroller(address _comptroller) internal {
+  function __initComptrolled(address _comptroller) internal {
     Comptroller comptroller = Comptroller(payable(_comptroller));
     __initAuth(comptroller.owner(), comptroller);
   }

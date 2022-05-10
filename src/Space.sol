@@ -19,8 +19,8 @@ contract Space is Omnichain, ERC721, EdenDaoNS {
     address _omnicast,
     uint16 _primaryChainId
   ) ERC721("Eden Dao Space", "DAO SPACE") {
-    _setComptroller(_comptroller);
-    _setLayerZeroEndpoint(_lzEndpoint);
+    __initComptrolled(_comptroller);
+    __initOmnichain(_lzEndpoint);
 
     omnicast = IOmnicast(_omnicast);
     primaryChainId = _primaryChainId;
