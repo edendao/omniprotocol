@@ -4,7 +4,7 @@
 
 # Update dependencies
 setup			:; make update-libs ; make install-deps
-update-libs		:; git submodule update --init --recursive
+update-libs		:; forge update
 install-deps	:; yarn install
 
 # Build & test & deploy
