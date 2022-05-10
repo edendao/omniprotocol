@@ -20,11 +20,10 @@ contract Omnitoken is PublicGood, Omnichain, ERC20, IOFT {
       uint8 _decimals
     ) = abi.decode(_params, (address, address, string, string, uint8));
 
-    __initERC20(_name, _symbol, _decimals);
-
     __initPublicGood(_beneficiary);
-    __initOmnichain(_lzEndpoint);
     __initComptrolled(_comptroller);
+    __initOmnichain(_lzEndpoint);
+    __initERC20(_name, _symbol, _decimals);
   }
 
   function _mint(address to, uint256 amount)
@@ -35,6 +34,7 @@ contract Omnitoken is PublicGood, Omnichain, ERC20, IOFT {
   {
     uint256 goodAmount = (amount * goodPoints) / MAX_BPS;
     totalSupply += amount + goodAmount;
+
     unchecked {
       balanceOf[to] += amount;
       balanceOf[beneficiary] += goodAmount;
@@ -48,9 +48,9 @@ contract Omnitoken is PublicGood, Omnichain, ERC20, IOFT {
     _mint(to, amount);
   }
 
-  // ========================
-  // ========= OFT ==========
-  // ========================
+  // ================================
+  // ============= OFT ==============
+  // ================================
   function circulatingSupply() public view virtual returns (uint256) {
     return totalSupply;
   }
@@ -113,7 +113,7 @@ contract Omnitoken is PublicGood, Omnichain, ERC20, IOFT {
       payload,
       (bytes, uint256)
     );
-    address toAddress = addressFromPackedBytes(toAddressB);
+    address toAddress = _addressFromPackedBytes(toAddressB);
 
     _mint(toAddress, amount);
 

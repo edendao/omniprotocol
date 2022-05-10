@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGLP-3.0-only
 pragma solidity ^0.8.13;
 
 import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";

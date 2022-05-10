@@ -153,7 +153,7 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
   {
     // Disable withdrawals of the underlying asset
     require(token != address(asset), "Reserve: INVALID_TOKEN");
-    TransferToken(token).transfer(comptrollerAddress(), amount);
+    TransferToken(token).transfer(address(authority), amount);
   }
 
   function totalShares() public view returns (uint256) {

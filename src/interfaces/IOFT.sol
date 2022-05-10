@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGLP-3.0-only
 pragma solidity ^0.8.13;
 
 // For compatibility with LayerZero's OFT standard

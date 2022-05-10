@@ -14,17 +14,6 @@ abstract contract Omnichain is PublicGood, ILayerZeroReceiver, Pausable {
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
   }
 
-  function addressFromPackedBytes(bytes memory toAddressBytes)
-    public
-    pure
-    returns (address toAddress)
-  {
-    // solhint-disable-next-line no-inline-assembly
-    assembly {
-      toAddress := mload(add(toAddressBytes, 20))
-    }
-  }
-
   mapping(uint16 => bytes) public trustedRemoteLookup;
 
   event SetTrustedRemote(uint16 onChainId, bytes contractAddress);
@@ -37,17 +26,28 @@ abstract contract Omnichain is PublicGood, ILayerZeroReceiver, Pausable {
     emit SetTrustedRemote(onChainId, contractAddress);
   }
 
-  function isTrustedRemoteContract(
-    uint16 onChainId,
-    bytes calldata contractAddress
-  ) public view returns (bool) {
-    return
-      keccak256(contractAddress) == keccak256(trustedRemoteLookup[onChainId]);
+  function isTrustedRemoteContract(uint16 onChainId, bytes calldata remote)
+    public
+    view
+    returns (bool)
+  {
+    return keccak256(remote) == keccak256(trustedRemoteLookup[onChainId]);
   }
 
-  // ===============================
-  // ======= LAYER ZERO SEND =======
-  // ===============================
+  function _addressFromPackedBytes(bytes memory toAddressBytes)
+    internal
+    pure
+    returns (address toAddress)
+  {
+    // solhint-disable-next-line no-inline-assembly
+    assembly {
+      toAddress := mload(add(toAddressBytes, 20))
+    }
+  }
+
+  // ===================================
+  // ========= LAYER ZERO SEND =========
+  // ===================================
   function lzSend(
     uint16 toChainId,
     bytes memory payload,
@@ -68,9 +68,9 @@ abstract contract Omnichain is PublicGood, ILayerZeroReceiver, Pausable {
     );
   }
 
-  // ==================================
-  // ======= LAYER ZERO RECEIVE =======
-  // ==================================
+  // ====================================
+  // ======= NONBLOCKING RECEIVER =======
+  // ====================================
   mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32)))
     public failedMessagesHash;
 

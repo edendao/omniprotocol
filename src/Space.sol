@@ -108,6 +108,6 @@ contract Space is Omnichain, ERC721, EdenDaoNS {
       (bytes, uint256)
     );
 
-    _mint(addressFromPackedBytes(toAddressB), id);
+    _mint(_addressFromPackedBytes(toAddressB), id);
   }
 }
