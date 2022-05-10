@@ -6,6 +6,10 @@ import {BoringAddress} from "@boring/libraries/BoringAddress.sol";
 import {ChainEnvironmentTest, Comptroller} from "@test/ChainEnvironmentTest.t.sol";
 
 contract ComptrollerTest is ChainEnvironmentTest {
+  function testFailAlreadyInitialized() public {
+    comptroller.initialize(beneficiary, abi.encodePacked(address(this)));
+  }
+
   function testCloneGas() public {
     Comptroller c = Comptroller(payable(comptroller.clone(address(this))));
     assertEq(c.owner(), address(this));

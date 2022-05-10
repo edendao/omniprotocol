@@ -4,9 +4,15 @@ pragma solidity ^0.8.13;
 import {Initializable} from "@protocol/mixins/Initializable.sol";
 
 abstract contract Cloneable is Initializable {
+  uint256 private _cloneId;
+
   event CreateClone(address indexed implementation);
 
   function clone() internal returns (address cloneAddress) {
+    return clone(keccak256(abi.encode(_cloneId++)));
+  }
+
+  function clone(bytes32 salt) internal returns (address cloneAddress) {
     bytes20 targetBytes = bytes20(address(this));
     // solhint-disable-next-line no-inline-assembly
     assembly {
@@ -20,7 +26,7 @@ abstract contract Cloneable is Initializable {
         add(code, 0x28),
         0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
       )
-      cloneAddress := create(0, code, 0x37)
+      cloneAddress := create2(0, code, 0x37, salt)
     }
     emit CreateClone(cloneAddress);
   }

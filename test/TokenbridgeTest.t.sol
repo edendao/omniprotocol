@@ -12,7 +12,7 @@ contract TokenbridgeTest is ChainEnvironmentTest {
     Omnitoken(token.clone(address(comptroller), "DAI", "DAI", dai.decimals()));
 
   function testCloneGas() public {
-    Tokenbridge(bridge.clone(address(comptroller), address(dai)));
+    Tokenbridge(bridge.clone(address(comptroller), address(omnitoken)));
   }
 
   function testSendFrom(

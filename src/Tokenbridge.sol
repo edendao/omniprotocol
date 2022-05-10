@@ -51,7 +51,7 @@ contract Tokenbridge is
     payable
     returns (address cloneAddress)
   {
-    cloneAddress = clone();
+    cloneAddress = clone(keccak256(abi.encode(_asset)));
     Cloneable(cloneAddress).initialize(
       beneficiary,
       abi.encode(address(lzEndpoint), _comptroller, _asset)

@@ -37,8 +37,9 @@ contract Comptroller is
     payable
     returns (address cloneAddress)
   {
-    cloneAddress = clone();
-    Cloneable(cloneAddress).initialize(beneficiary, abi.encode(_owner));
+    bytes memory params = abi.encode(_owner);
+    cloneAddress = clone(keccak256(params));
+    Cloneable(cloneAddress).initialize(beneficiary, params);
   }
 
   function setCapabilitiesTo(
