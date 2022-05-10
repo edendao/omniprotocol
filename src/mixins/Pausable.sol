@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.13;
 
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {Auth} from "@protocol/auth/Auth.sol";
 
-abstract contract Pausable is Comptrolled {
+abstract contract Pausable is Auth {
   bool public isPaused;
 
   modifier whenNotPaused() {

@@ -3,63 +3,77 @@ pragma solidity ^0.8.13;
 
 import {ERC721} from "@solmate/tokens/ERC721.sol";
 
-import {IOmnicast} from "@protocol/interfaces/IOmnicast.sol";
-
+import {IOmnitoken} from "@protocol/interfaces/IOmnitoken.sol";
+import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
+import {OmniTokenURI} from "@protocol/mixins/OmniTokenURI.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
-contract Space is Omnichain, ERC721, EdenDaoNS {
-  IOmnicast public immutable omnicast;
-  uint16 public primaryChainId;
+contract Space is
+  Omnichain,
+  IOmnitoken,
+  ERC721,
+  Comptrolled,
+  OmniTokenURI,
+  EdenDaoNS
+{
+  uint256 public circulatingSupply;
+  bool public mintable;
 
   constructor(
-    address _comptroller,
     address _lzEndpoint,
+    address _comptroller,
     address _omnicast,
-    uint16 _primaryChainId
+    bool _mintable
   ) ERC721("Eden Dao Space", "DAO SPACE") {
-    __initComptrolled(_comptroller);
     __initOmnichain(_lzEndpoint);
+    __initComptrolled(_comptroller);
+    __initOmniTokenURI(_omnicast);
 
-    omnicast = IOmnicast(_omnicast);
-    primaryChainId = _primaryChainId;
+    mintable = _mintable;
+  }
+
+  function tokenURI(uint256 id)
+    public
+    view
+    override(ERC721, OmniTokenURI)
+    returns (string memory)
+  {
+    return super.tokenURI(id);
+  }
+
+  function _mintName(address to, string memory name)
+    internal
+    returns (uint256 id)
+  {
+    circulatingSupply++;
+    id = idOf(name);
+    _mint(to, id);
   }
 
   function mint(address to, string memory name)
     external
     requiresAuth
-    returns (uint256 id)
+    returns (uint256)
   {
-    id = idOf(name);
-    _mint(to, id);
+    return _mintName(to, name);
   }
 
-  mapping(address => uint256) public countRegisteredBy;
+  mapping(address => uint256) public mintsBy;
 
-  function mint(string memory name) public payable returns (uint256 id) {
+  function mint(string memory name) public payable returns (uint256) {
     // solhint-disable-next-line avoid-tx-origin
     require(msg.sender == tx.origin, "Space: NO_SPOOFING");
-    uint256 mints = countRegisteredBy[msg.sender];
-    require(
-      primaryChainId == block.chainid &&
-        mints < 10 &&
-        msg.value >= (mints + 1) * 0.05 ether,
-      "Space: INVALID_MINT"
-    );
-    countRegisteredBy[msg.sender] = mints + 1;
+    require(mintable, "Space: NOT_MINTABLE");
 
-    id = idOf(name);
-    _mint(msg.sender, id);
-  }
+    uint256 mints = mintsBy[msg.sender];
+    require(mints < 10, "Space: MINT_LIMIT");
+    require(msg.value >= (mints + 1) * 0.05 ether, "Space: INVALID_VALUE");
 
-  // ==============================
-  // ========= TOKEN URI ==========
-  // ==============================
-  mapping(uint256 => string) private _tokenURI;
+    mintsBy[msg.sender] = mints + 1;
 
-  function tokenURI(uint256 id) public view override returns (string memory) {
-    return string(omnicast.readMessage(id, idOf("tokenuri")));
+    return _mintName(msg.sender, name);
   }
 
   // ======================
@@ -76,38 +90,75 @@ contract Space is Omnichain, ERC721, EdenDaoNS {
   // =========================
   // ======= OMNITOKEN =======
   // =========================
-  function sendFrom(
-    address from,
+  function estimateSendFee(
     uint16 toChainId,
-    bytes memory toAddressB,
+    bytes memory toAddress,
+    uint256 amount,
+    bool useZRO,
+    bytes memory adapterParams
+  ) external view override returns (uint256 nativeFee, uint256 lzFee) {
+    (nativeFee, lzFee) = lzEndpoint.estimateFees(
+      toChainId,
+      address(this),
+      abi.encode(toAddress, amount),
+      useZRO,
+      adapterParams
+    );
+  }
+
+  function sendFrom(
+    address fromAddress,
+    uint16 toChainId,
+    bytes memory toAddress,
     uint256 id,
-    address,
+    // solhint-disable-next-line no-unused-vars
+    address payable,
     address lzPaymentAddress,
     bytes memory lzAdapterParams
   ) external payable {
-    require(msg.sender == from && from == ownerOf(id), "Space: UNAUTHORIZED");
+    require(
+      msg.sender == fromAddress && fromAddress == ownerOf(id),
+      "Space: UNAUTHORIZED"
+    );
 
     _burn(id);
 
     lzSend(
       toChainId,
-      abi.encode(toAddressB, id),
+      abi.encode(toAddress, id),
       lzPaymentAddress,
       lzAdapterParams
+    );
+
+    emit SendToChain(
+      fromAddress,
+      toChainId,
+      toAddress,
+      id,
+      lzEndpoint.getOutboundNonce(toChainId, address(this))
     );
   }
 
   function receiveMessage(
-    uint16,
-    bytes calldata,
-    uint64,
+    uint16 fromChainId,
+    bytes calldata fromContractAddress,
+    uint64 nonce,
     bytes calldata payload
   ) internal override {
     (bytes memory toAddressB, uint256 id) = abi.decode(
       payload,
       (bytes, uint256)
     );
+    address toAddress = _addressFromPackedBytes(toAddressB);
 
-    _mint(_addressFromPackedBytes(toAddressB), id);
+    _mint(toAddress, id);
+
+    emit ReceiveFromChain(
+      fromChainId,
+      fromContractAddress,
+      toAddress,
+      id,
+      nonce
+    );
   }
 }

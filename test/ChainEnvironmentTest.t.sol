@@ -19,33 +19,34 @@ contract ChainEnvironmentTest is DSTestPlus {
   uint16 public currentChainId = uint16(block.chainid);
 
   MockERC20 public dai = new MockERC20("DAI", "DAI", 18);
-  LZEndpointMock public layerZeroEndpoint = new LZEndpointMock(currentChainId);
+  LZEndpointMock public lzEndpoint = new LZEndpointMock(currentChainId);
 
-  Comptroller public comptroller = new Comptroller();
-  Omnicast internal omnicast = new Omnicast();
-  Space public space =
-    new Space(
-      address(comptroller),
-      address(layerZeroEndpoint),
-      address(omnicast),
-      currentChainId
-    );
-  Passport public passport =
-    new Passport(address(comptroller), address(omnicast));
+  Comptroller public comptroller = new Comptroller(beneficiary, address(this));
 
   Omnitoken public token = new Omnitoken();
 
+  Omnicast public omnicast =
+    new Omnicast(
+      address(lzEndpoint),
+      address(comptroller),
+      lzEndpoint.mockChainId()
+    );
+
+  Space public space =
+    new Space(
+      address(lzEndpoint),
+      address(comptroller),
+      address(omnicast),
+      true
+    );
+
+  Passport public passport =
+    new Passport(address(comptroller), address(omnicast));
+
   function setUp() public virtual {
-    comptroller.initialize(address(0), abi.encode(address(this)));
     omnicast.initialize(
       beneficiary,
-      abi.encode(
-        address(comptroller),
-        address(layerZeroEndpoint),
-        address(space),
-        address(passport),
-        uint16(block.chainid)
-      )
+      abi.encode(address(space), address(passport))
     );
   }
 }

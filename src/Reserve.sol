@@ -3,10 +3,12 @@ pragma solidity ^0.8.13;
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
-import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
+import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 import {ERC20, ERC4626, SafeTransferLib} from "@protocol/mixins/ERC4626.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
+import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
+import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Vault} from "@protocol/mixins/Vault.sol";
 
 struct ReserveVaultState {
@@ -24,7 +26,7 @@ struct ReserveVaultState {
   uint256 totalLoss;
 }
 
-contract Reserve is PublicGood, Pausable, ERC4626 {
+contract Reserve is PublicGood, ERC4626, Comptrolled, Cloneable, Pausable {
   using FixedPointMathLib for uint256;
   using SafeTransferLib for ERC20;
 
@@ -72,6 +74,9 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
     uint256 debtPoints
   );
 
+  // ================================
+  // ========== Cloneable ===========
+  // ================================
   function initialize(address _beneficiary, bytes calldata _params)
     external
     override
@@ -99,6 +104,36 @@ contract Reserve is PublicGood, Pausable, ERC4626 {
 
     lastReportTimestamp = uint64(block.timestamp);
     activationTimestamp = uint64(block.timestamp);
+  }
+
+  function clone(
+    address _comptroller,
+    address _asset,
+    string memory _name,
+    string memory _symbol
+  ) external payable returns (address cloneAddress) {
+    cloneAddress = clone();
+    Cloneable(cloneAddress).initialize(
+      beneficiary,
+      abi.encode(_comptroller, _asset, _name, _symbol)
+    );
+  }
+
+  // ================================
+  // ========= Public Good ==========
+  // ================================
+  uint16 public constant MAX_BPS = 10_000;
+  uint16 public goodPoints = 25; // 0.25% for the planet
+
+  event SetGoodPoints(uint16 points);
+
+  function setGoodPoints(uint16 basisPoints) external requiresAuth {
+    require(
+      10 <= basisPoints && basisPoints <= MAX_BPS,
+      "PublicGood: INVALID_BP"
+    );
+    goodPoints = basisPoints;
+    emit SetGoodPoints(basisPoints);
   }
 
   function _mint(address to, uint256 amount) internal override whenNotPaused {

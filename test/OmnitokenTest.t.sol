@@ -13,15 +13,7 @@ contract OmnitokenTest is ChainEnvironmentTest {
 
   function testCloneGas() public returns (Omnitoken n) {
     n = Omnitoken(
-      token.clone(
-        abi.encode(
-          address(comptroller),
-          address(layerZeroEndpoint),
-          "Frontier Carbon",
-          "TIME",
-          3
-        )
-      )
+      token.clone(address(comptroller), "Frontier Carbon", "TIME", 3)
     );
   }
 

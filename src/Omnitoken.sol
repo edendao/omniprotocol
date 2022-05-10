@@ -1,29 +1,71 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {IOFT} from "@protocol/interfaces/IOFT.sol";
+import {IOmnitoken} from "@protocol/interfaces/IOmnitoken.sol";
+import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 import {ERC20} from "@protocol/mixins/ERC20.sol";
+import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
-contract Omnitoken is PublicGood, Omnichain, ERC20, IOFT {
+contract Omnitoken is
+  PublicGood,
+  Omnichain,
+  IOmnitoken,
+  ERC20,
+  Comptrolled,
+  Cloneable
+{
+  // ================================
+  // ========== Cloneable ===========
+  // ================================
   function initialize(address _beneficiary, bytes calldata _params)
     external
     override
     initializer
   {
     (
-      address _comptroller,
       address _lzEndpoint,
+      address _comptroller,
       string memory _name,
       string memory _symbol,
       uint8 _decimals
     ) = abi.decode(_params, (address, address, string, string, uint8));
 
     __initPublicGood(_beneficiary);
-    __initComptrolled(_comptroller);
     __initOmnichain(_lzEndpoint);
+    __initComptrolled(_comptroller);
     __initERC20(_name, _symbol, _decimals);
+  }
+
+  function clone(
+    address _comptroller,
+    string memory _name,
+    string memory _symbol,
+    uint8 _decimals
+  ) external payable returns (address cloneAddress) {
+    cloneAddress = clone();
+    Cloneable(cloneAddress).initialize(
+      beneficiary,
+      abi.encode(address(lzEndpoint), _comptroller, _name, _symbol, _decimals)
+    );
+  }
+
+  // ================================
+  // ========= Public Good ==========
+  // ================================
+  uint16 public constant MAX_BPS = 10_000;
+  uint16 public goodPoints = 25; // 0.25% for the planet
+
+  event SetGoodPoints(uint16 points);
+
+  function setGoodPoints(uint16 basisPoints) external requiresAuth {
+    require(
+      10 <= basisPoints && basisPoints <= MAX_BPS,
+      "PublicGood: INVALID_BP"
+    );
+    goodPoints = basisPoints;
+    emit SetGoodPoints(basisPoints);
   }
 
   function _mint(address to, uint256 amount)
@@ -48,9 +90,9 @@ contract Omnitoken is PublicGood, Omnichain, ERC20, IOFT {
     _mint(to, amount);
   }
 
-  // ================================
-  // ============= OFT ==============
-  // ================================
+  // ===============================
+  // ========= IOmnitoken ==========
+  // ===============================
   function circulatingSupply() public view virtual returns (uint256) {
     return totalSupply;
   }

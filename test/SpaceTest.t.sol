@@ -15,7 +15,7 @@ contract SpaceTest is ChainEnvironmentTest {
     hevm.assume(
       caller != address(this) &&
         caller != address(0) &&
-        value >= (space.countRegisteredBy(caller) + 1) * 0.05 ether
+        value >= (space.mintsBy(caller) + 1) * 0.05 ether
     );
     hevm.deal(caller, value);
 

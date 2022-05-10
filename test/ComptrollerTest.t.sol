@@ -7,9 +7,7 @@ import {ChainEnvironmentTest, Comptroller} from "@test/ChainEnvironmentTest.t.so
 
 contract ComptrollerTest is ChainEnvironmentTest {
   function testCloneGas() public {
-    Comptroller c = Comptroller(
-      payable(comptroller.clone(abi.encode(address(this))))
-    );
+    Comptroller c = Comptroller(payable(comptroller.clone(address(this))));
     assertEq(c.owner(), address(this));
   }
 

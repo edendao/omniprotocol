@@ -4,41 +4,56 @@ pragma solidity ^0.8.13;
 import {IOmnicast} from "@protocol/interfaces/IOmnicast.sol";
 
 import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
+import {Initializable} from "@protocol/mixins/Initializable.sol";
 import {Multicallable} from "@protocol/mixins/Multicallable.sol";
+import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
+import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
 interface Ownable {
   function ownerOf(uint256 id) external view returns (address);
 }
 
-contract Omnicast is Omnichain, IOmnicast, Multicallable, EdenDaoNS {
-  uint16 public currentChainId;
+contract Omnicast is
+  PublicGood,
+  Omnichain,
+  Comptrolled,
+  IOmnicast,
+  Multicallable,
+  Initializable,
+  EdenDaoNS
+{
+  uint16 public immutable currentChainId;
   uint64 public nonce;
+
+  constructor(
+    address _lzEndpoint,
+    address _comptroller,
+    uint16 _currentChainId
+  ) {
+    __initComptrolled(_comptroller);
+    __initOmnichain(_lzEndpoint);
+
+    currentChainId = _currentChainId;
+  }
 
   address public space;
   address public passport;
 
-  function initialize(address _beneficiary, bytes calldata _params)
+  function initialize(address _beneficiary, bytes memory _params)
     external
     override
     initializer
   {
-    (
-      address _comptroller,
-      address _lzEndpoint,
-      address _space,
-      address _passport,
-      uint16 _currentChainId
-    ) = abi.decode(_params, (address, address, address, address, uint16));
-
     __initPublicGood(_beneficiary);
-    __initOmnichain(_lzEndpoint);
-    __initComptrolled(_comptroller);
+
+    (address _space, address _passport) = abi.decode(
+      _params,
+      (address, address)
+    );
 
     space = _space;
     passport = _passport;
-
-    currentChainId = _currentChainId;
   }
 
   // =====================================
@@ -116,6 +131,30 @@ contract Omnicast is Omnichain, IOmnicast, Multicallable, EdenDaoNS {
     );
   }
 
+  function canWriteMessage(
+    address writer,
+    uint256 toReceiverId,
+    uint256 withSenderId
+  ) public view returns (bool) {
+    if (uint256(uint160(writer)) == toReceiverId) {
+      return true;
+    }
+
+    if (withSenderId > type(uint160).max) {
+      try Ownable(space).ownerOf(withSenderId) returns (address owner) {
+        return owner == writer;
+      } catch {
+        return false;
+      }
+    } else {
+      try Ownable(passport).ownerOf(withSenderId) returns (address owner) {
+        return owner == writer;
+      } catch {
+        return false;
+      }
+    }
+  }
+
   function writeMessage(
     uint256 toReceiverId,
     uint256 withSenderId,
@@ -125,9 +164,7 @@ contract Omnicast is Omnichain, IOmnicast, Multicallable, EdenDaoNS {
     bytes memory lzAdapterParams
   ) public payable {
     require(
-      (msg.sender == Ownable(passport).ownerOf(toReceiverId) ||
-        idOf(msg.sender) == withSenderId ||
-        msg.sender == Ownable(space).ownerOf(withSenderId)),
+      canWriteMessage(msg.sender, toReceiverId, withSenderId),
       "Omnicast: UNAUTHORIZED"
     );
 

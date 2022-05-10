@@ -2,29 +2,55 @@
 pragma solidity ^0.8.13;
 
 import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
+import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 import {Multicallable} from "@protocol/mixins/Multicallable.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 import {MultiRolesAuthority} from "@protocol/auth/MultiRolesAuthority.sol";
 
-contract Comptroller is PublicGood, Multicallable, MultiRolesAuthority {
+contract Comptroller is
+  PublicGood,
+  MultiRolesAuthority,
+  Cloneable,
+  Multicallable
+{
+  constructor(address _beneficiary, address _owner) {
+    __initPublicGood(_beneficiary);
+    __initAuth(_owner, this);
+
+    isInitialized = true;
+  }
+
+  // ================================
+  // ========== Cloneable ===========
+  // ================================
   function initialize(address _beneficiary, bytes calldata _params)
     external
     override
     initializer
   {
-    __initAuth(abi.decode(_params, (address)), this);
-
     __initPublicGood(_beneficiary);
+
+    address _owner = abi.decode(_params, (address));
+    __initAuth(_owner, this);
+  }
+
+  function clone(address _owner)
+    external
+    payable
+    returns (address cloneAddress)
+  {
+    cloneAddress = clone();
+    Cloneable(cloneAddress).initialize(beneficiary, abi.encode(_owner));
   }
 
   function setCapabilitiesTo(
     address roleAddress,
     uint8 withRoleId,
-    bytes4[] memory functionSignatures,
+    bytes4[] memory signatures,
     bool enabled
   ) external requiresAuth {
-    for (uint256 i = 0; i < functionSignatures.length; i += 1) {
-      setRoleCapability(withRoleId, functionSignatures[i], enabled);
+    for (uint256 i = 0; i < signatures.length; i += 1) {
+      setRoleCapability(withRoleId, signatures[i], enabled);
     }
     setUserRole(roleAddress, withRoleId, enabled);
   }

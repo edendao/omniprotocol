@@ -2,30 +2,39 @@
 pragma solidity ^0.8.13;
 
 import {ChainEnvironmentTest, console} from "@test/ChainEnvironmentTest.t.sol";
-import {IOFT} from "@protocol/interfaces/IOFT.sol";
+import {IOmnitoken} from "@protocol/interfaces/IOmnitoken.sol";
 
 contract OmnicastTest is ChainEnvironmentTest {
-  function testSetTokenURI(address caller, string memory uri) public {
+  uint256 public passportId;
+
+  function setUp() public override {
+    super.setUp();
+
+    passportId = passport.mint{value: 0.1 ether}();
+  }
+
+  function testSetOwnData(address caller, uint256 spaceId) public {
     hevm.assume(
       caller != address(0) &&
         caller != address(this) &&
         caller != address(comptroller)
     );
 
-    uint256 passportId = passport.mint{value: 0.1 ether}(caller);
-    uint256 tokenuriSpace = omnicast.idOf("tokenuri");
+    uint256 callerPassportId = passport.mint{value: 0.1 ether}(caller);
+
+    bytes memory data = abi.encodePacked(spaceId, "data");
 
     hevm.prank(caller);
     omnicast.writeMessage(
-      passportId,
-      tokenuriSpace,
-      bytes(uri),
+      callerPassportId,
+      spaceId,
+      data,
       currentChainId,
       address(0),
       ""
     );
 
-    assertEq(uri, passport.tokenURI(passportId));
+    assertEq0(data, omnicast.readMessage(callerPassportId, spaceId));
   }
 
   function testFailUnauthorizedSetTokenURI(address caller, string memory uri)
@@ -37,8 +46,6 @@ contract OmnicastTest is ChainEnvironmentTest {
         caller != address(comptroller)
     );
 
-    uint256 passportId = omnicast.idOf(address(this));
-    passport.mint(address(this));
     uint256 tokenuriSpace = omnicast.idOf("tokenuri");
 
     hevm.prank(caller);
@@ -55,7 +62,7 @@ contract OmnicastTest is ChainEnvironmentTest {
   function testMessageGas() public {
     omnicast.writeMessage(
       omnicast.idOf(beneficiary),
-      omnicast.idOf(address(this)),
+      passportId,
       "prosperity",
       currentChainId,
       address(0),
@@ -77,18 +84,17 @@ contract OmnicastTest is ChainEnvironmentTest {
     hevm.assume(to != address(0));
 
     uint256 receiverId = omnicast.idOf(to);
-    uint256 senderId = omnicast.idOf(address(this));
 
     omnicast.writeMessage(
       receiverId,
-      senderId,
+      passportId,
       payload,
       currentChainId,
       address(0),
       ""
     );
 
-    assertEq0(payload, omnicast.readMessage(receiverId, senderId));
+    assertEq0(payload, omnicast.readMessage(receiverId, passportId));
   }
 
   function testRemoteSendAndRead(
@@ -101,25 +107,21 @@ contract OmnicastTest is ChainEnvironmentTest {
     bytes memory remoteAddressBytes = abi.encodePacked(address(omnicast));
     omnicast.setTrustedRemoteContract(chainId, remoteAddressBytes);
     omnicast.setTrustedRemoteContract(currentChainId, remoteAddressBytes);
-    layerZeroEndpoint.setDestLzEndpoint(
-      address(omnicast),
-      address(layerZeroEndpoint)
-    );
+    lzEndpoint.setDestLzEndpoint(address(omnicast), address(lzEndpoint));
 
     uint256 receiverId = omnicast.idOf(to);
-    uint256 senderId = omnicast.idOf(address(this));
 
     omnicast.writeMessage{value: 0.1 ether}(
       receiverId,
-      senderId,
+      passportId,
       payload,
       chainId,
       address(0),
       ""
     );
 
-    assertEq(1, omnicast.receivedMessagesCount(receiverId, senderId));
-    assertEq0(payload, omnicast.readMessage(receiverId, senderId));
+    assertEq(1, omnicast.receivedMessagesCount(receiverId, passportId));
+    assertEq0(payload, omnicast.readMessage(receiverId, passportId));
   }
 
   function testFailUnauthorizedWrite(
@@ -134,8 +136,8 @@ contract OmnicastTest is ChainEnvironmentTest {
         senderAddress != address(this)
     );
 
-    uint256 receiverId = omnicast.idOf(receiverAddress);
-    uint256 senderId = omnicast.idOf(senderAddress);
+    uint256 receiverId = passport.mint{value: 0.1 ether}(receiverAddress);
+    uint256 senderId = passport.mint{value: 0.1 ether}(senderAddress);
 
     omnicast.writeMessage(
       receiverId,

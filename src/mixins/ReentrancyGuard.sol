@@ -2,19 +2,12 @@
 pragma solidity >=0.8.0;
 
 abstract contract ReentrancyGuard {
-  uint256 private locked;
-
-  function __initReentrancyGuard() internal {
-    locked = 1;
-  }
+  bool private _reentrancyGuard;
 
   modifier nonReentrant() {
-    require(locked == 1, "REENTRANCY");
-
-    locked = 2;
-
+    require(!_reentrancyGuard, "REENTRANCY");
+    _reentrancyGuard = true;
     _;
-
-    locked = 1;
+    _reentrancyGuard = false;
   }
 }

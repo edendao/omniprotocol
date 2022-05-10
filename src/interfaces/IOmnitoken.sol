@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: AGLP-3.0-only
 pragma solidity ^0.8.13;
 
-// For compatibility with LayerZero's OFT standard
-interface IOFT {
+interface IOmnitoken {
   function sendFrom(
     address from,
     uint16 toChainId,
