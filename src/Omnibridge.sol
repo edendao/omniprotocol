@@ -10,7 +10,7 @@ import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
-contract Tokenbridge is
+contract Omnibridge is
   PublicGood,
   Comptrolled,
   IOmnitoken,
@@ -138,7 +138,7 @@ contract Tokenbridge is
   // ======= Comptrollable ========
   // ==============================
   function withdrawToken(address token, uint256 amount) public override {
-    require(address(token) != address(asset), "Tokenbridge: INVALID_TOKEN");
+    require(address(token) != address(asset), "Omnibridge: INVALID_TOKEN");
     super.withdrawToken(token, amount);
   }
 }

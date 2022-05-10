@@ -3,16 +3,16 @@ pragma solidity ^0.8.13;
 
 import {ChainEnvironmentTest, Omnitoken} from "@test/ChainEnvironmentTest.t.sol";
 
-import {Tokenbridge} from "@protocol/Tokenbridge.sol";
+import {Omnibridge} from "@protocol/Omnibridge.sol";
 
-contract TokenbridgeTest is ChainEnvironmentTest {
-  Tokenbridge public tokenbridge =
-    Tokenbridge(bridge.clone(address(comptroller), address(dai)));
+contract OmnibridgeTest is ChainEnvironmentTest {
+  Omnibridge public omnibridge =
+    Omnibridge(bridge.clone(address(comptroller), address(dai)));
   Omnitoken public omnitoken =
     Omnitoken(token.clone(address(comptroller), "DAI", "DAI", dai.decimals()));
 
   function testCloneGas() public {
-    Tokenbridge(bridge.clone(address(comptroller), address(omnitoken)));
+    Omnibridge(bridge.clone(address(comptroller), address(omnitoken)));
   }
 
   function testSendFrom(
@@ -28,19 +28,19 @@ contract TokenbridgeTest is ChainEnvironmentTest {
     );
 
     lzEndpoint.setDestLzEndpoint(address(omnitoken), address(lzEndpoint));
-    tokenbridge.setTrustedRemote(
+    omnibridge.setTrustedRemote(
       toChainId,
       abi.encodePacked(address(omnitoken))
     );
     omnitoken.setTrustedRemote(
       currentChainId,
-      abi.encodePacked(address(tokenbridge))
+      abi.encodePacked(address(omnibridge))
     );
 
     dai.mint(address(this), amount);
-    dai.approve(address(tokenbridge), amount);
+    dai.approve(address(omnibridge), amount);
 
-    (uint256 nativeFee, ) = tokenbridge.estimateSendFee(
+    (uint256 nativeFee, ) = omnibridge.estimateSendFee(
       toChainId,
       abi.encodePacked(toAddress),
       amount,
@@ -48,7 +48,7 @@ contract TokenbridgeTest is ChainEnvironmentTest {
       ""
     );
 
-    tokenbridge.sendFrom{value: nativeFee}(
+    omnibridge.sendFrom{value: nativeFee}(
       address(this),
       toChainId,
       abi.encodePacked(toAddress),
