@@ -70,6 +70,10 @@ contract StewardTest is ChainEnvironmentTest {
   }
 
   function testWithdrawToRequiresAuth(address caller, uint256 amount) public {
+    hevm.assume(
+      !steward.canCall(caller, address(steward), steward.withdrawTo.selector)
+    );
+
     stewardTransfer(amount);
     hevm.expectRevert("UNAUTHORIZED");
     hevm.prank(caller);
