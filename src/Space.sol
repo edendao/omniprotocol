@@ -22,11 +22,11 @@ contract Space is
   bool public mintable;
 
   constructor(
-    address _comptroller,
+    address _steward,
     address _omnicast,
     bool _mintable
   ) ERC721("Eden Dao Space", "DAO SPACE") {
-    __initComptrolled(_comptroller);
+    __initComptrolled(_steward);
     __initOmniTokenURI(_omnicast);
     __initOmnichain(address(Omnichain(_omnicast).lzEndpoint()));
 

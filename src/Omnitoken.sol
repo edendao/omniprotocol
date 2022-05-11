@@ -34,19 +34,19 @@ contract Omnitoken is
 
     (
       address _lzEndpoint,
-      address _comptroller,
+      address _steward,
       string memory _name,
       string memory _symbol,
       uint8 _decimals
     ) = abi.decode(_params, (address, address, string, string, uint8));
 
     __initOmnichain(_lzEndpoint);
-    __initComptrolled(_comptroller);
+    __initComptrolled(_steward);
     __initERC20(_name, _symbol, _decimals);
   }
 
   function clone(
-    address _comptroller,
+    address _steward,
     string memory _name,
     string memory _symbol,
     uint8 _decimals
@@ -54,7 +54,7 @@ contract Omnitoken is
     cloneAddress = clone();
     Cloneable(cloneAddress).initialize(
       beneficiary,
-      abi.encode(address(lzEndpoint), _comptroller, _name, _symbol, _decimals)
+      abi.encode(address(lzEndpoint), _steward, _name, _symbol, _decimals)
     );
   }
 

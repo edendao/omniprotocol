@@ -84,7 +84,7 @@ contract Reserve is ERC4626, PublicGood, Comptrolled, Cloneable, Pausable {
     initializer
   {
     (
-      address _comptroller,
+      address _steward,
       address _asset,
       string memory _name,
       string memory _symbol
@@ -98,7 +98,7 @@ contract Reserve is ERC4626, PublicGood, Comptrolled, Cloneable, Pausable {
     );
 
     __initPublicGood(_beneficiary);
-    __initComptrolled(_comptroller);
+    __initComptrolled(_steward);
 
     performancePoints = 1000; // 10%
     emit SetPerformancePoints(performancePoints);
@@ -108,7 +108,7 @@ contract Reserve is ERC4626, PublicGood, Comptrolled, Cloneable, Pausable {
   }
 
   function clone(
-    address _comptroller,
+    address _steward,
     address _asset,
     string memory _name,
     string memory _symbol
@@ -116,7 +116,7 @@ contract Reserve is ERC4626, PublicGood, Comptrolled, Cloneable, Pausable {
     cloneAddress = clone();
     Cloneable(cloneAddress).initialize(
       beneficiary,
-      abi.encode(_comptroller, _asset, _name, _symbol)
+      abi.encode(_steward, _asset, _name, _symbol)
     );
   }
 

@@ -7,12 +7,7 @@ import {Multicallable} from "@protocol/mixins/Multicallable.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 import {MultiRolesAuthority} from "@protocol/auth/MultiRolesAuthority.sol";
 
-contract Comptroller is
-  MultiRolesAuthority,
-  PublicGood,
-  Cloneable,
-  Multicallable
-{
+contract Steward is MultiRolesAuthority, PublicGood, Cloneable, Multicallable {
   constructor(address _beneficiary, address _owner) {
     __initPublicGood(_beneficiary);
     __initAuth(_owner, this);

@@ -17,7 +17,7 @@ contract OmnicastTest is ChainEnvironmentTest {
     hevm.assume(
       caller != address(0) &&
         caller != address(this) &&
-        caller != address(comptroller)
+        caller != address(steward)
     );
 
     uint256 callerPassportId = passport.mint{value: 0.1 ether}(caller);
@@ -43,7 +43,7 @@ contract OmnicastTest is ChainEnvironmentTest {
     hevm.assume(
       caller != address(0) &&
         caller != address(this) &&
-        caller != address(comptroller)
+        caller != address(steward)
     );
 
     uint256 tokenuriSpace = omnicast.idOf("tokenuri");

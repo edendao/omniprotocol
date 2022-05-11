@@ -3,11 +3,11 @@ pragma solidity ^0.8.13;
 
 import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
 import {Auth, Authority} from "@protocol/auth/Auth.sol";
-import {Comptroller} from "@protocol/Comptroller.sol";
+import {Steward} from "@protocol/Steward.sol";
 
 abstract contract Comptrolled is Auth {
-  function __initComptrolled(address _comptroller) internal {
-    __initAuth(Auth(_comptroller).owner(), Authority(_comptroller));
+  function __initComptrolled(address _steward) internal {
+    __initAuth(Auth(_steward).owner(), Authority(_steward));
   }
 
   function withdraw(uint256 amount) public requiresAuth {

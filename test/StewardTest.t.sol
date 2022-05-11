@@ -3,15 +3,15 @@ pragma solidity ^0.8.13;
 
 import {BoringAddress} from "@boring/libraries/BoringAddress.sol";
 
-import {ChainEnvironmentTest, Comptroller} from "@test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, Steward} from "@test/ChainEnvironmentTest.t.sol";
 
-contract ComptrollerTest is ChainEnvironmentTest {
+contract StewardTest is ChainEnvironmentTest {
   function testFailAlreadyInitialized() public {
-    comptroller.initialize(beneficiary, abi.encodePacked(address(this)));
+    steward.initialize(beneficiary, abi.encodePacked(address(this)));
   }
 
   function testCloneGas() public {
-    Comptroller c = Comptroller(payable(comptroller.clone(address(this))));
+    Steward c = Steward(payable(steward.clone(address(this))));
     assertEq(c.owner(), address(this));
   }
 
@@ -39,40 +39,40 @@ contract ComptrollerTest is ChainEnvironmentTest {
       0,
       token.mint.selector
     );
-    bytes[] memory results = comptroller.multicall(functions);
+    bytes[] memory results = steward.multicall(functions);
     assertTrue(abi.decode(results[2], (bool)));
     assertTrue(abi.decode(results[3], (bool)));
   }
 
   function testOwner() public {
-    assertEq(comptroller.owner(), address(this));
+    assertEq(steward.owner(), address(this));
   }
 
   function testSetOwner() public {
-    comptroller.setOwner(beneficiary);
-    assertEq(comptroller.owner(), beneficiary);
+    steward.setOwner(beneficiary);
+    assertEq(steward.owner(), beneficiary);
   }
 
   function testAuthority() public {
-    assertEq(address(comptroller.authority()), address(comptroller));
+    assertEq(address(steward.authority()), address(steward));
   }
 
-  function comptrollerTransfer(uint256 amount) internal {
+  function stewardTransfer(uint256 amount) internal {
     hevm.assume(amount < address(this).balance);
-    payable(address(comptroller)).transfer(amount);
+    payable(address(steward)).transfer(amount);
   }
 
   function testWithdrawTo(address receiver, uint256 amount) public {
     hevm.assume(!BoringAddress.isContract(receiver));
-    comptrollerTransfer(amount);
-    comptroller.withdrawTo(receiver, amount);
+    stewardTransfer(amount);
+    steward.withdrawTo(receiver, amount);
     assertEq(receiver.balance, amount);
   }
 
   function testWithdrawToRequiresAuth(address caller, uint256 amount) public {
-    comptrollerTransfer(amount);
+    stewardTransfer(amount);
     hevm.expectRevert("UNAUTHORIZED");
     hevm.prank(caller);
-    comptroller.withdrawTo(caller, amount);
+    steward.withdrawTo(caller, amount);
   }
 }

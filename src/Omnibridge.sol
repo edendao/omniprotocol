@@ -35,18 +35,18 @@ contract Omnibridge is
   {
     __initPublicGood(_beneficiary);
 
-    (address _lzEndpoint, address _comptroller, address _asset) = abi.decode(
+    (address _lzEndpoint, address _steward, address _asset) = abi.decode(
       _params,
       (address, address, address)
     );
 
     __initOmnichain(_lzEndpoint);
-    __initComptrolled(_comptroller);
+    __initComptrolled(_steward);
 
     asset = ERC20(_asset);
   }
 
-  function clone(address _comptroller, address _asset)
+  function clone(address _steward, address _asset)
     external
     payable
     returns (address cloneAddress)
@@ -54,7 +54,7 @@ contract Omnibridge is
     cloneAddress = clone(keccak256(abi.encode(_asset)));
     Cloneable(cloneAddress).initialize(
       beneficiary,
-      abi.encode(address(lzEndpoint), _comptroller, _asset)
+      abi.encode(address(lzEndpoint), _steward, _asset)
     );
   }
 

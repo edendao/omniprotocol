@@ -15,8 +15,8 @@ contract Passport is ERC721Soulbound, Comptrolled, OmniTokenURI, EdenDaoNS {
 
   mapping(uint256 => address) private _ownerOf;
 
-  constructor(address _comptroller, address _omnicast) {
-    __initComptrolled(_comptroller);
+  constructor(address _steward, address _omnicast) {
+    __initComptrolled(_steward);
     __initOmniTokenURI(_omnicast);
   }
 

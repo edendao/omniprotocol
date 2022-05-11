@@ -1,6 +1,6 @@
 _eden dao omniprotocol is in code review._ This is an opportunity for the community to get involved prior to testnet launch. PRs would be greatly appreciated!
 
-Interested in building with eden dao protocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
+Interested in building with eden dao omniprotocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
 
 # Eden Dao OmniProtocol is Regenerative Omnichain Infrastructure
 
@@ -14,10 +14,10 @@ Gas-optimized, you can launch your own ERC20 with ≤0.1 ETH on mainnet. Here's 
 
 ### A non-custodial protocol
 
-It all begins with a `Comptroller` to self-custody your contracts with flexible, role-based authentication through Solmate's MultiRoleAuthority.
+It all begins with a `Steward` to self-custody your contracts with flexible, role-based authentication through Solmate's MultiRoleAuthority.
 
 ```bash
-cast send `eden-dao-comptroller` "clone(address)" 0xOwnerAddress
+cast send `eden-dao-steward` "clone(address)" 0xOwnerAddress
 ```
 
 ### Launch and bridge across any chain with Omnitoken
@@ -26,7 +26,7 @@ Stop wasting months deciding what chain to launch on because of lock-in and high
 
 ```bash
 cast send `eden-dao-omnitoken` "clone(address,string,string,uint8)" \
-  0xYourComptrollerAddress \
+  0xYourStewardAddress \
   "Friends with Assets Under Management" \
   "FWAUM" \
   18
@@ -34,15 +34,13 @@ cast send `eden-dao-omnitoken` "clone(address,string,string,uint8)" \
 
 ### Bridge your existing ERC20 to other chains with Omnibridge
 
-If you already have an ERC20, you can launch a **non-custodial** Omnibridge on the source chain and an Omnitoken on the new chain, link the two up, and now your DAO token can be bridged!
+If you already have an ERC20, you can launch a **non-custodial** Omnibridge on the source chain to link up to an Omnitoken on the new chain. Effortlessly unlock multi-chain DAO Ops and DAO2DAO collaborations.
 
 ```bash
-cast send `eden-dao-bridge` "clone(address,address)" \
-  0xYourComptrollerAddress \
+cast send `eden-dao-omnibridge` "clone(address,address)" \
+  0xYourStewardAddress \
   0xYourTokenAddress
 ```
-
-This unlocks multi-chain DAO Ops and DAO2DAO collaborations.
 
 ### Write on-chain messages across chains using Omnicast
 

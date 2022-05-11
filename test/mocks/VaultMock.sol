@@ -5,12 +5,12 @@ import {Vault} from "@protocol/mixins/Vault.sol";
 
 contract VaultMock is Vault {
   constructor(
-    address _comptroller,
+    address _steward,
     address _reserve,
     string memory _name,
     string memory _symbol
   ) {
-    __initVault(_comptroller, _reserve);
+    __initVault(_steward, _reserve);
     __initERC20(_name, _symbol, 18);
   }
 

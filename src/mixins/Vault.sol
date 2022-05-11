@@ -11,14 +11,14 @@ import {Reserve, ReserveVaultState} from "@protocol/Reserve.sol";
 abstract contract Vault is Comptrolled, Pausable, ERC4626 {
   Reserve public reserve;
 
-  function __initVault(address _comptroller, address _reserve) internal {
+  function __initVault(address _steward, address _reserve) internal {
     reserve = Reserve(_reserve);
 
     __initERC4626(reserve.asset());
-    __initComptrolled(_comptroller);
+    __initComptrolled(_steward);
 
     asset.approve(_reserve, type(uint256).max); // for managing assets
-    reserve.approve(_comptroller, type(uint256).max); // for withdrawing rewards
+    reserve.approve(_steward, type(uint256).max); // for withdrawing rewards
   }
 
   uint64 public minHarvestDelay;

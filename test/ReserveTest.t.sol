@@ -17,7 +17,7 @@ contract ReserveTest is ChainEnvironmentTest {
 
   function xtestCloneGas() public pure returns (Reserve r) {
     r = Reserve(address(0));
-    // r = bridge.createReserve(address(comptroller), address(dai), "DAI", "DAI");
+    // r = bridge.createReserve(address(steward), address(dai), "DAI", "DAI");
   }
 
   function xtestCloneConstants() public {
@@ -32,7 +32,7 @@ contract ReserveTest is ChainEnvironmentTest {
 
   function xtestAddVault() public returns (VaultMock v) {
     v = new VaultMock(
-      address(comptroller),
+      address(steward),
       address(reserve),
       "Mockingbird",
       "MOCK"
@@ -76,7 +76,7 @@ contract ReserveTest is ChainEnvironmentTest {
 
     assertEq(reserve.balanceOf(caller), shares);
     assertEq(
-      reserve.balanceOf(address(comptroller)), // beneficiary
+      reserve.balanceOf(address(steward)), // beneficiary
       (shares * reserve.goodPoints()) / reserve.MAX_BPS()
     );
   }
@@ -91,7 +91,7 @@ contract ReserveTest is ChainEnvironmentTest {
     uint256 shares = reserve.deposit(amount, caller);
     assertEq(reserve.balanceOf(caller), shares);
     assertEq(
-      reserve.balanceOf(address(comptroller)), // beneficiary
+      reserve.balanceOf(address(steward)), // beneficiary
       (shares * reserve.goodPoints()) / reserve.MAX_BPS()
     );
 
