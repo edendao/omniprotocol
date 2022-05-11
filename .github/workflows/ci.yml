@@ -35,4 +35,4 @@ jobs:
         run: yarn lint:check
 
       - name: Test
-        run: forge test -vvvv
+        run: forge test --force --gas-report -vvvv
