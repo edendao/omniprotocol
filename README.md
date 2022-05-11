@@ -17,7 +17,18 @@ Gas-optimized, you can launch your own ERC20 with ≤0.1 ETH on mainnet. Here's 
 It all begins with a `Steward` to self-custody your contracts with flexible, role-based authentication through Solmate's MultiRoleAuthority.
 
 ```bash
-cast send `eden-dao-steward` "clone(address)" 0xOwnerAddress
+cast send 0xEdenDaoSteward "clone(address)" 0xOwnerAddress
+```
+
+
+### Bridge your existing ERC20 to other chains with Omnibridge
+
+If you already have an ERC20, you can launch a **non-custodial** Omnibridge on the source chain to link up to an Omnitoken on the new chain. Effortlessly unlock multi-chain DAO Ops and DAO2DAO collaborations.
+
+```bash
+cast send 0xEdenDaoOmnibridge "clone(address,address)" \
+  0xYourStewardAddress \
+  0xYourTokenAddress
 ```
 
 ### Launch and bridge across any chain with Omnitoken
@@ -25,22 +36,13 @@ cast send `eden-dao-steward` "clone(address)" 0xOwnerAddress
 Stop wasting months deciding what chain to launch on because of lock-in and high switching costs, just launch an Omnitoken on the chain you want. If you ever need to move to another chain, launch an Omnitoken there and link the two up. Now your token is easily bridgeable across chains!
 
 ```bash
-cast send `eden-dao-omnitoken` "clone(address,string,string,uint8)" \
+cast send 0xEdenDaoOmnitoken "clone(address,string,string,uint8)" \
   0xYourStewardAddress \
   "Friends with Assets Under Management" \
   "FWAUM" \
   18
 ```
 
-### Bridge your existing ERC20 to other chains with Omnibridge
-
-If you already have an ERC20, you can launch a **non-custodial** Omnibridge on the source chain to link up to an Omnitoken on the new chain. Effortlessly unlock multi-chain DAO Ops and DAO2DAO collaborations.
-
-```bash
-cast send `eden-dao-omnibridge` "clone(address,address)" \
-  0xYourStewardAddress \
-  0xYourTokenAddress
-```
 
 ### Write on-chain messages across chains using Omnicast
 
