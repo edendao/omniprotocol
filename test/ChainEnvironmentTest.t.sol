@@ -29,18 +29,12 @@ contract ChainEnvironmentTest is DSTestPlus {
 
   Omnicast public omnicast =
     new Omnicast(
-      address(lzEndpoint),
       address(comptroller),
+      address(lzEndpoint),
       lzEndpoint.getChainId()
     );
 
-  Space public space =
-    new Space(
-      address(lzEndpoint),
-      address(comptroller),
-      address(omnicast),
-      true
-    );
+  Space public space = new Space(address(comptroller), address(omnicast), true);
 
   Passport public passport =
     new Passport(address(comptroller), address(omnicast));

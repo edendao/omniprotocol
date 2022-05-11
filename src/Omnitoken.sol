@@ -50,7 +50,7 @@ contract Omnitoken is
     string memory _name,
     string memory _symbol,
     uint8 _decimals
-  ) external payable returns (address cloneAddress) {
+  ) external returns (address cloneAddress) {
     cloneAddress = clone();
     Cloneable(cloneAddress).initialize(
       beneficiary,

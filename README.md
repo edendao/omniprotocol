@@ -10,11 +10,11 @@ Interested in building with eden dao protocol? **[Let's collaborate!](https://ed
 
 Gas-optimized, you can launch your own ERC20 with ≤0.1 ETH on mainnet. Here's the TL;DR:
 
-**These examples use `cast` to call functions, though you could use any tool you like.**
+**These examples use `cast` to call functions, though you could use any tool you like.** View the deployed contract addresses on [testnet](./deploy/testnet/deployments.json).
 
 ### A non-custodial protocol
 
-It all begins with a `Comptroller` to self-custody your contracts with role-based authentication.
+It all begins with a `Comptroller` to self-custody your contracts with flexible, role-based authentication through Solmate's MultiRoleAuthority.
 
 ```bash
 cast send `eden-dao-comptroller` "clone(address)" 0xOwnerAddress
@@ -26,7 +26,7 @@ Stop wasting months deciding what chain to launch on because of lock-in and high
 
 ```bash
 cast send `eden-dao-omnitoken` "clone(address,string,string,uint8)" \
-  0xComptrollerAddress \
+  0xYourComptrollerAddress \
   "Friends with Assets Under Management" \
   "FWAUM" \
   18
@@ -37,11 +37,9 @@ cast send `eden-dao-omnitoken` "clone(address,string,string,uint8)" \
 If you already have an ERC20, you can launch a **non-custodial** Omnibridge on the source chain and an Omnitoken on the new chain, link the two up, and now your DAO token can be bridged!
 
 ```bash
-cast send `eden-dao-omnitoken` "clone(address,string,string,uint8)" \
-  0xComptrollerAddress \
-  "Friends with Assets Under Management" \
-  "FWAUM" \
-  18
+cast send `eden-dao-bridge` "clone(address,address)" \
+  0xYourComptrollerAddress \
+  0xYourTokenAddress
 ```
 
 This unlocks multi-chain DAO Ops and DAO2DAO collaborations.

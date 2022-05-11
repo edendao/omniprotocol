@@ -27,8 +27,8 @@ contract Omnicast is
   uint64 public nonce;
 
   constructor(
-    address _lzEndpoint,
     address _comptroller,
+    address _lzEndpoint,
     uint16 _currentChainId
   ) {
     __initComptrolled(_comptroller);

@@ -1,4 +1,4 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-forge test --gas-report --sizes && yarn lint:fix
+forge test --gas-report && yarn lint:fix

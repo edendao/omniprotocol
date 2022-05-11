@@ -10,12 +10,12 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target `all'.  Stop.
 
 
-# Make data base, printed on Tue May 10 17:32:51 2022
+# Make data base, printed on Wed May 11 12:29:15 2022
 
- 
 # Variables
 
 # automatic
+ 
 <D = $(patsubst %/,%,$(dir $<))
 # automatic
 ?F = $(notdir $?)
@@ -44,7 +44,7 @@ __CFBundleIdentifier = com.microsoft.VSCode
 # environment
 P9K_SSH = 0
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/82/y25pgtf97cx_xgk_lmnnq2qc0000gn/T/vscode-ipc-58b1d5a8-a24f-492a-811f-f65801a8f5b4.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/82/y25pgtf97cx_xgk_lmnnq2qc0000gn/T/vscode-ipc-3c436dd2-865c-43ab-babe-e789aa5970b7.sock
 # environment
 VSCODE_CWD = /
 # environment
@@ -54,7 +54,7 @@ LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
 GOPATH = /Users/knrz/.gopath
 # environment
-LaunchInstanceID = 05921B2A-32CC-4058-AE44-DE00549FC76B
+LaunchInstanceID = 63E6AB08-C197-4AEC-9B68-6BB0E70631E1
 # environment
 VSCODE_LOG_STACK = false
 # environment
@@ -64,14 +64,13 @@ ANDROID_HOME = /Users/knrz/Library/Android/sdk/
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.HhWsfD61xk/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.5nMOieCY8c/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
 NIX_SSL_CERT_FILE = /Users/knrz/.nix-profile/etc/ssl/certs/ca-bundle.crt
 # environment
 VSCODE_PIPE_LOGGING = true
- 
 # environment
 PWD = /Users/knrz/Git/edendao/protocol
 # environment
@@ -87,7 +86,7 @@ HOME = /Users/knrz
 # default
 MAKEFILEPATH := /Applications/Xcode.app/Contents/Developer/Makefiles
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/knrz/Library/Application Support/Code/CachedData/57fd6d0195bb9b9d1b49f6da5db789060795de47
+VSCODE_CODE_CACHE_PATH = /Users/knrz/Library/Application Support/Code/CachedData/da15b6fd3ef856477bf6f4fb29ba1b7af717770d
 # environment
 LOGNAME = knrz
 # environment
@@ -108,7 +107,6 @@ MAKECMDGOALS := all
 SHLVL = 1
 # environment
 NIX_PATH = /Users/knrz/.nix-defexpr/channels
- 
 # environment
 NIX_PROFILES = /nix/var/nix/profiles/default /Users/knrz/.nix-profile
 # default
@@ -130,13 +128,12 @@ TMPDIR = /var/folders/82/y25pgtf97cx_xgk_lmnnq2qc0000gn/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/knrz/Library/Application Support/Code/1.67.0-main.sock
+VSCODE_IPC_HOOK = /Users/knrz/Library/Application Support/Code/1.67.1-main.sock
 # makefile
 MAKEFLAGS = Rrqp
 # environment
 MFLAGS = -Rrqp
 # automatic
- 
 *D = $(patsubst %/,%,$(dir $*))
 # environment
 XPC_SERVICE_NAME = application.com.microsoft.VSCode.27167100.27167106
@@ -161,7 +158,8 @@ PAGER = less
 # environment
 LC_ALL = C
 # environment
-SECURITYSESSIONID = 186b0
+SECURITYSESSIONID = 186b1
+ 
 # automatic
 ^F = $(notdir $^)
 # default
@@ -181,7 +179,7 @@ LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 12300
+VSCODE_PID = 619
 # variable set hash-table stats:
 # Load=82/1024=8%, Rehash=0, Collisions=3/106=3%
 
@@ -191,9 +189,8 @@ VSCODE_PID = 12300
 
 # Directories
 
-# . (device 16777234, inode 21910415): 28 files, no impossibilities.
+# . (device 16777233, inode 21910415): 28 files, no impossibilities.
 
- 
 # 28 files, no impossibilities in 1 directories.
 
 # Implicit Rules
@@ -230,7 +227,6 @@ Makefile:
 #  Implicit rule search has been done.
 #  Last modified 2022-05-10 16:56:19
 #  File has been updated.
- 
 #  Successfully updated.
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
@@ -295,12 +291,10 @@ lint:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
- 
 #  commands to execute (from `Makefile', line 13):
 	yarn run lint
 	
 
- 
 # files hash-table stats:
 # Load=12/1024=1%, Rehash=0, Collisions=0/25=0%
 # VPATH Search Paths
@@ -313,8 +307,7 @@ lint:
 # # of strcache buffers: 1
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4082 / max = 4082 / min = 4082 / avg = 4082
- 
 
-# Finished Make data base on Tue May 10 17:32:51 2022
+# Finished Make data base on Wed May 11 12:29:15 2022
 
  
