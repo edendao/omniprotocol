@@ -5,8 +5,8 @@ import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
 import {Auth, Authority} from "@protocol/auth/Auth.sol";
 import {Steward} from "@protocol/Steward.sol";
 
-abstract contract Comptrolled is Auth {
-  function __initComptrolled(address _steward) internal {
+abstract contract Stewarded is Auth {
+  function __initStewarded(address _steward) internal {
     __initAuth(Auth(_steward).owner(), Authority(_steward));
   }
 

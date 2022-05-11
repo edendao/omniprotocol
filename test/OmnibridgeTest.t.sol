@@ -15,6 +15,11 @@ contract OmnibridgeTest is ChainEnvironmentTest {
     Omnibridge(bridge.clone(address(steward), address(omnitoken)));
   }
 
+  function testCannotWithdrawAsset() public {
+    hevm.expectRevert("Omnibridge: INVALID_TOKEN");
+    omnibridge.withdrawToken(address(dai), 10_000);
+  }
+
   function testSendFrom(
     uint16 toChainId,
     address toAddress,

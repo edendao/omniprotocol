@@ -4,14 +4,14 @@ pragma solidity ^0.8.13;
 import {IOmnitoken} from "@protocol/interfaces/IOmnitoken.sol";
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
 import {ERC20} from "@protocol/mixins/ERC20.sol";
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {Stewarded} from "@protocol/mixins/Stewarded.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
 contract Omnitoken is
   ERC20,
   PublicGood,
-  Comptrolled,
+  Stewarded,
   IOmnitoken,
   Omnichain,
   Cloneable
@@ -41,7 +41,7 @@ contract Omnitoken is
     ) = abi.decode(_params, (address, address, string, string, uint8));
 
     __initOmnichain(_lzEndpoint);
-    __initComptrolled(_steward);
+    __initStewarded(_steward);
     __initERC20(_name, _symbol, _decimals);
   }
 

@@ -3,19 +3,19 @@ pragma solidity ^0.8.13;
 
 import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {ERC4626} from "@protocol/mixins/ERC4626.sol";
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {Stewarded} from "@protocol/mixins/Stewarded.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
 
 import {Reserve, ReserveVaultState} from "@protocol/Reserve.sol";
 
-abstract contract Vault is Comptrolled, Pausable, ERC4626 {
+abstract contract Vault is Stewarded, Pausable, ERC4626 {
   Reserve public reserve;
 
   function __initVault(address _steward, address _reserve) internal {
     reserve = Reserve(_reserve);
 
     __initERC4626(reserve.asset());
-    __initComptrolled(_steward);
+    __initStewarded(_steward);
 
     asset.approve(_reserve, type(uint256).max); // for managing assets
     reserve.approve(_steward, type(uint256).max); // for withdrawing rewards

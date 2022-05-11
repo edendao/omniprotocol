@@ -6,7 +6,7 @@ import {IOmnicast} from "@protocol/interfaces/IOmnicast.sol";
 import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
 import {Initializable} from "@protocol/mixins/Initializable.sol";
 import {Multicallable} from "@protocol/mixins/Multicallable.sol";
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {Stewarded} from "@protocol/mixins/Stewarded.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
@@ -16,7 +16,7 @@ interface Ownable {
 
 contract Omnicast is
   PublicGood,
-  Comptrolled,
+  Stewarded,
   IOmnicast,
   Omnichain,
   Multicallable,
@@ -31,7 +31,7 @@ contract Omnicast is
     address _lzEndpoint,
     uint16 _currentChainId
   ) {
-    __initComptrolled(_steward);
+    __initStewarded(_steward);
     __initOmnichain(_lzEndpoint);
 
     currentChainId = _currentChainId;

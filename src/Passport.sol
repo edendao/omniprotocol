@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {Stewarded} from "@protocol/mixins/Stewarded.sol";
 import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
 import {ERC721Soulbound} from "@protocol/mixins/ERC721Soulbound.sol";
 import {OmniTokenURI} from "@protocol/mixins/OmniTokenURI.sol";
@@ -9,14 +9,14 @@ import {OmniTokenURI} from "@protocol/mixins/OmniTokenURI.sol";
 // ======================================================
 // Passport is your on-chain identity in omni-chain space
 // ======================================================
-contract Passport is ERC721Soulbound, Comptrolled, OmniTokenURI, EdenDaoNS {
+contract Passport is ERC721Soulbound, Stewarded, OmniTokenURI, EdenDaoNS {
   string public name = "Eden Dao Passport";
   string public symbol = "DAO PASS";
 
   mapping(uint256 => address) private _ownerOf;
 
   constructor(address _steward, address _omnicast) {
-    __initComptrolled(_steward);
+    __initStewarded(_steward);
     __initOmniTokenURI(_omnicast);
   }
 

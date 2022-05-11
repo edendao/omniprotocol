@@ -5,18 +5,12 @@ import {SafeTransferLib} from "@protocol/libraries/SafeTransferLib.sol";
 import {IOmnitoken} from "@protocol/interfaces/IOmnitoken.sol";
 
 import {Cloneable} from "@protocol/mixins/Cloneable.sol";
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {Stewarded} from "@protocol/mixins/Stewarded.sol";
 import {ERC20} from "@protocol/mixins/ERC20.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
-contract Omnibridge is
-  PublicGood,
-  Comptrolled,
-  IOmnitoken,
-  Omnichain,
-  Cloneable
-{
+contract Omnibridge is PublicGood, Stewarded, IOmnitoken, Omnichain, Cloneable {
   using SafeTransferLib for ERC20;
   ERC20 public asset;
 
@@ -41,7 +35,7 @@ contract Omnibridge is
     );
 
     __initOmnichain(_lzEndpoint);
-    __initComptrolled(_steward);
+    __initStewarded(_steward);
 
     asset = ERC20(_asset);
   }

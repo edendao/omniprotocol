@@ -9,7 +9,7 @@ import {ERC20, ERC4626, SafeTransferLib} from "@protocol/mixins/ERC4626.sol";
 import {Pausable} from "@protocol/mixins/Pausable.sol";
 import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {Stewarded} from "@protocol/mixins/Stewarded.sol";
 import {Vault} from "@protocol/mixins/Vault.sol";
 
 struct ReserveVaultState {
@@ -27,7 +27,7 @@ struct ReserveVaultState {
   uint256 totalLoss;
 }
 
-contract Reserve is ERC4626, PublicGood, Comptrolled, Cloneable, Pausable {
+contract Reserve is ERC4626, PublicGood, Stewarded, Cloneable, Pausable {
   using FixedPointMathLib for uint256;
   using SafeTransferLib for ERC20;
 
@@ -98,7 +98,7 @@ contract Reserve is ERC4626, PublicGood, Comptrolled, Cloneable, Pausable {
     );
 
     __initPublicGood(_beneficiary);
-    __initComptrolled(_steward);
+    __initStewarded(_steward);
 
     performancePoints = 1000; // 10%
     emit SetPerformancePoints(performancePoints);

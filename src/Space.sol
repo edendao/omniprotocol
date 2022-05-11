@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {ERC721} from "@solmate/tokens/ERC721.sol";
 
 import {IOmnitoken} from "@protocol/interfaces/IOmnitoken.sol";
-import {Comptrolled} from "@protocol/mixins/Comptrolled.sol";
+import {Stewarded} from "@protocol/mixins/Stewarded.sol";
 import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
 import {Omnichain} from "@protocol/mixins/Omnichain.sol";
 import {OmniTokenURI} from "@protocol/mixins/OmniTokenURI.sol";
@@ -12,7 +12,7 @@ import {PublicGood} from "@protocol/mixins/PublicGood.sol";
 
 contract Space is
   ERC721,
-  Comptrolled,
+  Stewarded,
   Omnichain,
   IOmnitoken,
   OmniTokenURI,
@@ -26,7 +26,7 @@ contract Space is
     address _omnicast,
     bool _mintable
   ) ERC721("Eden Dao Space", "DAO SPACE") {
-    __initComptrolled(_steward);
+    __initStewarded(_steward);
     __initOmniTokenURI(_omnicast);
     __initOmnichain(address(Omnichain(_omnicast).lzEndpoint()));
 
