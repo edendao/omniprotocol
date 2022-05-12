@@ -56,7 +56,7 @@ abstract contract Omnichain is PublicGood, Auth, Pausable, ILayerZeroReceiver {
     bytes calldata lzAdapterParams
   ) internal whenNotPaused {
     bytes memory remoteContract = connections[toChainId];
-    require(remoteContract.length != 0, "Omnichain: INVALID_DESTINATION");
+    require(remoteContract.length != 0, "Omnichain: NOT_CONNECTED");
 
     // solhint-disable-next-line check-send-result
     lzEndpoint.send{value: msg.value}(
@@ -108,7 +108,7 @@ abstract contract Omnichain is PublicGood, Auth, Pausable, ILayerZeroReceiver {
     uint64 nonce,
     bytes calldata payload
   ) external {
-    require(msg.sender == address(this), "Omnichain: INTERNAL");
+    require(msg.sender == address(this), "Omnichain: INVALID_CALLER");
     receiveMessage(fromChainId, fromContract, nonce, payload);
   }
 
