@@ -4,7 +4,7 @@ Interested in building with eden dao omniprotocol? **[Let's collaborate!](https:
 
 # Eden Dao OmniProtocol is Public Goods Omnichain Infrastructure
 
-**Public Goods** in that the  the usage of the protocol supports the regenerative mission of Eden Dao.
+**Public Goods** in that the the usage of the protocol supports the regenerative mission of Eden Dao.
 
 **Omnichain Infrastructure** in that it unlocks a new world of cross-chain possibilities, powered by LayerZero.
 
@@ -20,7 +20,6 @@ It all begins with a `Steward` to self-custody your contracts with flexible, rol
 cast send 0xEdenDaoSteward "clone(address)" 0xOwnerAddress
 ```
 
-
 ### Bridge your existing ERC20 to other chains with Omnibridge
 
 If you already have an ERC20, you can launch a **non-custodial** Omnibridge on the source chain to link up to an Omnitoken on the new chain. Effortlessly unlock multi-chain DAO Ops and DAO2DAO collaborations.
@@ -31,14 +30,13 @@ cast send 0xEdenDaoOmnibridge "clone(address,address)" \
   0xYourTokenAddress
 ```
 
-
 To connect your Omnibridge on Chain A to an Omnitoken on Chain B, simply:
 
 ```bash
 # For Chain A
-cast send 0xYourOmnibridgeOnChainA "setTrustedRemote(uint16,bytes)" ChainB_ID 0xYourOmnitokenOnChainB
+cast send 0xYourOmnibridgeOnChainA "connect(uint16,bytes)" ChainB_ID 0xYourOmnitokenOnChainB
 # For Chain B
-cast send 0xYourOmnitokenOnChainB "setTrustedRemote(uint16,bytes)" ChainA_ID 0xYourOmnibridgeOnChainA
+cast send 0xYourOmnitokenOnChainB "connect(uint16,bytes)" ChainA_ID 0xYourOmnibridgeOnChainA
 ```
 
 ### Launch and bridge across any chain with Omnitoken
@@ -57,11 +55,10 @@ To connect an Omnitoken on Chain A to one on Chain B, simply:
 
 ```bash
 # For Chain A
-cast send 0xYourOmnitokenOnChainA "setTrustedRemote(uint16,bytes)" ChainB_ID 0xYourOmnitokenOnChainB
+cast send 0xYourOmnitokenOnChainA "connect(uint16,bytes)" ChainB_ID 0xYourOmnitokenOnChainB
 # For Chain B
-cast send 0xYourOmnitokenOnChainB "setTrustedRemote(uint16,bytes)" ChainA_ID 0xYourOmnitokenOnChainA
+cast send 0xYourOmnitokenOnChainB "connect(uint16,bytes)" ChainA_ID 0xYourOmnitokenOnChainA
 ```
-
 
 ### Write on-chain messages across chains using Omnicast
 

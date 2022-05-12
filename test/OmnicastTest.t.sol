@@ -105,8 +105,8 @@ contract OmnicastTest is ChainEnvironmentTest {
     hevm.assume(to != address(0) && chainId != 0 && chainId != currentChainId);
 
     bytes memory remoteAddressBytes = abi.encodePacked(address(omnicast));
-    omnicast.setTrustedRemote(chainId, remoteAddressBytes);
-    omnicast.setTrustedRemote(currentChainId, remoteAddressBytes);
+    omnicast.connect(chainId, remoteAddressBytes);
+    omnicast.connect(currentChainId, remoteAddressBytes);
     lzEndpoint.setDestLzEndpoint(address(omnicast), address(lzEndpoint));
 
     uint256 receiverId = omnicast.idOf(to);

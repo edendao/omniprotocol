@@ -29,24 +29,24 @@ abstract contract Omnichain is PublicGood, Auth, Pausable, ILayerZeroReceiver {
   // ===================================
   // ========= LAYER ZERO SEND =========
   // ===================================
-  mapping(uint16 => bytes) public trustedRemoteLookup;
+  mapping(uint16 => bytes) public connections;
 
-  event SetTrustedRemote(uint16 onChainId, bytes contractAddress);
+  event SetConnection(uint16 onChainId, bytes contractAddress);
 
-  function setTrustedRemote(uint16 onChainId, bytes calldata contractAddress)
+  function connect(uint16 onChainId, bytes calldata contractAddress)
     external
     requiresAuth
   {
-    trustedRemoteLookup[onChainId] = contractAddress;
-    emit SetTrustedRemote(onChainId, contractAddress);
+    connections[onChainId] = contractAddress;
+    emit SetConnection(onChainId, contractAddress);
   }
 
-  function isTrustedRemote(uint16 onChainId, bytes calldata remote)
+  function isConnection(uint16 onChainId, bytes calldata remote)
     public
     view
     returns (bool)
   {
-    return keccak256(remote) == keccak256(trustedRemoteLookup[onChainId]);
+    return keccak256(remote) == keccak256(connections[onChainId]);
   }
 
   function lzSend(
@@ -55,7 +55,7 @@ abstract contract Omnichain is PublicGood, Auth, Pausable, ILayerZeroReceiver {
     address lzPaymentAddress,
     bytes calldata lzAdapterParams
   ) internal whenNotPaused {
-    bytes memory remoteContract = trustedRemoteLookup[toChainId];
+    bytes memory remoteContract = connections[toChainId];
     require(remoteContract.length != 0, "Omnichain: INVALID_DESTINATION");
 
     // solhint-disable-next-line check-send-result
@@ -90,7 +90,7 @@ abstract contract Omnichain is PublicGood, Auth, Pausable, ILayerZeroReceiver {
   ) external override {
     require(
       msg.sender == address(lzEndpoint) &&
-        isTrustedRemote(fromChainId, fromContract),
+        isConnection(fromChainId, fromContract),
       "Omnichain: INVALID_CALLER"
     );
 

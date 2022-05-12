@@ -129,7 +129,7 @@ contract Omnibridge is PublicGood, Stewarded, IOmnitoken, Omnichain, Cloneable {
   }
 
   // ==============================
-  // ======= Comptrollable ========
+  // ========= Stewarded ==========
   // ==============================
   function withdrawToken(address token, uint256 amount) public override {
     require(address(token) != address(asset), "Omnibridge: INVALID_TOKEN");

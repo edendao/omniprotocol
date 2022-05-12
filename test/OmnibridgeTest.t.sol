@@ -33,14 +33,8 @@ contract OmnibridgeTest is ChainEnvironmentTest {
     );
 
     lzEndpoint.setDestLzEndpoint(address(omnitoken), address(lzEndpoint));
-    omnibridge.setTrustedRemote(
-      toChainId,
-      abi.encodePacked(address(omnitoken))
-    );
-    omnitoken.setTrustedRemote(
-      currentChainId,
-      abi.encodePacked(address(omnibridge))
-    );
+    omnibridge.connect(toChainId, abi.encodePacked(address(omnitoken)));
+    omnitoken.connect(currentChainId, abi.encodePacked(address(omnibridge)));
 
     dai.mint(address(this), amount);
     dai.approve(address(omnibridge), amount);
