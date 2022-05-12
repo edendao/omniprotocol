@@ -1,5 +1,0 @@
-make --dry-run --always-make --keep-going --print-directory
-make: Entering directory `/Users/knrz/Git/edendao/omniprotocol'
-make update-libs ; make install-deps
-make: Leaving directory `/Users/knrz/Git/edendao/omniprotocol'
- 

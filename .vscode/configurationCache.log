@@ -1,1 +1,0 @@
-{"buildTargets":["build","install-deps","lint","setup","update-libs","watch","xclean"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}

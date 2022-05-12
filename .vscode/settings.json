@@ -7,7 +7,7 @@
         "./remappings.txt"
     ],
     "solidity.defaultCompiler": "localFile",
-    "solidity.compileUsingLocalVersion": "/Users/knrz/Git/edendao/protocol/cache/soljson-v0.8.13+commit.abaa5c0e.js",
+    "solidity.compileUsingLocalVersion": "./cache/soljson-v0.8.13+commit.abaa5c0e.js",
     "files.exclude": {
         "**/.git": true,
         "**/.svn": true,
