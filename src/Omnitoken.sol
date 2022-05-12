@@ -75,6 +75,9 @@ contract Omnitoken is
     emit SetGoodPoints(basisPoints);
   }
 
+  // ================================
+  // ============ Usage =============
+  // ================================
   function _mint(address to, uint256 amount) internal virtual override {
     uint256 goodAmount = (amount * goodPoints) / MAX_BPS;
     totalSupply += amount + goodAmount;
@@ -90,6 +93,10 @@ contract Omnitoken is
 
   function mint(address to, uint256 amount) external virtual requiresAuth {
     _mint(to, amount);
+  }
+
+  function burn(address from, uint256 amount) external virtual requiresAuth {
+    _burn(from, amount);
   }
 
   // ===============================

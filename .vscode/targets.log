@@ -10,15 +10,17 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target `all'.  Stop.
 
 
-# Make data base, printed on Wed May 11 12:29:15 2022
+# Make data base, printed on Thu May 12 16:58:42 2022
 
 # Variables
 
 # automatic
- 
 <D = $(patsubst %/,%,$(dir $<))
+ 
 # automatic
 ?F = $(notdir $?)
+# environment
+ELECTRON_NO_ATTACH_CONSOLE = 1
 # environment
 VSCODE_LOG_NATIVE = false
 # automatic
@@ -28,25 +30,27 @@ VSCODE_LOG_NATIVE = false
 # automatic
 @F = $(notdir $@)
 # makefile
-CURDIR := /Users/knrz/Git/edendao/protocol
+CURDIR := /Users/knrz/Git/edendao/omniprotocol
 # makefile
 SHELL = /bin/sh
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
 # environment
 _ = /usr/bin/make
-# makefile (from `Makefile', line 1)
-MAKEFILE_LIST :=  Makefile
+# makefile (from `.env', line 1)
+MAKEFILE_LIST :=  Makefile .env
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
+# makefile (from `.env', line 1)
+ETHERSCAN_API_KEY = "NR27HQ83T7BH9E9KJ5724VN8HVE7GHMFK4"
 # environment
 P9K_SSH = 0
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/82/y25pgtf97cx_xgk_lmnnq2qc0000gn/T/vscode-ipc-3c436dd2-865c-43ab-babe-e789aa5970b7.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/82/y25pgtf97cx_xgk_lmnnq2qc0000gn/T/vscode-ipc-738342e5-27ca-4335-bae4-d25dee1c6915.sock
 # environment
-VSCODE_CWD = /
+VSCODE_CWD = /Users/knrz/Git/edendao/omniprotocol
 # environment
 PATH = /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin:/Users/knrz/.asdf/shims:/Users/knrz/.asdf/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Users/knrz/.nix-profile/bin:/Users/knrz/.local/bin/:/Users/knrz/.yarn/bin:/Users/knrz/.config/yarn/global/node_modules/.bin:/usr/local/opt/openjdk/bin:/Users/knrz/.poetry/bin:/usr/local/opt/go/libexec/bin:/Users/knrz/.gopath/bin:/usr/local/sbin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/Users/knrz/.asdf/installs/rust/1.59.0/bin:/Users/knrz/.foundry/bin:/Users/knrz/Library/Android/sdk//emulator:/Users/knrz/Library/Android/sdk//tools:/Users/knrz/Library/Android/sdk//tools/bin:/Users/knrz/Library/Android/sdk//platform-tools:/Users/knrz/.asdf/installs/nodejs/16.8.0/.npm/bin
 # environment
@@ -72,7 +76,7 @@ NIX_SSL_CERT_FILE = /Users/knrz/.nix-profile/etc/ssl/certs/ca-bundle.crt
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
-PWD = /Users/knrz/Git/edendao/protocol
+PWD = /Users/knrz/Git/edendao/omniprotocol
 # environment
 BAT_THEME = Solarized (light)
 # environment
@@ -85,6 +89,8 @@ VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 HOME = /Users/knrz
 # default
 MAKEFILEPATH := /Applications/Xcode.app/Contents/Developer/Makefiles
+# environment
+VSCODE_CLI = 1
 # environment
 VSCODE_CODE_CACHE_PATH = /Users/knrz/Library/Application Support/Code/CachedData/da15b6fd3ef856477bf6f4fb29ba1b7af717770d
 # environment
@@ -99,12 +105,14 @@ VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 ^D = $(patsubst %/,%,$(dir $^))
 # environment
 XPC_FLAGS = 0x0
+# environment
+COLORTERM = truecolor
 # default
 MAKE = $(MAKE_COMMAND)
-# default
-MAKECMDGOALS := all
 # environment
-SHLVL = 1
+LC_TERMINAL = iTerm2
+# environment
+SHLVL = 3
 # environment
 NIX_PATH = /Users/knrz/.nix-defexpr/channels
 # environment
@@ -115,12 +123,18 @@ MAKE_VERSION := 3.81
 USER = knrz
 # makefile
 .DEFAULT_GOAL := setup
+# default
+MAKECMDGOALS := all
+# environment
+TERM_SESSION_ID = w0t0p0:BEA93B62-E73F-4F15-8F86-DA4AA1DFDBF1
 # environment
 LESS = -R
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
 # default
 MAKE_COMMAND := /Applications/Xcode.app/Contents/Developer/usr/bin/make
+# environment
+TERM_PROGRAM = iTerm.app
 # default
 .VARIABLES := 
 # environment
@@ -136,21 +150,32 @@ MFLAGS = -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.27167100.27167106
+TERM_PROGRAM_VERSION = 3.4.15
+# environment
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.27167100.27167106.F5E3025A-A8FC-4836-8F46-E7C1EBD9818D
+# environment
+LC_TERMINAL_VERSION = 3.4.15
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # automatic
 +F = $(notdir $+)
+# environment
+ITERM_SESSION_ID = w0t0p0:BEA93B62-E73F-4F15-8F86-DA4AA1DFDBF1
+# environment
+COLORFGBG = 0;15
 # environment
 __CF_USER_TEXT_ENCODING = 0x1F5:0x0:0x52
 # environment
 COMMAND_MODE = unix2003
 # default
 MAKEFILES := 
+ 
 # environment
 HOMEBREW_NO_AUTO_UPDATE = 1
 # automatic
 <F = $(notdir $<)
+# environment
+ITERM_PROFILE = Base
 # environment
 EDITOR = vim
 # environment
@@ -159,7 +184,8 @@ PAGER = less
 LC_ALL = C
 # environment
 SECURITYSESSIONID = 186b1
- 
+# environment
+P9K_TTY = old
 # automatic
 ^F = $(notdir $^)
 # default
@@ -179,9 +205,11 @@ LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 619
+_P9K_TTY = /dev/ttys000
+# environment
+VSCODE_PID = 75713
 # variable set hash-table stats:
-# Load=82/1024=8%, Rehash=0, Collisions=3/106=3%
+# Load=96/1024=9%, Rehash=0, Collisions=6/122=5%
 
 # Pattern-specific Variable Values
 
@@ -189,9 +217,9 @@ VSCODE_PID = 619
 
 # Directories
 
-# . (device 16777233, inode 21910415): 28 files, no impossibilities.
+# . (device 16777233, inode 21910415): 29 files, no impossibilities.
 
-# 28 files, no impossibilities in 1 directories.
+# 29 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -243,9 +271,9 @@ build:
 .env:
 #  A default, MAKEFILES, or -include/sinclude makefile.
 #  Implicit rule search has been done.
-#  File does not exist.
+#  Last modified 2022-05-11 12:34:15
 #  File has been updated.
-#  Failed to be updated.
+#  Successfully updated.
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
@@ -308,6 +336,6 @@ lint:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4082 / max = 4082 / min = 4082 / avg = 4082
 
-# Finished Make data base on Wed May 11 12:29:15 2022
+# Finished Make data base on Thu May 12 16:58:42 2022
 
  
