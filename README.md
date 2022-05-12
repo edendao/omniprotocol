@@ -2,9 +2,9 @@ _eden dao omniprotocol is in code review._ This is an opportunity for the commun
 
 Interested in building with eden dao omniprotocol? **[Let's collaborate!](https://edendao.typeform.com/to/qrHGVQtx)**
 
-# Eden Dao OmniProtocol is Regenerative Omnichain Infrastructure
+# Eden Dao OmniProtocol is Public Goods Omnichain Infrastructure
 
-**Regenerative** in that the usage of the protocol supports the regenerative mission of Eden Dao.
+**Public Goods** in that the  the usage of the protocol supports the regenerative mission of Eden Dao.
 
 **Omnichain Infrastructure** in that it unlocks a new world of cross-chain possibilities, powered by LayerZero.
 
@@ -17,7 +17,28 @@ Gas-optimized, you can launch your own ERC20 with ≤0.1 ETH on mainnet. Here's 
 It all begins with a `Steward` to self-custody your contracts with flexible, role-based authentication through Solmate's MultiRoleAuthority.
 
 ```bash
-cast send `eden-dao-steward` "clone(address)" 0xOwnerAddress
+cast send 0xEdenDaoSteward "clone(address)" 0xOwnerAddress
+```
+
+
+### Bridge your existing ERC20 to other chains with Omnibridge
+
+If you already have an ERC20, you can launch a **non-custodial** Omnibridge on the source chain to link up to an Omnitoken on the new chain. Effortlessly unlock multi-chain DAO Ops and DAO2DAO collaborations.
+
+```bash
+cast send 0xEdenDaoOmnibridge "clone(address,address)" \
+  0xYourStewardAddress \
+  0xYourTokenAddress
+```
+
+
+To connect your Omnibridge on Chain A to an Omnitoken on Chain B, simply:
+
+```bash
+# For Chain A
+cast send 0xYourOmnibridgeOnChainA "setTrustedRemote(uint16,bytes)" ChainB_ID 0xYourOmnitokenOnChainB
+# For Chain B
+cast send 0xYourOmnitokenOnChainB "setTrustedRemote(uint16,bytes)" ChainA_ID 0xYourOmnibridgeOnChainA
 ```
 
 ### Launch and bridge across any chain with Omnitoken
@@ -25,22 +46,22 @@ cast send `eden-dao-steward` "clone(address)" 0xOwnerAddress
 Stop wasting months deciding what chain to launch on because of lock-in and high switching costs, just launch an Omnitoken on the chain you want. If you ever need to move to another chain, launch an Omnitoken there and link the two up. Now your token is easily bridgeable across chains!
 
 ```bash
-cast send `eden-dao-omnitoken` "clone(address,string,string,uint8)" \
+cast send 0xEdenDaoOmnitoken "clone(address,string,string,uint8)" \
   0xYourStewardAddress \
   "Friends with Assets Under Management" \
   "FWAUM" \
   18
 ```
 
-### Bridge your existing ERC20 to other chains with Omnibridge
-
-If you already have an ERC20, you can launch a **non-custodial** Omnibridge on the source chain to link up to an Omnitoken on the new chain. Effortlessly unlock multi-chain DAO Ops and DAO2DAO collaborations.
+To connect an Omnitoken on Chain A to one on Chain B, simply:
 
 ```bash
-cast send `eden-dao-omnibridge` "clone(address,address)" \
-  0xYourStewardAddress \
-  0xYourTokenAddress
+# For Chain A
+cast send 0xYourOmnitokenOnChainA "setTrustedRemote(uint16,bytes)" ChainB_ID 0xYourOmnitokenOnChainB
+# For Chain B
+cast send 0xYourOmnitokenOnChainB "setTrustedRemote(uint16,bytes)" ChainA_ID 0xYourOmnitokenOnChainA
 ```
+
 
 ### Write on-chain messages across chains using Omnicast
 
