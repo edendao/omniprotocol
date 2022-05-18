@@ -11,6 +11,10 @@ contract OmnibridgeTest is ChainEnvironmentTest {
   Omnitoken public omnitoken =
     Omnitoken(token.clone(address(steward), "DAI", "DAI", dai.decimals()));
 
+  function testFailDeployingDuplicateAsset() public {
+    Omnibridge(bridge.clone(address(steward), address(dai)));
+  }
+
   function testCloneGas() public {
     Omnibridge(bridge.clone(address(steward), address(omnitoken)));
   }

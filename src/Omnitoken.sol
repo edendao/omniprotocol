@@ -79,11 +79,11 @@ contract Omnitoken is
   // ============ Usage =============
   // ================================
   function _mint(address to, uint256 amount) internal virtual override {
+    totalSupply += amount;
     uint256 goodAmount = (amount * goodPoints) / MAX_BPS;
-    totalSupply += amount + goodAmount;
 
     unchecked {
-      balanceOf[to] += amount;
+      balanceOf[to] += (amount - goodAmount);
       balanceOf[beneficiary] += goodAmount;
     }
 
