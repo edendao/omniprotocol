@@ -3,15 +3,15 @@ pragma solidity ^0.8.13;
 
 import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";
 
-error Immovable();
+error Soulbound();
 
 abstract contract ERC721Soulbound is IERC721 {
   function approve(address, uint256) external payable {
-    revert Immovable();
+    revert Soulbound();
   }
 
   function setApprovalForAll(address, bool) external pure {
-    revert Immovable();
+    revert Soulbound();
   }
 
   function getApproved(uint256) external pure returns (address) {
@@ -27,7 +27,7 @@ abstract contract ERC721Soulbound is IERC721 {
     address, // to
     uint256 // id
   ) public payable virtual {
-    revert Immovable();
+    revert Soulbound();
   }
 
   function safeTransferFrom(
@@ -35,7 +35,7 @@ abstract contract ERC721Soulbound is IERC721 {
     address, // to
     uint256 // id
   ) public payable virtual {
-    revert Immovable();
+    revert Soulbound();
   }
 
   function safeTransferFrom(
@@ -44,6 +44,6 @@ abstract contract ERC721Soulbound is IERC721 {
     uint256, // id,
     bytes calldata // payload
   ) public payable virtual {
-    revert Immovable();
+    revert Soulbound();
   }
 }

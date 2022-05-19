@@ -43,5 +43,8 @@ contract ChainEnvironmentTest is DSTestPlus {
       beneficiary,
       abi.encode(address(space), address(passport))
     );
+
+    steward.setPublicCapability(token.transfer.selector, true);
+    steward.setPublicCapability(token.transferFrom.selector, true);
   }
 }

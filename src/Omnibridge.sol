@@ -43,10 +43,10 @@ contract Omnibridge is PublicGood, Stewarded, IOmnitoken, Omnichain, Cloneable {
   function clone(address _steward, address _asset)
     external
     payable
-    returns (address cloneAddress)
+    returns (address bridgeAddress)
   {
-    cloneAddress = clone(keccak256(abi.encode(_asset)));
-    Cloneable(cloneAddress).initialize(
+    bridgeAddress = clone(keccak256(abi.encode(_asset)));
+    Cloneable(bridgeAddress).initialize(
       beneficiary,
       abi.encode(address(lzEndpoint), _steward, _asset)
     );

@@ -50,9 +50,9 @@ contract Omnitoken is
     string memory _name,
     string memory _symbol,
     uint8 _decimals
-  ) external returns (address cloneAddress) {
-    cloneAddress = clone();
-    Cloneable(cloneAddress).initialize(
+  ) external returns (address tokenAddress) {
+    tokenAddress = clone();
+    Cloneable(tokenAddress).initialize(
       beneficiary,
       abi.encode(address(lzEndpoint), _steward, _name, _symbol, _decimals)
     );
@@ -76,7 +76,7 @@ contract Omnitoken is
   }
 
   // ================================
-  // ============ Usage =============
+  // ============ ERC20 =============
   // ================================
   function _mint(address to, uint256 amount) internal virtual override {
     totalSupply += amount;
@@ -95,8 +95,30 @@ contract Omnitoken is
     _mint(to, amount);
   }
 
-  function burn(address from, uint256 amount) external virtual requiresAuth {
+  function burn(address from, uint256 amount) external virtual {
+    if (msg.sender != from) {
+      _useAllowance(from, msg.sender, amount);
+    }
+
     _burn(from, amount);
+  }
+
+  function transfer(address to, uint256 amount)
+    public
+    virtual
+    override
+    requiresAuth
+    returns (bool)
+  {
+    return super.transfer(to, amount);
+  }
+
+  function transferFrom(
+    address sender,
+    address recipient,
+    uint256 amount
+  ) public virtual override requiresAuth returns (bool) {
+    return super.transferFrom(sender, recipient, amount);
   }
 
   // ===============================

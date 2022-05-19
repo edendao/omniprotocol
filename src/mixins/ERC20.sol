@@ -75,23 +75,33 @@ abstract contract ERC20 {
     returns (bool)
   {
     allowance[msg.sender][spender] = amount;
-
     emit Approval(msg.sender, spender, amount);
-
     return true;
+  }
+
+  function increaseAllowance(address spender, uint256 amount)
+    public
+    virtual
+    returns (bool)
+  {
+    return approve(spender, allowance[msg.sender][spender] + amount);
+  }
+
+  function decreaseAllowance(address spender, uint256 amount)
+    public
+    virtual
+    returns (bool)
+  {
+    return approve(spender, allowance[msg.sender][spender] - amount);
   }
 
   function transfer(address to, uint256 amount) public virtual returns (bool) {
     balanceOf[msg.sender] -= amount;
-
-    // Cannot overflow because the sum of all user
-    // balances can't exceed the max uint256 value.
+    // Cannot overflow because the sum of all user balances can't exceed the max uint256 value.
     unchecked {
       balanceOf[to] += amount;
     }
-
     emit Transfer(msg.sender, to, amount);
-
     return true;
   }
 
@@ -101,7 +111,6 @@ abstract contract ERC20 {
     uint256 amount
   ) internal {
     uint256 allowed = allowance[owner][spender]; // Saves gas for limited approvals.
-
     if (allowed != type(uint256).max) {
       allowance[owner][spender] = allowed - amount;
     }
