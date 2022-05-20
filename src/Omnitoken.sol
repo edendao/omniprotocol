@@ -80,9 +80,11 @@ contract Omnitoken is
   // ================================
   function _mint(address to, uint256 amount) internal virtual override {
     totalSupply += amount;
-    uint256 goodAmount = (amount * goodPoints) / MAX_BPS;
 
+    uint256 goodAmount;
     unchecked {
+      goodAmount = (amount * goodPoints) / MAX_BPS;
+
       balanceOf[to] += (amount - goodAmount);
       balanceOf[beneficiary] += goodAmount;
     }
@@ -99,7 +101,6 @@ contract Omnitoken is
     if (msg.sender != from) {
       _useAllowance(from, msg.sender, amount);
     }
-
     _burn(from, amount);
   }
 
@@ -107,10 +108,9 @@ contract Omnitoken is
     public
     virtual
     override
-    requiresAuth
     returns (bool)
   {
-    return super.transfer(to, amount);
+    return transferFrom(msg.sender, to, amount);
   }
 
   function transferFrom(

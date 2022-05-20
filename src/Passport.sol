@@ -29,7 +29,7 @@ contract Passport is ERC721Soulbound, Stewarded, OmniTokenURI, EdenDaoNS {
   }
 
   function mint(address to) public payable returns (uint256 id) {
-    require(msg.value >= 0.01 ether, "Passport: INVALID_MINT");
+    require(msg.value >= 0.01 ether, "INVALID_MINT");
 
     id = idOf(to);
 

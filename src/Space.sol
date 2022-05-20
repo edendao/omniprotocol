@@ -63,15 +63,14 @@ contract Space is
 
   function mint(string memory name) public payable returns (uint256) {
     // solhint-disable-next-line avoid-tx-origin
-    require(msg.sender == tx.origin, "Space: NO_SPOOFING");
-    require(mintable, "Space: NOT_MINTABLE");
+    require(msg.sender == tx.origin, "NO_SPOOFING");
+    require(mintable, "NOT_MINTABLE");
 
     uint256 mints = mintsBy[msg.sender];
-    require(mints < 10, "Space: MINT_LIMIT");
-    require(msg.value >= (mints + 1) * 0.05 ether, "Space: INVALID_VALUE");
+    require(mints < 10, "MINT_LIMIT");
+    require(msg.value >= (mints + 1) * 0.05 ether, "INSUFFICIENT_VALUE");
 
     mintsBy[msg.sender] = mints + 1;
-
     return _mintName(msg.sender, name);
   }
 
