@@ -5,7 +5,7 @@ abstract contract ReentrancyGuard {
   bool private _reentrancyGuard;
 
   modifier nonReentrant() {
-    require(!_reentrancyGuard, "REENTRANCY");
+    require(!_reentrancyGuard, "REENTRANT");
     _reentrancyGuard = true;
     _;
     _reentrancyGuard = false;
