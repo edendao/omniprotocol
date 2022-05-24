@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGLP-3.0-only
 pragma solidity ^0.8.13;
 
-import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
-import {Auth, Authority} from "@protocol/auth/Auth.sol";
-import {Steward} from "@protocol/Steward.sol";
+import {TransferToken} from "@omniprotocol/interfaces/TransferrableToken.sol";
+import {Auth, Authority} from "@omniprotocol/auth/Auth.sol";
+import {Steward} from "@omniprotocol/Steward.sol";
 
 abstract contract Stewarded is Auth {
   function __initStewarded(address _steward) internal {

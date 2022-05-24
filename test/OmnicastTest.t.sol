@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {ChainEnvironmentTest, console} from "@test/ChainEnvironmentTest.t.sol";
-import {IOmnitoken} from "@protocol/interfaces/IOmnitoken.sol";
+import {IOmnitoken} from "@omniprotocol/interfaces/IOmnitoken.sol";
 
 contract OmnicastTest is ChainEnvironmentTest {
   uint256 public passportId;

@@ -3,12 +3,12 @@ pragma solidity ^0.8.13;
 
 import {ERC721} from "@solmate/tokens/ERC721.sol";
 
-import {IOmnitoken} from "@protocol/interfaces/IOmnitoken.sol";
-import {Stewarded} from "@protocol/mixins/Stewarded.sol";
-import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
-import {Omnichain} from "@protocol/mixins/Omnichain.sol";
-import {OmniTokenURI} from "@protocol/mixins/OmniTokenURI.sol";
-import {PublicGood} from "@protocol/mixins/PublicGood.sol";
+import {IOmnitoken} from "@omniprotocol/interfaces/IOmnitoken.sol";
+import {Stewarded} from "@omniprotocol/mixins/Stewarded.sol";
+import {EdenDaoNS} from "@omniprotocol/mixins/EdenDaoNS.sol";
+import {Omnichain} from "@omniprotocol/mixins/Omnichain.sol";
+import {OmniTokenURI} from "@omniprotocol/mixins/OmniTokenURI.sol";
+import {PublicGood} from "@omniprotocol/mixins/PublicGood.sol";
 
 contract Space is
   ERC721,

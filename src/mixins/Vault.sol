@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ERC20} from "@protocol/mixins/ERC20.sol";
-import {ERC4626} from "@protocol/mixins/ERC4626.sol";
-import {Stewarded} from "@protocol/mixins/Stewarded.sol";
-import {Pausable} from "@protocol/mixins/Pausable.sol";
+import {ERC20} from "@omniprotocol/mixins/ERC20.sol";
+import {ERC4626} from "@omniprotocol/mixins/ERC4626.sol";
+import {Stewarded} from "@omniprotocol/mixins/Stewarded.sol";
+import {Pausable} from "@omniprotocol/mixins/Pausable.sol";
 
-import {Reserve, ReserveVaultState} from "@protocol/Reserve.sol";
+import {Reserve, ReserveVaultState} from "@omniprotocol/Reserve.sol";
 
 abstract contract Vault is Stewarded, Pausable, ERC4626 {
   Reserve public reserve;

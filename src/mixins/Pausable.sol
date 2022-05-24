@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.13;
 
-import {Auth} from "@protocol/auth/Auth.sol";
+import {Auth} from "@omniprotocol/auth/Auth.sol";
 
 abstract contract Pausable is Auth {
   bool public isPaused;

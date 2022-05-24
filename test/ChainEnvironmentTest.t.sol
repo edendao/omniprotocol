@@ -7,12 +7,12 @@ import {DSTestPlus} from "@solmate/test/utils/DSTestPlus.sol";
 import {LZEndpointMock} from "@test/mocks/LZEndpointMock.sol";
 import {MockERC20} from "@test/mocks/MockERC20.sol";
 
-import {Steward} from "@protocol/Steward.sol";
-import {Omnitoken} from "@protocol/Omnitoken.sol";
-import {Omnibridge} from "@protocol/Omnibridge.sol";
-import {Omnicast} from "@protocol/Omnicast.sol";
-import {Passport} from "@protocol/Passport.sol";
-import {Space} from "@protocol/Space.sol";
+import {Steward} from "@omniprotocol/Steward.sol";
+import {Omnitoken} from "@omniprotocol/Omnitoken.sol";
+import {Omnibridge} from "@omniprotocol/Omnibridge.sol";
+import {Omnicast} from "@omniprotocol/Omnicast.sol";
+import {Passport} from "@omniprotocol/Passport.sol";
+import {Space} from "@omniprotocol/Space.sol";
 
 contract ChainEnvironmentTest is DSTestPlus {
   address public beneficiary = hevm.addr(42);

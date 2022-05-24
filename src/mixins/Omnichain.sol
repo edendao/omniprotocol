@@ -4,9 +4,9 @@ pragma solidity ^0.8.13;
 import {ILayerZeroEndpoint} from "@layerzerolabs/contracts/interfaces/ILayerZeroEndpoint.sol";
 import {ILayerZeroReceiver} from "@layerzerolabs/contracts/interfaces/ILayerZeroReceiver.sol";
 
-import {Auth} from "@protocol/auth/Auth.sol";
-import {Pausable} from "@protocol/mixins/Pausable.sol";
-import {PublicGood} from "@protocol/mixins/PublicGood.sol";
+import {Auth} from "@omniprotocol/auth/Auth.sol";
+import {Pausable} from "@omniprotocol/mixins/Pausable.sol";
+import {PublicGood} from "@omniprotocol/mixins/PublicGood.sol";
 
 abstract contract Omnichain is PublicGood, Auth, Pausable, ILayerZeroReceiver {
   ILayerZeroEndpoint public lzEndpoint;

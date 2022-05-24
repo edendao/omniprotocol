@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ERC20} from "@protocol/mixins/ERC20.sol";
+import {ERC20} from "@omniprotocol/mixins/ERC20.sol";
 
 contract MockERC20 is ERC20 {
   constructor(

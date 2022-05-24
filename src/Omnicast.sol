@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {IOmnicast} from "@protocol/interfaces/IOmnicast.sol";
+import {IOmnicast} from "@omniprotocol/interfaces/IOmnicast.sol";
 
-import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
-import {Initializable} from "@protocol/mixins/Initializable.sol";
-import {Multicallable} from "@protocol/mixins/Multicallable.sol";
-import {Stewarded} from "@protocol/mixins/Stewarded.sol";
-import {Omnichain} from "@protocol/mixins/Omnichain.sol";
-import {PublicGood} from "@protocol/mixins/PublicGood.sol";
+import {EdenDaoNS} from "@omniprotocol/mixins/EdenDaoNS.sol";
+import {Initializable} from "@omniprotocol/mixins/Initializable.sol";
+import {Multicallable} from "@omniprotocol/mixins/Multicallable.sol";
+import {Stewarded} from "@omniprotocol/mixins/Stewarded.sol";
+import {Omnichain} from "@omniprotocol/mixins/Omnichain.sol";
+import {PublicGood} from "@omniprotocol/mixins/PublicGood.sol";
 
 interface Ownable {
   function ownerOf(uint256 id) external view returns (address);

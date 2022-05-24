@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {DSTestPlus} from "@solmate/test/utils/DSTestPlus.sol";
 
-import {EdenDaoNS} from "@protocol/mixins/EdenDaoNS.sol";
+import {EdenDaoNS} from "@omniprotocol/mixins/EdenDaoNS.sol";
 
 contract EdenDaoNSTest is DSTestPlus {
   EdenDaoNS internal immutable ns = new EdenDaoNS();

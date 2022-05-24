@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {SafeTransferLib} from "@protocol/libraries/SafeTransferLib.sol";
-import {IOmnitoken} from "@protocol/interfaces/IOmnitoken.sol";
+import {SafeTransferLib} from "@omniprotocol/libraries/SafeTransferLib.sol";
+import {IOmnitoken} from "@omniprotocol/interfaces/IOmnitoken.sol";
 
-import {Cloneable} from "@protocol/mixins/Cloneable.sol";
-import {Stewarded} from "@protocol/mixins/Stewarded.sol";
-import {ERC20} from "@protocol/mixins/ERC20.sol";
-import {Omnichain} from "@protocol/mixins/Omnichain.sol";
-import {PublicGood} from "@protocol/mixins/PublicGood.sol";
+import {Cloneable} from "@omniprotocol/mixins/Cloneable.sol";
+import {Stewarded} from "@omniprotocol/mixins/Stewarded.sol";
+import {ERC20} from "@omniprotocol/mixins/ERC20.sol";
+import {Omnichain} from "@omniprotocol/mixins/Omnichain.sol";
+import {PublicGood} from "@omniprotocol/mixins/PublicGood.sol";
 
 contract Omnibridge is PublicGood, Stewarded, IOmnitoken, Omnichain, Cloneable {
   using SafeTransferLib for ERC20;

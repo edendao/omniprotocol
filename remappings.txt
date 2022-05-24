@@ -1,6 +1,6 @@
 @boring/=lib/BoringSolidity/contracts/
 @layerzerolabs/contracts/=lib/LayerZero/contracts/
-@protocol/=src/
+@omniprotocol/=src/
 @test/=test/
 @proxy/=lib/prb-proxy/contracts/
 @solmate/=lib/solmate/src/

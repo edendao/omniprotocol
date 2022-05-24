@@ -3,14 +3,14 @@ pragma solidity ^0.8.13;
 pragma abicoder v2;
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
-import {TransferToken} from "@protocol/interfaces/TransferrableToken.sol";
-import {Cloneable} from "@protocol/mixins/Cloneable.sol";
-import {ERC20, ERC4626, SafeTransferLib} from "@protocol/mixins/ERC4626.sol";
-import {Pausable} from "@protocol/mixins/Pausable.sol";
-import {PublicGood} from "@protocol/mixins/PublicGood.sol";
-import {ReentrancyGuard} from "@protocol/mixins/ReentrancyGuard.sol";
-import {Stewarded} from "@protocol/mixins/Stewarded.sol";
-import {Vault} from "@protocol/mixins/Vault.sol";
+import {TransferToken} from "@omniprotocol/interfaces/TransferrableToken.sol";
+import {Cloneable} from "@omniprotocol/mixins/Cloneable.sol";
+import {ERC20, ERC4626, SafeTransferLib} from "@omniprotocol/mixins/ERC4626.sol";
+import {Pausable} from "@omniprotocol/mixins/Pausable.sol";
+import {PublicGood} from "@omniprotocol/mixins/PublicGood.sol";
+import {ReentrancyGuard} from "@omniprotocol/mixins/ReentrancyGuard.sol";
+import {Stewarded} from "@omniprotocol/mixins/Stewarded.sol";
+import {Vault} from "@omniprotocol/mixins/Vault.sol";
 
 struct ReserveVaultState {
   // Configuration

@@ -5,7 +5,7 @@ import {ChainEnvironmentTest, console} from "@test/ChainEnvironmentTest.t.sol";
 
 import {Vault, VaultMock} from "@test/mocks/VaultMock.sol";
 
-import {Reserve, ReserveVaultState} from "@protocol/Reserve.sol";
+import {Reserve, ReserveVaultState} from "@omniprotocol/Reserve.sol";
 
 contract ReserveTest is ChainEnvironmentTest {
   Reserve public reserve;

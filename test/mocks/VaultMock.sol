@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {Vault} from "@protocol/mixins/Vault.sol";
+import {Vault} from "@omniprotocol/mixins/Vault.sol";
 
 contract VaultMock is Vault {
   constructor(

@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {DSTestPlus} from "@solmate/test/utils/DSTestPlus.sol";
 
-import {GCounter} from "@protocol/libraries/GCounter.sol";
+import {GCounter} from "@omniprotocol/libraries/GCounter.sol";
 
 contract GCounterTest is DSTestPlus {
   using GCounter for uint256[];

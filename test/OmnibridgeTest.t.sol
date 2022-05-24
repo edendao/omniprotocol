@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {ChainEnvironmentTest, Omnitoken} from "@test/ChainEnvironmentTest.t.sol";
 
-import {Omnibridge} from "@protocol/Omnibridge.sol";
+import {Omnibridge} from "@omniprotocol/Omnibridge.sol";
 
 contract OmnibridgeTest is ChainEnvironmentTest {
   Omnibridge public omnibridge =
