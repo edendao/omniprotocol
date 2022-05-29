@@ -42,10 +42,7 @@ contract Space is
     return super.tokenURI(id);
   }
 
-  function _mintName(address to, string memory name)
-    internal
-    returns (uint256 id)
-  {
+  function _mint(address to, string memory name) internal returns (uint256 id) {
     circulatingSupply++;
     id = idOf(name);
     _mint(to, id);
@@ -56,7 +53,7 @@ contract Space is
     requiresAuth
     returns (uint256)
   {
-    return _mintName(to, name);
+    return _mint(to, name);
   }
 
   mapping(address => uint256) public mintsBy;
@@ -71,7 +68,7 @@ contract Space is
     require(msg.value >= (mints + 1) * 0.05 ether, "INSUFFICIENT_VALUE");
 
     mintsBy[msg.sender] = mints + 1;
-    return _mintName(msg.sender, name);
+    return _mint(msg.sender, name);
   }
 
   // ======================

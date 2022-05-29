@@ -13,30 +13,33 @@ contract Passport is ERC721Soulbound, Stewarded, OmniTokenURI, EdenDaoNS {
   string public name = "Eden Dao Passport";
   string public symbol = "DAO PASS";
 
-  mapping(uint256 => address) private _ownerOf;
-
   constructor(address _steward, address _omnicast) {
     __initStewarded(_steward);
     __initOmniTokenURI(_omnicast);
   }
 
-  function ownerOf(uint256 id) public view returns (address owner) {
-    require((owner = _ownerOf[id]) != address(0), "NOT_MINTED");
+  mapping(uint256 => address) private _ownerOf;
+
+  function ownerOf(uint256 id) public view returns (address account) {
+    require((account = _ownerOf[id]) != address(0), "NOT_MINTED");
   }
 
-  function balanceOf(address owner) public view returns (uint256) {
-    return _ownerOf[idOf(owner)] == address(0) ? 0 : 1;
+  function balanceOf(address account) public view returns (uint256) {
+    return _ownerOf[idOf(account)] == address(0) ? 0 : 1;
   }
 
-  function mint(address to) public payable returns (uint256 id) {
-    require(msg.value >= 0.01 ether, "INVALID_MINT");
-
+  function _mint(address to) internal returns (uint256 id) {
     id = idOf(to);
 
     if (_ownerOf[id] == address(0)) {
       _ownerOf[id] = to;
       emit Transfer(address(0), to, id);
     }
+  }
+
+  function mint(address to) public payable returns (uint256 id) {
+    require(msg.value >= 0.01 ether, "INVALID_MINT");
+    return _mint(to);
   }
 
   function mint() public payable returns (uint256) {
