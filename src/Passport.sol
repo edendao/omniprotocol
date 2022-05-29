@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {Stewarded} from "@omniprotocol/mixins/Stewarded.sol";
-import {EdenDaoNS} from "@omniprotocol/mixins/EdenDaoNS.sol";
-import {ERC721Soulbound} from "@omniprotocol/mixins/ERC721Soulbound.sol";
-import {OmniTokenURI} from "@omniprotocol/mixins/OmniTokenURI.sol";
+import {Stewarded} from "./mixins/Stewarded.sol";
+import {EdenDaoNS} from "./mixins/EdenDaoNS.sol";
+import {ERC721Soulbound} from "./mixins/ERC721Soulbound.sol";
+import {OmniTokenURI} from "./mixins/OmniTokenURI.sol";
 
 // ======================================================
 // Passport is your on-chain identity in omni-chain space

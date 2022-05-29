@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {IOmnitoken} from "@omniprotocol/interfaces/IOmnitoken.sol";
-import {Cloneable} from "@omniprotocol/mixins/Cloneable.sol";
-import {ERC20} from "@omniprotocol/mixins/ERC20.sol";
-import {Stewarded} from "@omniprotocol/mixins/Stewarded.sol";
-import {Omnichain} from "@omniprotocol/mixins/Omnichain.sol";
-import {PublicGood} from "@omniprotocol/mixins/PublicGood.sol";
+import {IOmnitoken} from "./interfaces/IOmnitoken.sol";
+import {Cloneable} from "./mixins/Cloneable.sol";
+import {ERC20} from "./mixins/ERC20.sol";
+import {Stewarded} from "./mixins/Stewarded.sol";
+import {Omnichain} from "./mixins/Omnichain.sol";
+import {PublicGood} from "./mixins/PublicGood.sol";
 
 contract Omnitoken is
   ERC20,

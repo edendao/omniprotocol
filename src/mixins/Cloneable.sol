@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.13;
 
-import {Initializable} from "@omniprotocol/mixins/Initializable.sol";
+import {Initializable} from "./Initializable.sol";
 
 abstract contract Cloneable is Initializable {
   uint256 private _cloneId;

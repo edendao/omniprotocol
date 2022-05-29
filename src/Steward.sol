@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {TransferToken} from "@omniprotocol/interfaces/TransferrableToken.sol";
-import {Cloneable} from "@omniprotocol/mixins/Cloneable.sol";
-import {Multicallable} from "@omniprotocol/mixins/Multicallable.sol";
-import {PublicGood} from "@omniprotocol/mixins/PublicGood.sol";
-import {MultiRolesAuthority} from "@omniprotocol/auth/MultiRolesAuthority.sol";
+import {TransferToken} from "./interfaces/TransferrableToken.sol";
+import {MultiRolesAuthority} from "./mixins/auth/MultiRolesAuthority.sol";
+import {Cloneable} from "./mixins/Cloneable.sol";
+import {Multicallable} from "./mixins/Multicallable.sol";
+import {PublicGood} from "./mixins/PublicGood.sol";
 
 contract Steward is MultiRolesAuthority, PublicGood, Cloneable, Multicallable {
   constructor(address _beneficiary, address _owner) {

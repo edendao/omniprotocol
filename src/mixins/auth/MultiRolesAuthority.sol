@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity >=0.8.0;
 
-import {Auth, Authority} from "@omniprotocol/auth/Auth.sol";
+import {Auth, Authority} from "./Auth.sol";
 
 /// @notice Flexible and target agnostic role based Authority that supports up to 256 roles.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/auth/authorities/MultiRolesAuthority.sol)
