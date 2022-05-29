@@ -37,8 +37,15 @@ abstract contract ERC4626 is ERC20 {
 
   ERC20 public asset;
 
-  function __initERC4626(ERC20 _asset) internal {
+  function __initERC4626(
+    ERC20 _asset,
+    string memory _name,
+    string memory _symbol
+  ) internal {
     asset = _asset;
+    name = _name;
+    symbol = _symbol;
+    decimals = _asset.decimals();
   }
 
   /*//////////////////////////////////////////////////////////////
