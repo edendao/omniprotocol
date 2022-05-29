@@ -3,38 +3,19 @@ pragma solidity ^0.8.13;
 
 import {TransferToken} from "./interfaces/TransferrableToken.sol";
 import {MultiRolesAuthority} from "./mixins/auth/MultiRolesAuthority.sol";
-import {Cloneable} from "./mixins/Cloneable.sol";
 import {Multicallable} from "./mixins/Multicallable.sol";
 import {PublicGood} from "./mixins/PublicGood.sol";
 
-contract Steward is MultiRolesAuthority, PublicGood, Cloneable, Multicallable {
+contract Steward is MultiRolesAuthority, PublicGood, Multicallable {
   constructor(address _beneficiary, address _owner) {
-    __initPublicGood(_beneficiary);
-    __initAuth(_owner, this);
-
-    isInitialized = true;
+    initialize(_beneficiary, abi.encode(_owner));
   }
 
   // ================================
-  // ========== Cloneable ===========
+  // ========== Initializable ===========
   // ================================
-  function initialize(address _beneficiary, bytes calldata _params)
-    external
-    override
-    initializer
-  {
-    __initPublicGood(_beneficiary);
+  function _initialize(bytes memory _params) internal override {
     __initAuth(abi.decode(_params, (address)), this);
-  }
-
-  function clone(address _owner)
-    external
-    payable
-    returns (address cloneAddress)
-  {
-    bytes memory params = abi.encode(_owner);
-    cloneAddress = clone(keccak256(params));
-    Cloneable(cloneAddress).initialize(beneficiary, params);
   }
 
   function setCapabilitiesTo(

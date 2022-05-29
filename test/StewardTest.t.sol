@@ -11,7 +11,7 @@ contract StewardTest is ChainEnvironmentTest {
   }
 
   function testCloneGas() public {
-    Steward c = Steward(payable(steward.clone(address(this))));
+    Steward c = Steward(payable(factory.createSteward(address(this))));
     assertEq(c.owner(), address(this));
   }
 

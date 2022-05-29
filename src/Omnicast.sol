@@ -4,7 +4,6 @@ pragma solidity ^0.8.13;
 import {IOmnicast} from "./interfaces/IOmnicast.sol";
 
 import {EdenDaoNS} from "./mixins/EdenDaoNS.sol";
-import {Initializable} from "./mixins/Initializable.sol";
 import {Multicallable} from "./mixins/Multicallable.sol";
 import {Stewarded} from "./mixins/Stewarded.sol";
 import {Omnichain} from "./mixins/Omnichain.sol";
@@ -14,15 +13,7 @@ interface Ownable {
   function ownerOf(uint256 id) external view returns (address);
 }
 
-contract Omnicast is
-  PublicGood,
-  Stewarded,
-  IOmnicast,
-  Omnichain,
-  Multicallable,
-  Initializable,
-  EdenDaoNS
-{
+contract Omnicast is Omnichain, IOmnicast, Multicallable, EdenDaoNS {
   uint16 public immutable currentChainId;
   uint64 public nonce;
 
@@ -40,13 +31,7 @@ contract Omnicast is
   address public space;
   address public passport;
 
-  function initialize(address _beneficiary, bytes memory _params)
-    external
-    override
-    initializer
-  {
-    __initPublicGood(_beneficiary);
-
+  function _initialize(bytes memory _params) internal override {
     (address _space, address _passport) = abi.decode(
       _params,
       (address, address)

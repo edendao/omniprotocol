@@ -5,10 +5,14 @@ import {ChainEnvironmentTest, Omnitoken} from "@test/ChainEnvironmentTest.t.sol"
 
 contract OmnitokenTest is ChainEnvironmentTest {
   Omnitoken public omnitoken =
-    Omnitoken(token.clone(address(steward), "Frontier Carbon", "TIME", 3));
+    Omnitoken(
+      factory.createToken(address(steward), "Frontier Carbon", "TIME", 3)
+    );
 
   function testCloneGas() public returns (Omnitoken n) {
-    n = Omnitoken(token.clone(address(steward), "Frontier Carbon", "TIME", 3));
+    n = Omnitoken(
+      factory.createToken(address(steward), "Frontier Carbon 2", "TIME2", 3)
+    );
   }
 
   function testMintGas() public {

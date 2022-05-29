@@ -7,16 +7,19 @@ import {Omnibridge} from "@omniprotocol/Omnibridge.sol";
 
 contract OmnibridgeTest is ChainEnvironmentTest {
   Omnibridge public omnibridge =
-    Omnibridge(bridge.clone(address(steward), address(dai)));
+    Omnibridge(factory.createBridge(address(steward), address(dai)));
+
   Omnitoken public omnitoken =
-    Omnitoken(token.clone(address(steward), "DAI", "DAI", dai.decimals()));
+    Omnitoken(
+      factory.createToken(address(steward), "DAI", "DAI", dai.decimals())
+    );
 
   function testFailDeployingDuplicateAsset() public {
-    Omnibridge(bridge.clone(address(steward), address(dai)));
+    Omnibridge(factory.createBridge(address(steward), address(dai)));
   }
 
   function testCloneGas() public {
-    Omnibridge(bridge.clone(address(steward), address(omnitoken)));
+    Omnibridge(factory.createBridge(address(steward), address(omnitoken)));
   }
 
   function testCannotWithdrawAsset() public {

@@ -10,22 +10,25 @@ import {Omnichain} from "./mixins/Omnichain.sol";
 import {OmniTokenURI} from "./mixins/OmniTokenURI.sol";
 import {PublicGood} from "./mixins/PublicGood.sol";
 
-contract Space is
-  ERC721,
-  Stewarded,
-  Omnichain,
-  IOmnitoken,
-  OmniTokenURI,
-  EdenDaoNS
-{
+contract Space is ERC721, Omnichain, IOmnitoken, OmniTokenURI, EdenDaoNS {
   uint256 public circulatingSupply;
   bool public mintable;
 
   constructor(
+    address _beneficiary,
     address _steward,
     address _omnicast,
     bool _mintable
   ) ERC721("Eden Dao Space", "DAO SPACE") {
+    initialize(_beneficiary, abi.encode(_steward, _omnicast, _mintable));
+  }
+
+  function _initialize(bytes memory _params) internal override {
+    (address _steward, address _omnicast, bool _mintable) = abi.decode(
+      _params,
+      (address, address, bool)
+    );
+
     __initStewarded(_steward);
     __initOmniTokenURI(_omnicast);
     __initOmnichain(address(Omnichain(_omnicast).lzEndpoint()));

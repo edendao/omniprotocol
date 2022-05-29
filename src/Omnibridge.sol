@@ -4,31 +4,17 @@ pragma solidity ^0.8.13;
 import {SafeTransferLib} from "./libraries/SafeTransferLib.sol";
 import {IOmnitoken} from "./interfaces/IOmnitoken.sol";
 
-import {Cloneable} from "./mixins/Cloneable.sol";
-import {Stewarded} from "./mixins/Stewarded.sol";
 import {ERC20} from "./mixins/ERC20.sol";
 import {Omnichain} from "./mixins/Omnichain.sol";
-import {PublicGood} from "./mixins/PublicGood.sol";
 
-contract Omnibridge is PublicGood, Stewarded, IOmnitoken, Omnichain, Cloneable {
+contract Omnibridge is Omnichain, IOmnitoken {
   using SafeTransferLib for ERC20;
   ERC20 public asset;
 
-  constructor(address _beneficiary, address _lzEndpoint) {
-    __initPublicGood(_beneficiary);
-    __initOmnichain(_lzEndpoint);
-  }
-
-  // ================================
-  // ========== Cloneable ===========
-  // ================================
-  function initialize(address _beneficiary, bytes calldata _params)
-    external
-    override
-    initializer
-  {
-    __initPublicGood(_beneficiary);
-
+  // =============================
+  // ======== PublicGood =========
+  // =============================
+  function _initialize(bytes memory _params) internal override {
     (address _lzEndpoint, address _steward, address _asset) = abi.decode(
       _params,
       (address, address, address)
@@ -38,18 +24,6 @@ contract Omnibridge is PublicGood, Stewarded, IOmnitoken, Omnichain, Cloneable {
     __initStewarded(_steward);
 
     asset = ERC20(_asset);
-  }
-
-  function clone(address _steward, address _asset)
-    external
-    payable
-    returns (address bridgeAddress)
-  {
-    bridgeAddress = clone(keccak256(abi.encode(_asset)));
-    Cloneable(bridgeAddress).initialize(
-      beneficiary,
-      abi.encode(address(lzEndpoint), _steward, _asset)
-    );
   }
 
   // ===============================

@@ -4,11 +4,16 @@ pragma solidity ^0.8.13;
 import {ILayerZeroEndpoint} from "@layerzerolabs/contracts/interfaces/ILayerZeroEndpoint.sol";
 import {ILayerZeroReceiver} from "@layerzerolabs/contracts/interfaces/ILayerZeroReceiver.sol";
 
-import {Auth} from "./auth/Auth.sol";
+import {Stewarded} from "./Stewarded.sol";
 import {Pausable} from "./Pausable.sol";
 import {PublicGood} from "./PublicGood.sol";
 
-abstract contract Omnichain is PublicGood, Auth, Pausable, ILayerZeroReceiver {
+abstract contract Omnichain is
+  PublicGood,
+  Stewarded,
+  Pausable,
+  ILayerZeroReceiver
+{
   ILayerZeroEndpoint public lzEndpoint;
 
   function __initOmnichain(address _lzEndpoint) internal {

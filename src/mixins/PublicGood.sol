@@ -2,12 +2,15 @@
 pragma solidity ^0.8.13;
 
 abstract contract PublicGood {
+  bool internal isInitialized;
   address public beneficiary;
 
-  event SetBeneficiary(address beneficiary);
-
-  function __initPublicGood(address _beneficiary) internal {
+  function initialize(address _beneficiary, bytes memory _params) public {
+    require(!isInitialized, "ALREADY_INITIALIZED");
     beneficiary = _beneficiary;
-    emit SetBeneficiary(_beneficiary);
+    _initialize(_params);
+    isInitialized = true;
   }
+
+  function _initialize(bytes memory _params) internal virtual;
 }
