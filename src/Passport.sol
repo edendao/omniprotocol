@@ -10,12 +10,26 @@ import {OmniTokenURI} from "./mixins/OmniTokenURI.sol";
 // Passport is your on-chain identity in omni-chain space
 // ======================================================
 contract Passport is ERC721Soulbound, Stewarded, OmniTokenURI, EdenDaoNS {
-  string public name = "Eden Dao Passport";
-  string public symbol = "DAO PASS";
+  string public name;
+  string public symbol;
 
   constructor(address _steward, address _omnicast) {
     __initStewarded(_steward);
     __initOmniTokenURI(_omnicast);
+
+    setNameAndSymbol("Eden Dao Passport", "DAO PASS");
+  }
+
+  event SetNameAndSymbol(string name, string symbol);
+
+  function setNameAndSymbol(string memory _name, string memory _symbol)
+    public
+    requiresAuth
+  {
+    name = _name;
+    symbol = _symbol;
+
+    emit SetNameAndSymbol(_name, _symbol);
   }
 
   mapping(uint256 => address) private _ownerOf;
