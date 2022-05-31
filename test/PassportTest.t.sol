@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, console} from "@test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, console} from "./ChainEnvironmentTest.t.sol";
 
 contract PassportTest is ChainEnvironmentTest {
   function testMintGas() public {
-    passport.mint{value: 0.1 ether}(address(this));
+    passport.mint{value: 0.1 ether}();
   }
 
   function testMint(address caller, uint256 value) public {

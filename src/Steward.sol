@@ -12,7 +12,7 @@ contract Steward is MultiRolesAuthority, PublicGood, Multicallable {
   }
 
   // ================================
-  // ========== Initializable ===========
+  // ======== Initializable =========
   // ================================
   function _initialize(bytes memory _params) internal override {
     __initAuth(abi.decode(_params, (address)), this);

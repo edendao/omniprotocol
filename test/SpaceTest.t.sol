@@ -1,10 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest} from "@test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest} from "./ChainEnvironmentTest.t.sol";
 
 contract SpaceTest is ChainEnvironmentTest {
-  uint256 internal immutable spaceId = omnicast.idOf("prosperity");
+  uint256 internal spaceId;
+
+  function setUp() public override {
+    super.setUp();
+
+    spaceId = omnicast.idOf("prosperity");
+  }
 
   function testMintNameGas() public {
     hevm.prank(address(this), address(this));

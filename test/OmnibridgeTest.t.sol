@@ -1,18 +1,24 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, Omnitoken} from "@test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, Omnitoken} from "./ChainEnvironmentTest.t.sol";
 
 import {Omnibridge} from "@omniprotocol/Omnibridge.sol";
 
 contract OmnibridgeTest is ChainEnvironmentTest {
-  Omnibridge public omnibridge =
-    Omnibridge(factory.createBridge(address(steward), address(dai)));
+  Omnibridge public omnibridge;
+  Omnitoken public omnitoken;
 
-  Omnitoken public omnitoken =
-    Omnitoken(
+  function setUp() public override {
+    super.setUp();
+
+    omnibridge = Omnibridge(
+      factory.createBridge(address(steward), address(dai))
+    );
+    omnitoken = Omnitoken(
       factory.createToken(address(steward), "DAI", "DAI", dai.decimals())
     );
+  }
 
   function testFailDeployingDuplicateAsset() public {
     Omnibridge(factory.createBridge(address(steward), address(dai)));

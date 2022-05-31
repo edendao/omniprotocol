@@ -45,10 +45,13 @@ contract Factory is Stewarded, PublicGood {
     address _token,
     address _bridge
   ) external requiresAuth {
-    _initialize(abi.encode(_lzEndpoint, _steward, _token, _bridge));
+    lzEndpoint = _lzEndpoint;
+    steward = _steward;
+    token = _token;
+    bridge = _bridge;
   }
 
-  function _clone(address implementation, bytes32 salt)
+  function _create2ProxyFor(address implementation, bytes32 salt)
     internal
     returns (address cloneAddress)
   {
@@ -73,7 +76,7 @@ contract Factory is Stewarded, PublicGood {
 
   function createSteward(address _owner) public payable returns (address s) {
     bytes memory params = abi.encode(_owner);
-    s = _clone(steward, keccak256(params));
+    s = _create2ProxyFor(steward, keccak256(params));
     PublicGood(s).initialize(beneficiary, params);
     emit StewardCreated(s, _owner);
   }
@@ -99,7 +102,7 @@ contract Factory is Stewarded, PublicGood {
       _symbol,
       _decimals
     );
-    t = _clone(token, keccak256(params));
+    t = _create2ProxyFor(token, keccak256(params));
     PublicGood(t).initialize(beneficiary, params);
     emit TokenCreated(_steward, t, _name, _symbol, _decimals);
   }
@@ -116,7 +119,7 @@ contract Factory is Stewarded, PublicGood {
     returns (address b)
   {
     bytes memory params = abi.encode(address(lzEndpoint), _steward, _asset);
-    b = _clone(bridge, keccak256(params));
+    b = _create2ProxyFor(bridge, keccak256(params));
     PublicGood(b).initialize(beneficiary, params);
     emit BridgeCreated(_steward, b, _asset);
   }

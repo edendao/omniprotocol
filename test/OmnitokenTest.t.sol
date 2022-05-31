@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, Omnitoken} from "@test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, Omnitoken} from "./ChainEnvironmentTest.t.sol";
 
 contract OmnitokenTest is ChainEnvironmentTest {
-  Omnitoken public omnitoken =
-    Omnitoken(
+  Omnitoken public omnitoken;
+
+  function setUp() public override {
+    super.setUp();
+
+    omnitoken = Omnitoken(
       factory.createToken(address(steward), "Frontier Carbon", "TIME", 3)
     );
+  }
 
   function testCloneGas() public returns (Omnitoken n) {
     n = Omnitoken(

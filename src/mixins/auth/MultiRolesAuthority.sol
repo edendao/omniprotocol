@@ -68,14 +68,17 @@ abstract contract MultiRolesAuthority is Auth, Authority {
     address target,
     bytes4 functionSig
   ) public view virtual returns (bool) {
-    Authority customAuthority = getTargetCustomAuthority[target];
+    if (isCapabilityPublic[functionSig]) {
+      return true;
+    }
 
-    return (
-      address(customAuthority) != address(0)
-        ? customAuthority.canCall(user, target, functionSig)
-        : isCapabilityPublic[functionSig] ||
-          bytes32(0) != getUserRoles[user] & getRolesWithCapability[functionSig]
-    );
+    Authority customAuthority = getTargetCustomAuthority[target];
+    if (address(customAuthority) != address(0)) {
+      return customAuthority.canCall(user, target, functionSig);
+    }
+
+    bytes32 auth = getUserRoles[user] & getRolesWithCapability[functionSig];
+    return auth != bytes32(0);
   }
 
   /*///////////////////////////////////////////////////////////////

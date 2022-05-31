@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, console} from "@test/ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, console} from "./ChainEnvironmentTest.t.sol";
 import {IOmnitoken} from "@omniprotocol/interfaces/IOmnitoken.sol";
 
 contract OmnicastTest is ChainEnvironmentTest {
@@ -20,7 +20,7 @@ contract OmnicastTest is ChainEnvironmentTest {
         caller != address(steward)
     );
 
-    uint256 callerPassportId = passport.mint{value: 0.1 ether}(caller);
+    uint256 callerPassportId = passport.mint(caller);
 
     bytes memory data = abi.encodePacked(spaceId, "data");
 
@@ -136,8 +136,8 @@ contract OmnicastTest is ChainEnvironmentTest {
         senderAddress != address(this)
     );
 
-    uint256 receiverId = passport.mint{value: 0.1 ether}(receiverAddress);
-    uint256 senderId = passport.mint{value: 0.1 ether}(senderAddress);
+    uint256 receiverId = passport.mint(receiverAddress);
+    uint256 senderId = passport.mint(senderAddress);
 
     omnicast.writeMessage(
       senderId,
