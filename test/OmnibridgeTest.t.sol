@@ -6,6 +6,7 @@ import {ChainEnvironmentTest, Omnitoken} from "./ChainEnvironmentTest.t.sol";
 import {Omnibridge} from "@omniprotocol/Omnibridge.sol";
 
 contract OmnibridgeTest is ChainEnvironmentTest {
+  uint16 public currentChainId = uint16(block.chainid);
   Omnibridge public omnibridge;
   Omnitoken public omnitoken;
 

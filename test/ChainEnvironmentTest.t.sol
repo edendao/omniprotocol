@@ -18,18 +18,16 @@ import {Steward} from "@omniprotocol/Steward.sol";
 import {ChainDeployment} from "../script/ChainDeployment.sol";
 
 contract ChainEnvironmentTest is DSTestPlus, ChainDeployment {
+  bool public isPrimaryChain = true;
   address public beneficiary = hevm.addr(42);
-
-  uint16 public currentChainId = uint16(block.chainid);
-
-  MockERC20 public dai = new MockERC20("DAI", "DAI", 18);
-  LZEndpointMock public lzEndpoint = new LZEndpointMock(currentChainId);
+  address public owner = address(this);
 
   function setUp() public virtual {
-    address owner = address(this);
-
-    _deploy(beneficiary, owner, address(lzEndpoint));
+    _deploy(isPrimaryChain, beneficiary, owner, address(lzEndpoint));
 
     steward.setPublicCapability(token.transferFrom.selector, true);
   }
+
+  MockERC20 public dai = new MockERC20("DAI", "DAI", 18);
+  LZEndpointMock public lzEndpoint = new LZEndpointMock(uint16(block.chainid));
 }

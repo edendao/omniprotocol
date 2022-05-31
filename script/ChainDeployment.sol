@@ -15,7 +15,14 @@ import {Steward} from "@omniprotocol/Steward.sol";
 contract ChainDeployment is Script {
   function run() public {
     address owner = vm.envAddress("ETH_FROM");
-    _deploy(vm.envAddress("BENEFICIARY"), owner, vm.envAddress("LZ_ENDPOINT"));
+    bool isPrimary = vm.envBool("PRIMARY");
+
+    _deploy(
+      isPrimary,
+      vm.envAddress("BENEFICIARY"),
+      owner,
+      vm.envAddress("LZ_ENDPOINT")
+    );
   }
 
   Steward public steward; // Owner & Authority
@@ -28,6 +35,7 @@ contract ChainDeployment is Script {
   Passport public passport; // Identity NFTs
 
   function _deploy(
+    bool isPrimary,
     address beneficiary,
     address owner,
     address lzEndpoint
@@ -40,19 +48,15 @@ contract ChainDeployment is Script {
     bridge = new Omnibridge();
     factory = new Factory(
       beneficiary,
-      address(lzEndpoint),
       address(steward),
       address(token),
-      address(bridge)
+      address(bridge),
+      address(lzEndpoint)
     );
 
-    omnicast = new Omnicast(
-      address(steward),
-      address(lzEndpoint),
-      ILayerZeroEndpoint(lzEndpoint).getChainId()
-    );
+    omnicast = new Omnicast(address(steward), address(lzEndpoint));
 
-    space = new Space(beneficiary, address(steward), address(omnicast), true);
+    space = new Space(address(steward), address(omnicast), isPrimary);
     passport = new Passport(address(steward), address(omnicast));
 
     omnicast.initialize(

@@ -17,15 +17,11 @@ contract Omnicast is Omnichain, IOmnicast, Multicallable, EdenDaoNS {
   uint16 public immutable currentChainId;
   uint64 public nonce;
 
-  constructor(
-    address _steward,
-    address _lzEndpoint,
-    uint16 _currentChainId
-  ) {
+  constructor(address _steward, address _lzEndpoint) {
     __initStewarded(_steward);
     __initOmnichain(_lzEndpoint);
 
-    currentChainId = _currentChainId;
+    currentChainId = lzEndpoint.getChainId();
   }
 
   address public space;

@@ -5,6 +5,7 @@ import {ChainEnvironmentTest, console} from "./ChainEnvironmentTest.t.sol";
 import {IOmnitoken} from "@omniprotocol/interfaces/IOmnitoken.sol";
 
 contract OmnicastTest is ChainEnvironmentTest {
+  uint16 public currentChainId = uint16(block.chainid);
   uint256 public passportId;
 
   function setUp() public override {

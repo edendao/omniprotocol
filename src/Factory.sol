@@ -12,23 +12,23 @@ contract Factory is Stewarded, PublicGood {
 
   constructor(
     address _beneficiary,
-    address _lzEndpoint,
     address _steward,
     address _token,
-    address _bridge
+    address _bridge,
+    address _lzEndpoint
   ) {
     initialize(
       _beneficiary,
-      abi.encode(_lzEndpoint, _steward, _token, _bridge)
+      abi.encode(_steward, _token, _bridge, _lzEndpoint)
     );
   }
 
   function _initialize(bytes memory _params) internal override {
     (
-      address _lzEndpoint,
       address _steward,
       address _token,
-      address _bridge
+      address _bridge,
+      address _lzEndpoint
     ) = abi.decode(_params, (address, address, address, address));
 
     __initStewarded(_steward);

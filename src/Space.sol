@@ -15,12 +15,14 @@ contract Space is ERC721, Omnichain, IOmnitoken, OmniTokenURI, EdenDaoNS {
   bool public mintable;
 
   constructor(
-    address _beneficiary,
     address _steward,
     address _omnicast,
     bool _mintable
   ) ERC721("Eden Dao Space", "DAO SPACE") {
-    initialize(_beneficiary, abi.encode(_steward, _omnicast, _mintable));
+    initialize(
+      PublicGood(_steward).beneficiary(),
+      abi.encode(_steward, _omnicast, _mintable)
+    );
   }
 
   function _initialize(bytes memory _params) internal override {
