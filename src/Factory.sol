@@ -74,7 +74,7 @@ contract Factory is Stewarded, PublicGood {
 
   event StewardCreated(address indexed steward, address indexed owner);
 
-  function createSteward(address _owner) public payable returns (address s) {
+  function createSteward(address _owner) public returns (address s) {
     bytes memory params = abi.encode(_owner);
     s = _create2ProxyFor(steward, keccak256(params));
     PublicGood(s).initialize(beneficiary, params);
@@ -94,7 +94,7 @@ contract Factory is Stewarded, PublicGood {
     string memory _name,
     string memory _symbol,
     uint8 _decimals
-  ) public payable returns (address t) {
+  ) public returns (address t) {
     bytes memory params = abi.encode(
       address(lzEndpoint),
       _steward,
@@ -115,7 +115,6 @@ contract Factory is Stewarded, PublicGood {
 
   function createBridge(address _steward, address _asset)
     public
-    payable
     returns (address b)
   {
     bytes memory params = abi.encode(address(lzEndpoint), _steward, _asset);
