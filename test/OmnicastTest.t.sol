@@ -21,7 +21,7 @@ contract OmnicastTest is ChainEnvironmentTest {
         caller != address(steward)
     );
 
-    uint256 callerPassportId = passport.mint{value: 0.01 ether}(caller);
+    uint256 callerPassportId = passport.mint(caller);
 
     bytes memory data = abi.encodePacked(spaceId, "data");
 

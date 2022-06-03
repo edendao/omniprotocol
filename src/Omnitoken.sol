@@ -52,7 +52,12 @@ contract Omnitoken is ERC20, Omnichain, IOmnitoken {
     address sender,
     address recipient,
     uint256 amount
-  ) public virtual override requiresAuth returns (bool) {
+  ) public virtual override returns (bool) {
+    require(
+      // transferFrom.selector
+      isAuthorized(sender, 0x23b872dd) && isAuthorized(recipient, 0x23b872dd),
+      "UNAUTHORIZED"
+    );
     return super.transferFrom(sender, recipient, amount);
   }
 

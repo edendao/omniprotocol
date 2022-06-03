@@ -7,8 +7,8 @@ import {Stewarded} from "./mixins/Stewarded.sol";
 contract Factory is Stewarded, PublicGood {
   address public lzEndpoint;
   address public steward;
-  address public token;
-  address public bridge;
+  address public omnitoken;
+  address public omnibridge;
 
   constructor(
     address _beneficiary,
@@ -26,29 +26,29 @@ contract Factory is Stewarded, PublicGood {
   function _initialize(bytes memory _params) internal override {
     (
       address _steward,
-      address _token,
-      address _bridge,
+      address _omnitoken,
+      address _omnibridge,
       address _lzEndpoint
     ) = abi.decode(_params, (address, address, address, address));
 
     __initStewarded(_steward);
 
-    lzEndpoint = _lzEndpoint;
     steward = _steward;
-    token = _token;
-    bridge = _bridge;
+    omnitoken = _omnitoken;
+    omnibridge = _omnibridge;
+    lzEndpoint = _lzEndpoint;
   }
 
   function setImplementations(
-    address _lzEndpoint,
     address _steward,
-    address _token,
-    address _bridge
+    address _omnitoken,
+    address _omnibridge,
+    address _lzEndpoint
   ) external requiresAuth {
     lzEndpoint = _lzEndpoint;
     steward = _steward;
-    token = _token;
-    bridge = _bridge;
+    omnitoken = _omnitoken;
+    omnibridge = _omnibridge;
   }
 
   function _create2ProxyFor(address implementation, bytes32 salt)
@@ -94,7 +94,7 @@ contract Factory is Stewarded, PublicGood {
     string memory _name,
     string memory _symbol,
     uint8 _decimals
-  ) public returns (address t) {
+  ) public returns (address token) {
     bytes memory params = abi.encode(
       address(lzEndpoint),
       _steward,
@@ -102,9 +102,9 @@ contract Factory is Stewarded, PublicGood {
       _symbol,
       _decimals
     );
-    t = _create2ProxyFor(token, keccak256(params));
-    PublicGood(t).initialize(beneficiary, params);
-    emit TokenCreated(_steward, t, _name, _symbol, _decimals);
+    token = _create2ProxyFor(omnitoken, keccak256(params));
+    PublicGood(token).initialize(beneficiary, params);
+    emit TokenCreated(_steward, token, _name, _symbol, _decimals);
   }
 
   event BridgeCreated(
@@ -115,11 +115,11 @@ contract Factory is Stewarded, PublicGood {
 
   function createBridge(address _steward, address _asset)
     public
-    returns (address b)
+    returns (address bridge)
   {
     bytes memory params = abi.encode(address(lzEndpoint), _steward, _asset);
-    b = _create2ProxyFor(bridge, keccak256(params));
-    PublicGood(b).initialize(beneficiary, params);
-    emit BridgeCreated(_steward, b, _asset);
+    bridge = _create2ProxyFor(omnibridge, keccak256(params));
+    PublicGood(bridge).initialize(beneficiary, params);
+    emit BridgeCreated(_steward, bridge, _asset);
   }
 }

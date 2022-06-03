@@ -12,7 +12,7 @@ import {Passport} from "@omniprotocol/Passport.sol";
 import {Space} from "@omniprotocol/Space.sol";
 import {Steward} from "@omniprotocol/Steward.sol";
 
-contract ChainDeployment is Script {
+contract BaseDeployment is Script {
   function run() public {
     address owner = vm.envAddress("ETH_FROM");
     bool isPrimary = vm.envBool("PRIMARY");

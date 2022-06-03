@@ -91,7 +91,7 @@ contract Omnibridge is Omnichain, IOmnitoken {
     );
     address toAddress = _addressFromPackedBytes(toAddressB);
 
-    asset.safeTransfer(toAddress, amount);
+    asset.safeTransferFrom(address(this), toAddress, amount);
 
     emit ReceiveFromChain(
       fromChainId,

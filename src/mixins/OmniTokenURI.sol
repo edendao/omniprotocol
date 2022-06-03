@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {IOmnicast} from "../interfaces/IOmnicast.sol";
+interface IOmnicast {
+  // Read the latest message
+  function readMessage(uint256 senderId, uint256 receiverId)
+    external
+    view
+    returns (bytes memory data);
+}
 
 abstract contract OmniTokenURI {
   IOmnicast public omnicast;

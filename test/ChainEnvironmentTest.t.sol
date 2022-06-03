@@ -15,9 +15,9 @@ import {Passport} from "@omniprotocol/Passport.sol";
 import {Space} from "@omniprotocol/Space.sol";
 import {Steward} from "@omniprotocol/Steward.sol";
 
-import {ChainDeployment} from "../script/ChainDeployment.sol";
+import {BaseDeployment} from "../script/BaseDeployment.sol";
 
-contract ChainEnvironmentTest is DSTestPlus, ChainDeployment {
+contract ChainEnvironmentTest is DSTestPlus, BaseDeployment {
   bool public isPrimaryChain = true;
   address public beneficiary = hevm.addr(42);
   address public owner = address(this);
