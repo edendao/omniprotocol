@@ -16,11 +16,11 @@ contract EdenDaoNS {
     );
   }
 
-  function idOf(address account) public pure returns (uint256 id) {
+  function idOf(address account) public pure virtual returns (uint256 id) {
     id = uint256(uint160(account));
   }
 
-  function idOf(string memory name) public pure returns (uint256 id) {
+  function idOf(string memory name) public pure virtual returns (uint256 id) {
     id = namehash(name);
     require(id > type(uint160).max, "RESERVED_SPACE");
   }

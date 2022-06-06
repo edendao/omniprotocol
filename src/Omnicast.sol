@@ -13,7 +13,7 @@ interface Ownable {
   function ownerOf(uint256 id) external view returns (address);
 }
 
-contract Omnicast is Omnichain, IOmnicast, Multicallable, EdenDaoNS {
+contract Omnicast is Omnichain, IOmnicast, EdenDaoNS, Multicallable {
   uint16 public immutable currentChainId;
   uint64 public nonce;
 
@@ -40,6 +40,27 @@ contract Omnicast is Omnichain, IOmnicast, Multicallable, EdenDaoNS {
   // =====================================
   // ===== OMNICAST MESSAGING LAYER ======
   // =====================================
+  // id for a given account address, can be used for senderId and receiverId
+  function idOf(address account)
+    public
+    pure
+    override(IOmnicast, EdenDaoNS)
+    returns (uint256)
+  {
+    return super.idOf(account);
+  }
+
+  // id for a given subdomain of eden.dao, can be used for senderId and receiverId
+  // reverts if reserved by account space
+  function idOf(string memory name)
+    public
+    pure
+    override(IOmnicast, EdenDaoNS)
+    returns (uint256)
+  {
+    return super.idOf(name);
+  }
+
   // (senderId => receiverId => (uint64 nonce, bytes payload)[])
   mapping(uint256 => mapping(uint256 => bytes[])) public receivedMessage;
 

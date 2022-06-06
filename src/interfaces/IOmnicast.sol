@@ -4,6 +4,12 @@ pragma solidity ^0.8.13;
 import {IERC721, IERC721Metadata} from "@boring/interfaces/IERC721.sol";
 
 interface IOmnicast {
+  // id for a given account address, can be used for senderId and receiverId
+  function idOf(address account) external pure returns (uint256 id);
+
+  // id for a given subdomain of eden.dao, can be used for senderId and receiverId
+  function idOf(string memory name) external pure returns (uint256 id);
+
   // Use nonce to correlate messages across chains from the frontend
   event Message(
     uint16 indexed chainId,

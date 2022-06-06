@@ -34,6 +34,13 @@ contract OmnibridgeTest is ChainEnvironmentTest {
     omnibridge.withdrawToken(address(dai), address(this), 10_000);
   }
 
+  function testWithdrawingAccidentalTokensRequiresAuth(address caller) public {
+    hevm.assume(caller != owner);
+    hevm.expectRevert("UNAUTHORIZED");
+    hevm.prank(caller);
+    omnibridge.withdrawToken(address(0), address(this), 10_000);
+  }
+
   function testSendFrom(
     uint16 toChainId,
     address toAddress,

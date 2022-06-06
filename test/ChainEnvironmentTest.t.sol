@@ -23,7 +23,7 @@ contract ChainEnvironmentTest is DSTestPlus, BaseDeployment {
   address public owner = address(this);
 
   function setUp() public virtual {
-    _deploy(isPrimaryChain, beneficiary, owner, address(lzEndpoint));
+    _deploy(owner, address(lzEndpoint), isPrimaryChain);
 
     steward.setPublicCapability(token.transferFrom.selector, true);
   }

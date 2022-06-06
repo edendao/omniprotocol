@@ -15,43 +15,44 @@ import {Steward} from "@omniprotocol/Steward.sol";
 contract BaseDeployment is Script {
   function run() public {
     address owner = vm.envAddress("ETH_FROM");
+    address lzEndpoint = vm.envAddress("LZ_ENDPOINT");
     bool isPrimary = vm.envBool("PRIMARY");
 
-    _deploy(
-      isPrimary,
-      vm.envAddress("BENEFICIARY"),
-      owner,
-      vm.envAddress("LZ_ENDPOINT")
-    );
+    _deploy(owner, lzEndpoint, isPrimary);
   }
 
   Steward public steward; // Owner & Authority
-  Omnitoken internal token; // New, mintable ERC20s
-  Omnibridge internal bridge; // Bridge existing ERC20s
+  Omnitoken public token; // New, mintable ERC20s
+  Omnibridge public bridge; // Bridge existing ERC20s
   Factory public factory; // Launch new stewards, tokens, and bridges
 
   Omnicast public omnicast; // Cross-chain Messaging Bridge
   Space public space; // Vanity Namespaces
   Passport public passport; // Identity NFTs
 
+  Omnitoken public edn;
+
   function _deploy(
-    bool isPrimary,
-    address beneficiary,
     address owner,
-    address lzEndpoint
+    address lzEndpoint,
+    bool isPrimary
   ) internal {
     vm.startBroadcast(owner);
 
-    steward = new Steward(beneficiary, owner);
+    steward = new Steward(owner, owner);
 
     token = new Omnitoken();
     bridge = new Omnibridge();
     factory = new Factory(
-      beneficiary,
+      address(steward), // beneficiary
       address(steward),
       address(token),
       address(bridge),
       address(lzEndpoint)
+    );
+
+    edn = Omnitoken(
+      factory.createToken(address(steward), "Eden Dao Note", "EDN", 3)
     );
 
     omnicast = new Omnicast(address(steward), address(lzEndpoint));
@@ -72,7 +73,7 @@ contract BaseDeployment is Script {
     passport = new Passport(address(steward), address(omnicast));
 
     omnicast.initialize(
-      beneficiary,
+      address(steward),
       abi.encode(address(space), address(passport))
     );
 
