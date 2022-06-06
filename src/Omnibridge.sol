@@ -105,8 +105,12 @@ contract Omnibridge is Omnichain, IOmnitoken {
   // ==============================
   // ========= Stewarded ==========
   // ==============================
-  function withdrawToken(address token, uint256 amount) public override {
+  function withdrawToken(
+    address token,
+    address to,
+    uint256 amount
+  ) public override {
     require(address(token) != address(asset), "Omnibridge: INVALID_TOKEN");
-    super.withdrawToken(token, amount);
+    super.withdrawToken(token, to, amount);
   }
 }

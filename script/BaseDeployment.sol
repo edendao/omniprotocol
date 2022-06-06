@@ -57,6 +57,18 @@ contract BaseDeployment is Script {
     omnicast = new Omnicast(address(steward), address(lzEndpoint));
 
     space = new Space(address(steward), address(omnicast), isPrimary);
+    if (isPrimary) {
+      space.mint(owner, "layer1");
+      space.mint(owner, "layer2");
+      space.mint(owner, "layer3");
+      space.mint(owner, "layer4");
+      space.mint(owner, "layer5");
+      space.mint(owner, "tokenuri");
+      space.mint(owner, "profile");
+      space.mint(owner, "account");
+      space.mint(owner, "refi");
+    }
+
     passport = new Passport(address(steward), address(omnicast));
 
     omnicast.initialize(

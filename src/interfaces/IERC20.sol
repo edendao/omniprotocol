@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: AGLP-3.0-only
 pragma solidity ^0.8.13;
 
-import {TransferToken, TransferFromToken} from "@omniprotocol/interfaces/TransferrableToken.sol";
-
-interface IERC20 is TransferToken, TransferFromToken {
+interface IERC20 {
   event Transfer(address indexed from, address indexed to, uint256 value);
   event Approval(address indexed owner, address indexed spender, uint256 value);
 
@@ -33,4 +31,15 @@ interface IERC20 is TransferToken, TransferFromToken {
     bytes32 r,
     bytes32 s
   ) external;
+
+  function transferFrom(
+    address from,
+    address to,
+    uint256 idOrAmount
+  ) external view returns (bool);
+
+  function transfer(address to, uint256 idOrAmount)
+    external
+    view
+    returns (bool);
 }

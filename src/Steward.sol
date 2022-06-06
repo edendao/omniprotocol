@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {TransferToken} from "./interfaces/TransferrableToken.sol";
+import {ERC20, SafeTransferLib} from "./libraries/SafeTransferLib.sol";
 import {MultiRolesAuthority} from "./mixins/auth/MultiRolesAuthority.sol";
 import {Multicallable} from "./mixins/Multicallable.sol";
+import {Stewarded} from "./mixins/Stewarded.sol";
 import {PublicGood} from "./mixins/PublicGood.sol";
 
-contract Steward is MultiRolesAuthority, PublicGood, Multicallable {
+contract Steward is MultiRolesAuthority, PublicGood, Stewarded, Multicallable {
   // ================================
   // ======== Initializable =========
   // ================================
@@ -53,21 +54,6 @@ contract Steward is MultiRolesAuthority, PublicGood, Multicallable {
     isUserSanctioned[user] = sanctioned;
 
     emit UserSanctionUpdated(user, sanctioned);
-  }
-
-  // ===============================
-  // ====== Token Management =======
-  // ===============================
-  function withdrawTo(address to, uint256 amount) external requiresAuth {
-    payable(to).transfer(amount);
-  }
-
-  function withdrawToken(
-    address token,
-    address to,
-    uint256 amount
-  ) external requiresAuth {
-    TransferToken(token).transfer(to, amount);
   }
 
   receive() external payable {}

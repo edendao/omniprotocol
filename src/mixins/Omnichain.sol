@@ -9,8 +9,8 @@ import {Pausable} from "./Pausable.sol";
 import {PublicGood} from "./PublicGood.sol";
 
 abstract contract Omnichain is
-  PublicGood,
   Stewarded,
+  PublicGood,
   Pausable,
   ILayerZeroReceiver
 {

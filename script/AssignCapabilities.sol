@@ -7,12 +7,15 @@ import {Steward} from "@omniprotocol/Steward.sol";
 
 contract AssignCapabilities is Script {
   function run() public {
-    address owner = address(0x0);
-    Steward s = Steward(payable(address(0x0)));
-    address assignee = address(0x0);
-    uint8 withRoleId = 0;
-    bytes4[] memory signatures = new bytes4[](2);
-    bool enabled = true;
+    address owner = vm.envAddress("ETH_FROM");
+    Steward s = Steward(payable(vm.envAddress("STEWARD")));
+    address assignee = vm.envAddress("ACCOUNT");
+    uint8 withRoleId = uint8(vm.envUint("ROLE_ID"));
+    bytes4[] memory signatures = abi.decode(
+      vm.envBytes("SIGNATURES"),
+      (bytes4[])
+    );
+    bool enabled = vm.envBool("ENABLED");
 
     vm.broadcast(owner);
     s.setCapabilitiesTo(assignee, withRoleId, signatures, enabled);
