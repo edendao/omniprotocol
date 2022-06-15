@@ -40,27 +40,6 @@ contract Omnicast is Omnichain, IOmnicast, EdenDaoNS, Multicallable {
   // =====================================
   // ===== OMNICAST MESSAGING LAYER ======
   // =====================================
-  // id for a given account address, can be used for senderId and receiverId
-  function idOf(address account)
-    public
-    pure
-    override(IOmnicast, EdenDaoNS)
-    returns (uint256)
-  {
-    return super.idOf(account);
-  }
-
-  // id for a given subdomain of eden.dao, can be used for senderId and receiverId
-  // reverts if reserved by account space
-  function idOf(string memory name)
-    public
-    pure
-    override(IOmnicast, EdenDaoNS)
-    returns (uint256)
-  {
-    return super.idOf(name);
-  }
-
   // (senderId => receiverId => (uint64 nonce, bytes payload)[])
   mapping(uint256 => mapping(uint256 => bytes[])) public receivedMessage;
 
@@ -92,7 +71,7 @@ contract Omnicast is Omnichain, IOmnicast, EdenDaoNS, Multicallable {
         return payload;
       }
     }
-    return bytes("");
+    revert("Omnicast: MESSAGE_NOT_FOUND");
   }
 
   function receivedMessageCount(uint256 senderId, uint256 receiverId)

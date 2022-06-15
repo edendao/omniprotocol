@@ -155,6 +155,9 @@ contract Space is ERC721, Omnichain, IOmnitoken, OmniTokenURI, EdenDaoNS {
     if (mintable) {
       transferFrom(address(this), toAddress, id);
     } else {
+      if (_ownerOf[id] != address(0)) {
+        _burn(id);
+      }
       _mint(toAddress, id);
     }
 

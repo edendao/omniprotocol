@@ -22,15 +22,13 @@ contract BaseDeployment is Script {
   }
 
   Steward public steward; // Owner & Authority
-  Omnitoken public token; // New, mintable ERC20s
-  Omnibridge public bridge; // Bridge existing ERC20s
+  Omnitoken internal token; // New, mintable ERC20s
+  Omnibridge internal bridge; // Bridge existing ERC20s
   Factory public factory; // Launch new stewards, tokens, and bridges
 
   Omnicast public omnicast; // Cross-chain Messaging Bridge
   Space public space; // Vanity Namespaces
   Passport public passport; // Identity NFTs
-
-  Omnitoken public edn;
 
   function _deploy(
     address owner,
@@ -48,14 +46,10 @@ contract BaseDeployment is Script {
       address(steward),
       address(token),
       address(bridge),
-      address(lzEndpoint)
+      lzEndpoint
     );
 
-    edn = Omnitoken(
-      factory.createToken(address(steward), "Eden Dao Note", "EDN", 3)
-    );
-
-    omnicast = new Omnicast(address(steward), address(lzEndpoint));
+    omnicast = new Omnicast(address(steward), lzEndpoint);
 
     space = new Space(address(steward), address(omnicast), isPrimary);
     if (isPrimary) {

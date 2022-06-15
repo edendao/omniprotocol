@@ -2,18 +2,15 @@
   "testnet": {
     "rinkeby": {
       "SafeTransferLib": "0xa621b97ad0d002bc983977c3ba4686a8bf9450c0",
-      "Steward": "0x12c987dd9619821f8bddc1ab99032af337cb8bbb",
-      "Omnitoken": "0xeb88f80b6d3c75fc9fd1c80659f1165884167e11",
-      "Omnibridge": "0x9c112a87aed5dc978cc46b3509d2f27b6866c821",
-      "Omnicast": "0x391f910ef5069f688680b97214afe9d4232ce0df",
+      "Steward": "0x850205028a5028e6e5268a9b856f76a5f39cc7b1",
+      "Omnicast": "0x0204d99e8256f55836a1ec78404f8d39bb656a39",
+      "Factory": "0x4541890294cae969409bceb58312f26d36897aec",
       "Passport": "0xfd877ec24857cf5288498f568555d459613df028",
-      "Space": "0xc9d780a94d86c4671f3b5ec572fa3f223fa63133"
+      "Space": "0xb9bf7a85b708e2d33a72969bb4705cf2e20e33bc"
     },
     "optimism": {
       "SafeTransferLib": "0xf705e8c22c09267e1339394758b9f0722d1fd852",
       "Steward": "0xe0a5661e94adbbc1f11e86608178da093aca3f7f",
-      "Omnitoken": "0xe8e0f56fdb3570350cb78440f62b1ee1dbcb4435",
-      "Omnibridge": "0xd1c9126e8f78ea8c6de70cf0b0c0c9a22de9bb20",
       "Omnicast": "0xd74f5090e7b80e2077e280a1defc0d2bb94dbce5",
       "Passport": "0x32a17a0a84f75c2a5da78344221fd1dcdedbe4f6",
       "Space": "0x3ed9b146beb5f59dadb6de1204a7f2f75d053a8b"
@@ -21,8 +18,6 @@
     "polygon": {
       "SafeTransferLib": "0xf705e8c22c09267e1339394758b9f0722d1fd852",
       "Steward": "0xe0a5661e94adbbc1f11e86608178da093aca3f7f",
-      "Omnitoken": "0xd74f5090e7b80e2077e280a1defc0d2bb94dbce5",
-      "Omnibridge": "0xd1c9126e8f78ea8c6de70cf0b0c0c9a22de9bb20",
       "Omnicast": "0x3ff79ee6194ef104c4cd63befe1fc11acad37d98",
       "Passport": "0xe8e0f56fdb3570350cb78440f62b1ee1dbcb4435",
       "Space": "0x32a17a0a84f75c2a5da78344221fd1dcdedbe4f6"

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {Omnichain} from "./mixins/Omnichain.sol";
+import {PublicGood} from "./mixins/PublicGood.sol";
 import {Stewarded} from "./mixins/Stewarded.sol";
 
 contract Factory is Stewarded {
@@ -68,7 +68,7 @@ contract Factory is Stewarded {
     bytes memory params = abi.encode(_owner);
     s = _create2ProxyFor(steward, keccak256(params));
 
-    Omnichain(s).initialize(beneficiary, params);
+    PublicGood(s).initialize(beneficiary, params);
     emit StewardCreated(s, _owner);
   }
 
@@ -95,7 +95,7 @@ contract Factory is Stewarded {
     );
     token = _create2ProxyFor(omnitoken, keccak256(params));
 
-    Omnichain(token).initialize(beneficiary, params);
+    PublicGood(token).initialize(beneficiary, params);
     emit TokenCreated(_steward, token, _name, _symbol, _decimals);
   }
 
@@ -112,7 +112,7 @@ contract Factory is Stewarded {
     bytes memory params = abi.encode(address(lzEndpoint), _steward, _asset);
     bridge = _create2ProxyFor(omnibridge, keccak256(params));
 
-    Omnichain(bridge).initialize(beneficiary, params);
+    PublicGood(bridge).initialize(beneficiary, params);
     emit BridgeCreated(_steward, bridge, _asset);
   }
 }
