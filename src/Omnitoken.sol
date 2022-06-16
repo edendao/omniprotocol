@@ -32,8 +32,8 @@ contract Omnitoken is ERC20, Omnichain, IOmnitoken {
     _mint(to, amount);
   }
 
-  function burn(address from, uint256 amount) external virtual requiresAuth {
-    if (msg.sender != from) {
+  function burn(address from, uint256 amount) external virtual {
+    if (msg.sender != from && !isAuthorized(msg.sender, msg.sig)) {
       _useAllowance(from, msg.sender, amount);
     }
     _burn(from, amount);
