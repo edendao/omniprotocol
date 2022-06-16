@@ -118,8 +118,9 @@ abstract contract ERC4626 is ERC20 {
     if (msg.sender != owner) {
       uint256 allowed = allowance[owner][msg.sender]; // Saves gas for limited approvals.
 
-      if (allowed != type(uint256).max)
+      if (allowed != type(uint256).max) {
         allowance[owner][msg.sender] = allowed - shares;
+      }
     }
 
     // Check for rounding error since we round down in previewRedeem.
