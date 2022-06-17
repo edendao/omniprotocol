@@ -13,4 +13,9 @@ abstract contract PublicGood {
   }
 
   function _initialize(bytes memory _params) internal virtual;
+
+  modifier onlyBeneficiary() {
+    require(msg.sender == beneficiary, "UNAUTHORIZED");
+    _;
+  }
 }
