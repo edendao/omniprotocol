@@ -3,7 +3,7 @@
 @omniprotocol/=src/
 @test/=test/
 @proxy/=lib/prb-proxy/contracts/
-@solmate/=lib/solmate/src/
+solmate/=lib/solmate/src/
 chainlink/=lib/chainlink/contracts/src/v0.8/
 ds-proxy/=lib/ds-proxy/src/
 ds-test/=lib/ds-test/src/

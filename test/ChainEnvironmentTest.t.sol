@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {console} from "forge-std/console.sol";
-import {DSTestPlus} from "@solmate/test/utils/DSTestPlus.sol";
+import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 
 import {LZEndpointMock} from "./mocks/LZEndpointMock.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";

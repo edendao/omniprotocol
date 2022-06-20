@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ERC721} from "@solmate/tokens/ERC721.sol";
+import {ERC721} from "solmate/tokens/ERC721.sol";
 
 import {IOmnitoken} from "./interfaces/IOmnitoken.sol";
 import {Stewarded} from "./mixins/Stewarded.sol";

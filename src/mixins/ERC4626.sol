@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.13;
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 import {SafeTransferLib} from "../libraries/SafeTransferLib.sol";
 import {ERC20} from "./ERC20.sol";
