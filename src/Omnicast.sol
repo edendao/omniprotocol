@@ -146,7 +146,7 @@ contract Omnicast is Omnichain, IOmnicast, EdenDaoNS, Multicallable {
   ) public payable {
     require(
       canWriteMessage(msg.sender, withSenderId, toReceiverId),
-      "Omnicast: UNAUTHORIZED"
+      "UNAUTHORIZED"
     );
 
     if (onChainId == currentChainId) {

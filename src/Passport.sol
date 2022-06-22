@@ -51,12 +51,12 @@ contract Passport is ERC721Soulbound, Stewarded, OmniTokenURI, EdenDaoNS {
     }
   }
 
-  function mint(address to) external payable requiresAuth returns (uint256 id) {
+  function mint(address to) external payable requiresAuth returns (uint256) {
     return _mint(to);
   }
 
   function mint() public payable returns (uint256) {
-    require(msg.value >= 0.01 ether, "INVALID_MINT");
+    require(msg.value >= 0.025 ether, "INVALID_MINT");
     return _mint(msg.sender);
   }
 

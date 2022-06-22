@@ -116,13 +116,11 @@ contract Space is ERC721, Omnichain, IOmnitoken, OmniTokenURI, EdenDaoNS {
     address lzPaymentAddress,
     bytes calldata lzAdapterParams
   ) external payable {
-    if (mintable) {
-      transferFrom(fromAddress, address(this), id);
-    } else if (msg.sender == fromAddress && fromAddress == ownerOf(id)) {
-      _burn(id);
-    } else {
-      revert("Space: UNAUTHORIZED");
-    }
+    require(mintable, "INVALID_CHAIN");
+    require(
+      msg.sender == fromAddress && fromAddress == ownerOf(id),
+      "UNAUTHORIZED"
+    );
 
     lzSend(
       toChainId,
@@ -146,20 +144,18 @@ contract Space is ERC721, Omnichain, IOmnitoken, OmniTokenURI, EdenDaoNS {
     uint64 nonce,
     bytes calldata payload
   ) internal override {
+    require(!mintable, "INVALID_CHAIN");
+
     (bytes memory toAddressB, uint256 id) = abi.decode(
       payload,
       (bytes, uint256)
     );
     address toAddress = _addressFromPackedBytes(toAddressB);
 
-    if (mintable) {
-      transferFrom(address(this), toAddress, id);
-    } else {
-      if (_ownerOf[id] != address(0)) {
-        _burn(id);
-      }
-      _mint(toAddress, id);
+    if (_ownerOf[id] != address(0)) {
+      _burn(id);
     }
+    _mint(toAddress, id);
 
     emit ReceiveFromChain(
       fromChainId,

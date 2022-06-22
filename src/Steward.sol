@@ -38,22 +38,22 @@ contract Steward is MultiRolesAuthority, PublicGood, Stewarded, Multicallable {
     address user,
     address target,
     bytes4 functionSig
-  ) public view virtual override returns (bool) {
-    return super.canCall(user, target, functionSig) && !isUserSanctioned[user];
+  ) public view virtual override returns (bool ok) {
+    ok = super.canCall(user, target, functionSig) && !isAccountSanctioned[user];
   }
 
-  mapping(address => bool) public isUserSanctioned;
+  mapping(address => bool) public isAccountSanctioned;
 
-  event UserSanctionUpdated(address indexed user, bool sanctioned);
+  event AccountSanctionUpdated(address indexed account, bool sanctioned);
 
-  function setUserSanction(address user, bool sanctioned)
+  function setAccountSanction(address account, bool sanctioned)
     public
     virtual
     requiresAuth
   {
-    isUserSanctioned[user] = sanctioned;
+    isAccountSanctioned[account] = sanctioned;
 
-    emit UserSanctionUpdated(user, sanctioned);
+    emit AccountSanctionUpdated(account, sanctioned);
   }
 
   receive() external payable {}

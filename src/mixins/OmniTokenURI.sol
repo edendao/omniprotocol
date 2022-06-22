@@ -24,7 +24,8 @@ abstract contract OmniTokenURI {
   {
     uri = string(
       omnicast.readMessage(
-        0x1de324d049794c1e40480a9129c30e42d9ada5968d6e81df7b8b9c0fa838251f, // tokenuri.eden.dao
+        // passport.tokenuri.eden.dao
+        0xac56186bb23931a016888c3c51709e488987cc4249d0d75aa789c7bbac71cb04,
         id
       )
     );

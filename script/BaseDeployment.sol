@@ -49,19 +49,18 @@ contract BaseDeployment is Script {
       lzEndpoint
     );
 
+    steward.setPublicCapability(token.transferFrom.selector, true);
+
     omnicast = new Omnicast(address(steward), lzEndpoint);
 
     space = new Space(address(steward), address(omnicast), isPrimary);
     if (isPrimary) {
-      space.mint(owner, "layer1");
-      space.mint(owner, "layer2");
-      space.mint(owner, "layer3");
-      space.mint(owner, "layer4");
-      space.mint(owner, "layer5");
-      space.mint(owner, "tokenuri");
-      space.mint(owner, "profile");
       space.mint(owner, "account");
+      space.mint(owner, "id");
+      space.mint(owner, "passport");
+      space.mint(owner, "profile");
       space.mint(owner, "refi");
+      space.mint(owner, "tokenuri");
     }
 
     passport = new Passport(address(steward), address(omnicast));
