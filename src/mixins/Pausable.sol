@@ -4,18 +4,18 @@ pragma solidity ^0.8.13;
 import {Auth} from "./auth/Auth.sol";
 
 abstract contract Pausable is Auth {
-  bool public isPaused;
+    bool public isPaused;
 
-  modifier whenNotPaused() {
-    require(!isPaused, "Pausable: PAUSED");
-    _;
-  }
+    modifier whenNotPaused() {
+        require(!isPaused, "Pausable: PAUSED");
+        _;
+    }
 
-  function pause() external requiresAuth {
-    isPaused = true;
-  }
+    function pause() external requiresAuth {
+        isPaused = true;
+    }
 
-  function resume() external requiresAuth {
-    isPaused = false;
-  }
+    function resume() external requiresAuth {
+        isPaused = false;
+    }
 }

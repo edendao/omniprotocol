@@ -2,12 +2,12 @@
 pragma solidity >=0.8.0;
 
 abstract contract ReentrancyGuard {
-  bool private _reentrancyGuard;
+    bool private _reentrancyGuard;
 
-  modifier nonReentrant() {
-    require(!_reentrancyGuard, "REENTRANT");
-    _reentrancyGuard = true;
-    _;
-    _reentrancyGuard = false;
-  }
+    modifier nonReentrant() {
+        require(!_reentrancyGuard, "REENTRANT");
+        _reentrancyGuard = true;
+        _;
+        _reentrancyGuard = false;
+    }
 }

@@ -8,53 +8,55 @@ import {Stewarded} from "./mixins/Stewarded.sol";
 import {PublicGood} from "./mixins/PublicGood.sol";
 
 contract Steward is MultiRolesAuthority, PublicGood, Stewarded, Multicallable {
-  // ================================
-  // ======== Initializable =========
-  // ================================
-  constructor(address _beneficiary, address _owner) {
-    initialize(_beneficiary, abi.encode(_owner));
-  }
-
-  function _initialize(bytes memory _params) internal override {
-    __initAuth(abi.decode(_params, (address)), this);
-  }
-
-  // ================================
-  // ========== Authority ===========
-  // ================================
-  function setCapabilitiesTo(
-    address roleAddress,
-    uint8 withRoleId,
-    bytes4[] memory signatures,
-    bool enabled
-  ) external requiresAuth {
-    for (uint256 i = 0; i < signatures.length; i += 1) {
-      setRoleCapability(withRoleId, signatures[i], enabled);
+    // ================================
+    // ======== Initializable =========
+    // ================================
+    constructor(address _beneficiary, address _owner) {
+        initialize(_beneficiary, abi.encode(_owner));
     }
-    setUserRole(roleAddress, withRoleId, enabled);
-  }
 
-  function canCall(
-    address user,
-    address target,
-    bytes4 functionSig
-  ) public view virtual override returns (bool ok) {
-    ok = super.canCall(user, target, functionSig) && !isAccountSanctioned[user];
-  }
+    function _initialize(bytes memory _params) internal override {
+        __initAuth(abi.decode(_params, (address)), this);
+    }
 
-  mapping(address => bool) public isAccountSanctioned;
+    // ================================
+    // ========== Authority ===========
+    // ================================
+    function setCapabilitiesTo(
+        address roleAddress,
+        uint8 withRoleId,
+        bytes4[] memory signatures,
+        bool enabled
+    ) external requiresAuth {
+        for (uint256 i = 0; i < signatures.length; i += 1) {
+            setRoleCapability(withRoleId, signatures[i], enabled);
+        }
+        setUserRole(roleAddress, withRoleId, enabled);
+    }
 
-  event AccountSanctionUpdated(address indexed account, bool sanctioned);
+    function canCall(
+        address user,
+        address target,
+        bytes4 functionSig
+    ) public view virtual override returns (bool ok) {
+        ok =
+            super.canCall(user, target, functionSig) &&
+            !isAccountSanctioned[user];
+    }
 
-  function setAccountSanction(address account, bool sanctioned)
-    public
-    virtual
-    requiresAuth
-  {
-    isAccountSanctioned[account] = sanctioned;
+    mapping(address => bool) public isAccountSanctioned;
 
-    emit AccountSanctionUpdated(account, sanctioned);
-  }
+    event AccountSanctionUpdated(address indexed account, bool sanctioned);
 
-  receive() external payable {}
+    function setAccountSanction(address account, bool sanctioned)
+        public
+        virtual
+        requiresAuth
+    {
+        isAccountSanctioned[account] = sanctioned;
+
+        emit AccountSanctionUpdated(account, sanctioned);
+    }
+
+    receive() external payable {}
 }

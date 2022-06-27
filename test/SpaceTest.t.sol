@@ -4,30 +4,30 @@ pragma solidity ^0.8.13;
 import {ChainEnvironmentTest} from "./ChainEnvironmentTest.t.sol";
 
 contract SpaceTest is ChainEnvironmentTest {
-  uint256 internal spaceId;
+    uint256 internal spaceId;
 
-  function setUp() public override {
-    super.setUp();
+    function setUp() public override {
+        super.setUp();
 
-    spaceId = omnicast.idOf("prosperity");
-  }
+        spaceId = omnicast.idOf("prosperity");
+    }
 
-  function testMintNameGas() public {
-    hevm.prank(address(this), address(this));
-    space.mint{value: 1 ether}("prosperity");
-  }
+    function testMintNameGas() public {
+        hevm.prank(address(this), address(this));
+        space.mint{value: 1 ether}("prosperity");
+    }
 
-  function testMintName(address caller, uint256 value) public {
-    hevm.assume(
-      caller != address(this) &&
-        caller != address(0) &&
-        value >= (space.mintsBy(caller) + 1) * 0.05 ether
-    );
-    hevm.deal(caller, value);
+    function testMintName(address caller, uint256 value) public {
+        hevm.assume(
+            caller != address(this) &&
+                caller != address(0) &&
+                value >= (space.mintsBy(caller) + 1) * 0.05 ether
+        );
+        hevm.deal(caller, value);
 
-    hevm.prank(caller, caller);
-    uint256 omnicastId = space.mint{value: value}("prosperity");
+        hevm.prank(caller, caller);
+        uint256 omnicastId = space.mint{value: value}("prosperity");
 
-    assertEq(omnicastId, spaceId);
-  }
+        assertEq(omnicastId, spaceId);
+    }
 }
