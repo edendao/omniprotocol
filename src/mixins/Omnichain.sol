@@ -92,7 +92,7 @@ abstract contract Omnichain is
         bytes calldata fromContract,
         uint64 nonce,
         bytes calldata payload
-    ) external override {
+    ) external override whenNotPaused {
         require(
             msg.sender == address(lzEndpoint) &&
                 isConnection(fromChainId, fromContract),
