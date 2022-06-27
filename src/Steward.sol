@@ -48,7 +48,7 @@ contract Steward is MultiRolesAuthority, PublicGood, Stewarded, Multicallable {
 
     event AccountSanctionUpdated(address indexed account, bool sanctioned);
 
-    function setAccountSanction(address account, bool sanctioned)
+    function sanction(address account, bool sanctioned)
         public
         virtual
         requiresAuth
