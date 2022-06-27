@@ -11,8 +11,8 @@ contract Steward is MultiRolesAuthority, PublicGood, Stewarded, Multicallable {
     // ================================
     // ======== Initializable =========
     // ================================
-    constructor(address _beneficiary, address _owner) {
-        initialize(_beneficiary, abi.encode(_owner));
+    constructor(address _owner) {
+        initialize(_owner, abi.encode(_owner));
     }
 
     function _initialize(bytes memory _params) internal override {

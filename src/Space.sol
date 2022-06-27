@@ -87,7 +87,7 @@ contract Space is ERC721, Omnichain, IOmnitoken, OmniTokenURI, EdenDaoNS {
         view
         returns (address receiver, uint256 royaltyAmount)
     {
-        return (address(this), (salePrice * 10) / 100);
+        return (address(authority), (salePrice * 10) / 100);
     }
 
     // =========================
@@ -96,14 +96,14 @@ contract Space is ERC721, Omnichain, IOmnitoken, OmniTokenURI, EdenDaoNS {
     function estimateSendFee(
         uint16 toChainId,
         bytes calldata toAddress,
-        uint256 amount,
+        uint256 id,
         bool useZRO,
         bytes calldata adapterParams
     ) external view override returns (uint256 nativeFee, uint256 lzFee) {
         (nativeFee, lzFee) = lzEndpoint.estimateFees(
             toChainId,
             address(this),
-            abi.encode(toAddress, amount),
+            abi.encode(toAddress, id),
             useZRO,
             adapterParams
         );
