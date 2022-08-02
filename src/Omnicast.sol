@@ -140,7 +140,7 @@ contract Omnicast is Omnichain, IOmnicast, EdenDaoNS, Multicallable {
 
     function writeMessage(
         uint256 withSenderId,
-        uint16 onChainId,
+        uint16 toChainId,
         uint256 toReceiverId,
         bytes memory data,
         address lzPaymentAddress,
@@ -151,24 +151,24 @@ contract Omnicast is Omnichain, IOmnicast, EdenDaoNS, Multicallable {
             "UNAUTHORIZED"
         );
 
-        if (onChainId == currentChainId) {
+        if (toChainId == currentChainId) {
             uint64 msgNonce = nonce++;
             receivedMessage[withSenderId][toReceiverId].push(
                 abi.encode(msgNonce, data)
             );
 
-            emit Message(onChainId, msgNonce, withSenderId, toReceiverId, data);
+            emit Message(toChainId, msgNonce, withSenderId, toReceiverId, data);
         } else {
             lzSend(
-                onChainId,
+                toChainId,
                 abi.encode(withSenderId, toReceiverId, data),
                 lzPaymentAddress,
                 lzAdapterParams
             );
 
             emit Message(
-                onChainId,
-                lzEndpoint.getOutboundNonce(onChainId, address(this)),
+                toChainId,
+                lzEndpoint.getOutboundNonce(toChainId, address(this)),
                 toReceiverId,
                 withSenderId,
                 data

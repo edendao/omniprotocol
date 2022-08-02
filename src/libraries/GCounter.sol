@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 library GCounter {
-    function incrementBy(
+    function increment(
         uint256[] storage counters,
         uint256 slot,
         uint256 amount
@@ -10,12 +10,17 @@ library GCounter {
         counters[slot] += amount;
     }
 
-    function value(uint256[] memory counters) internal pure returns (uint256) {
-        uint256 sum = 0;
-        for (uint256 i = 0; i < counters.length; i++) {
+    function value(uint256[] memory counters)
+        internal
+        pure
+        returns (uint256 sum)
+    {
+        for (uint256 i = 0; i < counters.length; ) {
             sum += counters[i];
+            unchecked {
+                ++i;
+            }
         }
-        return sum;
     }
 
     function merge(
@@ -26,9 +31,13 @@ library GCounter {
             counters.length == receivedCounters.length,
             "GCounter: Cannot merge unrelated counters"
         );
-        for (uint256 i = 0; i < counters.length; i++) {
-            if (counters[i] < receivedCounters[i]) {
-                counters[i] = receivedCounters[i];
+        for (uint256 i = 0; i < counters.length; ) {
+            uint256 receivedCounter = receivedCounters[i];
+            if (counters[i] < receivedCounter) {
+                counters[i] = receivedCounter;
+            }
+            unchecked {
+                ++i;
             }
         }
     }

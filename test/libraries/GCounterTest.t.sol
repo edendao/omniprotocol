@@ -15,10 +15,10 @@ contract GCounterTest is DSTestPlus {
         assertEq(value, 396);
     }
 
-    function testIncrementBy() public {
+    function testIncrement() public {
         uint256 _amount = 256;
         uint256 value = slots.value();
-        slots.incrementBy(1, _amount);
+        slots.increment(1, _amount);
         assertEq(slots.value(), value + _amount);
     }
 
