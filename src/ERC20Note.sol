@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {IOmnitoken} from "./interfaces/IOmnitoken.sol";
 import {ERC20} from "./mixins/ERC20.sol";
 import {Stewarded} from "./mixins/Stewarded.sol";
 import {Omnichain} from "./mixins/Omnichain.sol";
 import {PublicGood} from "./mixins/PublicGood.sol";
 
-contract Omnitoken is ERC20, Omnichain, IOmnitoken {
+contract ERC20Note is ERC20, Omnichain {
     // ================================
     // ======== Initializable =========
     // ================================
@@ -28,11 +27,11 @@ contract Omnitoken is ERC20, Omnichain, IOmnitoken {
     // ================================
     // ============ ERC20 =============
     // ================================
-    function mint(address to, uint256 amount) external virtual requiresAuth {
+    function mint(address to, uint256 amount) external requiresAuth {
         _mint(to, amount);
     }
 
-    function burn(address from, uint256 amount) external virtual requiresAuth {
+    function burn(address from, uint256 amount) external requiresAuth {
         if (msg.sender != from) {
             _useAllowance(from, msg.sender, amount);
         }
@@ -41,7 +40,6 @@ contract Omnitoken is ERC20, Omnichain, IOmnitoken {
 
     function transfer(address to, uint256 amount)
         public
-        virtual
         override
         returns (bool)
     {
@@ -52,7 +50,7 @@ contract Omnitoken is ERC20, Omnichain, IOmnitoken {
         address sender,
         address recipient,
         uint256 amount
-    ) public virtual override returns (bool) {
+    ) public override returns (bool) {
         require(
             // transferFrom.selector
             isAuthorized(sender, 0x23b872dd) &&
@@ -62,10 +60,7 @@ contract Omnitoken is ERC20, Omnichain, IOmnitoken {
         return super.transferFrom(sender, recipient, amount);
     }
 
-    // ===============================
-    // ========= IOmnitoken ==========
-    // ===============================
-    function circulatingSupply() public view virtual returns (uint256) {
+    function circulatingSupply() public view returns (uint256) {
         return totalSupply;
     }
 
@@ -75,7 +70,7 @@ contract Omnitoken is ERC20, Omnichain, IOmnitoken {
         uint256 amount,
         bool useZRO,
         bytes calldata adapterParams
-    ) external view override returns (uint256 nativeFee, uint256 lzFee) {
+    ) external view returns (uint256 nativeFee, uint256 lzFee) {
         (nativeFee, lzFee) = lzEndpoint.estimateFees(
             toChainId,
             address(this),
@@ -84,6 +79,22 @@ contract Omnitoken is ERC20, Omnichain, IOmnitoken {
             adapterParams
         );
     }
+
+    event SendToChain(
+        address indexed fromAddress,
+        uint16 indexed toChainId,
+        bytes indexed toAddress,
+        uint256 amount,
+        uint64 nonce
+    );
+
+    event ReceiveFromChain(
+        uint16 indexed fromChainId,
+        bytes indexed fromContractAddress,
+        address indexed toAddress,
+        uint256 amount,
+        uint64 nonce
+    );
 
     function sendFrom(
         address fromAddress,
@@ -94,7 +105,7 @@ contract Omnitoken is ERC20, Omnichain, IOmnitoken {
         address payable,
         address lzPaymentAddress,
         bytes calldata lzAdapterParams
-    ) external payable virtual {
+    ) external payable {
         if (fromAddress != msg.sender) {
             _useAllowance(fromAddress, msg.sender, amount);
         }
@@ -122,7 +133,7 @@ contract Omnitoken is ERC20, Omnichain, IOmnitoken {
         bytes calldata fromContractAddress,
         uint64 nonce,
         bytes calldata payload
-    ) internal virtual override {
+    ) internal override {
         (bytes memory toAddressB, uint256 amount) = abi.decode(
             payload,
             (bytes, uint256)

@@ -1,37 +1,42 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {ChainEnvironmentTest, Omnitoken} from "./ChainEnvironmentTest.t.sol";
+import {ChainEnvironmentTest, ERC20Note} from "./ChainEnvironmentTest.t.sol";
 
-import {Omnibridge} from "@omniprotocol/Omnibridge.sol";
+import {ERC20Vault} from "@omniprotocol/ERC20Vault.sol";
 
-contract OmnibridgeTest is ChainEnvironmentTest {
+contract ERC20VaultTest is ChainEnvironmentTest {
     uint16 public currentChainId = uint16(block.chainid);
-    Omnibridge public omnibridge;
-    Omnitoken public omnitoken;
+    ERC20Vault public vault;
+    ERC20Note public note;
 
     function setUp() public override {
         super.setUp();
 
-        omnibridge = Omnibridge(
-            factory.createBridge(address(steward), address(dai))
+        vault = ERC20Vault(
+            factory.createERC20Vault(address(steward), address(dai))
         );
-        omnitoken = Omnitoken(
-            factory.createToken(address(steward), "DAI", "DAI", dai.decimals())
+        note = ERC20Note(
+            factory.createERC20Note(
+                address(steward),
+                "DAI",
+                "DAI",
+                dai.decimals()
+            )
         );
     }
 
     function testFailDeployingDuplicateAsset() public {
-        Omnibridge(factory.createBridge(address(steward), address(dai)));
+        ERC20Vault(factory.createERC20Vault(address(steward), address(dai)));
     }
 
     function testCloneGas() public {
-        Omnibridge(factory.createBridge(address(steward), address(omnitoken)));
+        ERC20Vault(factory.createERC20Vault(address(steward), address(note)));
     }
 
     function testCannotWithdrawAsset() public {
-        hevm.expectRevert("Omnibridge: INVALID_TOKEN");
-        omnibridge.withdrawToken(address(dai), address(this), 10_000);
+        hevm.expectRevert("ERC20Vault: INVALID_TOKEN");
+        vault.withdrawToken(address(dai), address(this), 10_000);
     }
 
     function testWithdrawingAccidentalTokensRequiresAuth(address caller)
@@ -40,7 +45,7 @@ contract OmnibridgeTest is ChainEnvironmentTest {
         hevm.assume(caller != owner);
         hevm.expectRevert("UNAUTHORIZED");
         hevm.prank(caller);
-        omnibridge.withdrawToken(address(0), address(this), 10_000);
+        vault.withdrawToken(address(0), address(this), 10_000);
     }
 
     function testSendFrom(
@@ -55,17 +60,14 @@ contract OmnibridgeTest is ChainEnvironmentTest {
                 toChainId != currentChainId
         );
 
-        lzEndpoint.setDestLzEndpoint(address(omnitoken), address(lzEndpoint));
-        omnibridge.connect(toChainId, abi.encodePacked(address(omnitoken)));
-        omnitoken.connect(
-            currentChainId,
-            abi.encodePacked(address(omnibridge))
-        );
+        lzEndpoint.setDestLzEndpoint(address(note), address(lzEndpoint));
+        vault.connect(toChainId, abi.encodePacked(address(note)));
+        note.connect(currentChainId, abi.encodePacked(address(vault)));
 
         dai.mint(address(this), amount);
-        dai.approve(address(omnibridge), amount);
+        dai.approve(address(vault), amount);
 
-        (uint256 nativeFee, ) = omnibridge.estimateSendFee(
+        (uint256 nativeFee, ) = vault.estimateSendFee(
             toChainId,
             abi.encodePacked(toAddress),
             amount,
@@ -73,7 +75,7 @@ contract OmnibridgeTest is ChainEnvironmentTest {
             ""
         );
 
-        omnibridge.sendFrom{value: nativeFee}(
+        vault.sendFrom{value: nativeFee}(
             address(this),
             toChainId,
             abi.encodePacked(toAddress),
@@ -84,6 +86,6 @@ contract OmnibridgeTest is ChainEnvironmentTest {
         );
 
         assertEq(dai.balanceOf(address(this)), 0);
-        assertEq(omnitoken.balanceOf(toAddress), amount);
+        assertEq(note.balanceOf(toAddress), amount);
     }
 }

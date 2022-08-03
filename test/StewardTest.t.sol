@@ -20,7 +20,7 @@ contract StewardTest is ChainEnvironmentTest {
         functions[0] = abi.encodeWithSignature(
             "setRoleCapability(uint8,bytes4,bool)",
             0,
-            token.mint.selector,
+            erc20note.mint.selector,
             true
         );
         functions[1] = abi.encodeWithSignature(
@@ -37,7 +37,7 @@ contract StewardTest is ChainEnvironmentTest {
         functions[3] = abi.encodeWithSignature(
             "doesRoleHaveCapability(uint8,bytes4)",
             0,
-            token.mint.selector
+            erc20note.mint.selector
         );
         bytes[] memory results = steward.multicall(functions);
         assertTrue(abi.decode(results[2], (bool)));

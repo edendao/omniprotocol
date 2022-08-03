@@ -4,10 +4,12 @@ pragma solidity ^0.8.13;
 import {Script} from "forge-std/Script.sol";
 import {ILayerZeroEndpoint} from "@layerzerolabs/contracts/interfaces/ILayerZeroEndpoint.sol";
 
+import {ERC20Note} from "@omniprotocol/ERC20Note.sol";
+import {ERC20Vault} from "@omniprotocol/ERC20Vault.sol";
+import {ERC721Note} from "@omniprotocol/ERC721Note.sol";
+import {ERC721Vault} from "@omniprotocol/ERC721Vault.sol";
 import {Factory} from "@omniprotocol/Factory.sol";
-import {Omnibridge} from "@omniprotocol/Omnibridge.sol";
 import {Omnicast} from "@omniprotocol/Omnicast.sol";
-import {Omnitoken} from "@omniprotocol/Omnitoken.sol";
 import {Passport} from "@omniprotocol/Passport.sol";
 import {Space} from "@omniprotocol/Space.sol";
 import {Steward} from "@omniprotocol/Steward.sol";
@@ -24,11 +26,13 @@ contract BaseDeployment is Script {
     }
 
     Steward public steward; // Owner & Authority
-    Omnitoken internal token; // New, mintable ERC20s
-    Omnibridge internal bridge; // Bridge existing ERC20s
-    Factory public factory; // Launch new stewards, tokens, and bridges
+    ERC20Note internal erc20note; // New, mintable ERC20s
+    ERC20Vault internal erc20vault; // erc20vault existing ERC20s
+    ERC721Note internal erc721note; // New, mintable ERC721s
+    ERC721Vault internal erc721vault; // erc721vault existing ERC721s
+    Factory public factory; // Launch new stewards, erc20notes, and erc20vaults
 
-    Omnicast public omnicast; // Cross-chain Messaging Bridge
+    Omnicast public omnicast; // Cross-chain Messagingerc20vault
     Space public space; // Vanity Namespaces
     Passport public passport; // Identity NFTs
 
@@ -39,16 +43,20 @@ contract BaseDeployment is Script {
     ) public {
         steward = new Steward(owner);
 
-        token = new Omnitoken();
-        bridge = new Omnibridge();
+        erc20note = new ERC20Note();
+        erc20vault = new ERC20Vault();
+        erc721note = new ERC721Note();
+        erc721vault = new ERC721Vault();
         factory = new Factory(
             address(steward),
-            address(token),
-            address(bridge),
+            address(erc20note),
+            address(erc20vault),
+            address(erc721note),
+            address(erc721vault),
             lzEndpoint
         );
 
-        steward.setPublicCapability(token.transferFrom.selector, true);
+        steward.setPublicCapability(erc20note.transferFrom.selector, true);
 
         omnicast = new Omnicast(address(steward), lzEndpoint);
 
@@ -59,7 +67,7 @@ contract BaseDeployment is Script {
             space.mint(owner, "passport");
             space.mint(owner, "profile");
             space.mint(owner, "refi");
-            space.mint(owner, "tokenuri");
+            space.mint(owner, "erc20noteuri");
         }
 
         passport = new Passport(address(steward), address(omnicast));

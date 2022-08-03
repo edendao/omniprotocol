@@ -11,7 +11,7 @@ labels: bug, help wanted
 
 **Please provide a proof of concept that demonstrates the bug.**
 
-**Other omnitokens on how to reproduce the issue?**
+**Other ERC20Notes on how to reproduce the issue?**
 
 **Any possible solutions?**
 

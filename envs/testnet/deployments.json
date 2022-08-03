@@ -1,8 +1,8 @@
 {
   "rinkeby": {
     "Steward": "0xeeb56ebad4e5fff071ada7b810540a93c9b232f2",
-    "Omnitoken": "0xa8f96df89950f4569df24041a5e5ae31895f455d",
-    "Omnibridge": "0x51e762c293c4e3d6d60708d2c04d1d7f8d263b75",
+    "ERC20Note": "0xa8f96df89950f4569df24041a5e5ae31895f455d",
+    "ERC20Vault": "0x51e762c293c4e3d6d60708d2c04d1d7f8d263b75",
     "Factory": "0xb6d95e7ce8bedc30e8ad76f2f4f9fd75106744c1",
     "Omnicast": "0x048c557d602ff4aa2706e89779b8d9c08acd4958",
     "Passport": "0x2b7c965066ea858f561c4cce086d8b8c264706c0"

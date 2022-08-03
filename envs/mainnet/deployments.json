@@ -1,9 +1,9 @@
 {
   "ethereum": {
     "Factory": "0xa7b2af85b2d145e598cb9cef08be2648b25d58f9",
-    "Omnibridge": "0x4c3f5385bc92f3c35c8ae8a61ad008d531157a3c",
+    "ERC20Vault": "0x4c3f5385bc92f3c35c8ae8a61ad008d531157a3c",
     "Omnicast": "0x49ddd9ff28b3dcf9f2565c87a580b8704e04ce7c",
-    "Omnitoken": "0x12b8243118dd9a2b114c008f7418f51728f935c5",
+    "ERC20Note": "0x12b8243118dd9a2b114c008f7418f51728f935c5",
     "Passport": "0xc7e8ad57cb1e701c500148916dabde5ea2519726",
     "Space": "0x6817620e44782df538eeeb7f168fd61318281504",
     "Steward": "0x05fdb857139b53651498c804174b220ad9dbe675"

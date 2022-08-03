@@ -6,33 +6,43 @@ import {Stewarded} from "./mixins/Stewarded.sol";
 
 contract Factory is Stewarded {
     address public steward;
-    address public omnitoken;
-    address public omnibridge;
+    address public erc20note;
+    address public erc20vault;
+    address public erc721note;
+    address public erc721vault;
     address public lzEndpoint;
 
     constructor(
         address _steward,
-        address _omnitoken,
-        address _omnibridge,
+        address _erc20note,
+        address _erc20vault,
+        address _erc721note,
+        address _erc721vault,
         address _lzEndpoint
     ) {
         __initStewarded(_steward);
 
         steward = _steward;
-        omnitoken = _omnitoken;
-        omnibridge = _omnibridge;
+        erc20note = _erc20note;
+        erc20vault = _erc20vault;
+        erc721note = _erc721note;
+        erc721vault = _erc721vault;
         lzEndpoint = _lzEndpoint;
     }
 
     function setImplementations(
         address _steward,
-        address _omnitoken,
-        address _omnibridge,
+        address _erc20note,
+        address _erc20vault,
+        address _erc721note,
+        address _erc721vault,
         address _lzEndpoint
     ) external requiresAuth {
         steward = _steward;
-        omnitoken = _omnitoken;
-        omnibridge = _omnibridge;
+        erc20note = _erc20note;
+        erc20vault = _erc20vault;
+        erc721note = _erc721note;
+        erc721vault = _erc721vault;
         lzEndpoint = _lzEndpoint;
     }
 
@@ -67,20 +77,20 @@ contract Factory is Stewarded {
         emit StewardCreated(s, _owner);
     }
 
-    event TokenCreated(
+    event ERC20NoteCreated(
         address indexed steward,
-        address indexed token,
+        address indexed note,
         string indexed name,
         string symbol,
         uint8 decimals
     );
 
-    function createToken(
+    function createERC20Note(
         address _steward,
         string memory _name,
         string memory _symbol,
         uint8 _decimals
-    ) public returns (address token) {
+    ) public returns (address note) {
         bytes memory params = abi.encode(
             address(lzEndpoint),
             _steward,
@@ -88,26 +98,67 @@ contract Factory is Stewarded {
             _symbol,
             _decimals
         );
-        token = _create2ProxyFor(omnitoken, keccak256(params));
+        note = _create2ProxyFor(erc20note, keccak256(params));
 
-        PublicGood(token).initialize(address(authority), params);
-        emit TokenCreated(_steward, token, _name, _symbol, _decimals);
+        PublicGood(note).initialize(address(authority), params);
+        emit ERC20NoteCreated(_steward, note, _name, _symbol, _decimals);
     }
 
-    event BridgeCreated(
+    event ERC20VaultCreated(
         address indexed steward,
-        address indexed bridge,
+        address indexed vault,
         address indexed asset
     );
 
-    function createBridge(address _steward, address _asset)
+    function createERC20Vault(address _steward, address _asset)
         public
-        returns (address bridge)
+        returns (address vault)
     {
         bytes memory params = abi.encode(address(lzEndpoint), _steward, _asset);
-        bridge = _create2ProxyFor(omnibridge, keccak256(params));
+        vault = _create2ProxyFor(erc20vault, keccak256(params));
 
-        PublicGood(bridge).initialize(address(authority), params);
-        emit BridgeCreated(_steward, bridge, _asset);
+        PublicGood(vault).initialize(address(authority), params);
+        emit ERC20VaultCreated(_steward, vault, _asset);
+    }
+
+    event ERC721NoteCreated(
+        address indexed steward,
+        address indexed note,
+        string indexed name,
+        string symbol
+    );
+
+    function createERC721Note(
+        address _steward,
+        string memory _name,
+        string memory _symbol
+    ) public returns (address note) {
+        bytes memory params = abi.encode(
+            address(lzEndpoint),
+            _steward,
+            _name,
+            _symbol
+        );
+        note = _create2ProxyFor(erc721note, keccak256(params));
+
+        PublicGood(note).initialize(address(authority), params);
+        emit ERC721NoteCreated(_steward, note, _name, _symbol);
+    }
+
+    event ERC721VaultCreated(
+        address indexed steward,
+        address indexed vault,
+        address indexed asset
+    );
+
+    function createERC721Vault(address _steward, address _asset)
+        public
+        returns (address vault)
+    {
+        bytes memory params = abi.encode(address(lzEndpoint), _steward, _asset);
+        vault = _create2ProxyFor(erc721vault, keccak256(params));
+
+        PublicGood(vault).initialize(address(authority), params);
+        emit ERC721VaultCreated(_steward, vault, _asset);
     }
 }

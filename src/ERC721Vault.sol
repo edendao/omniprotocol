@@ -2,14 +2,13 @@
 pragma solidity ^0.8.13;
 
 import {SafeTransferLib} from "./libraries/SafeTransferLib.sol";
-import {IOmnitoken} from "./interfaces/IOmnitoken.sol";
 
-import {ERC20} from "./mixins/ERC20.sol";
+import {ERC721} from "./mixins/ERC721.sol";
 import {Omnichain} from "./mixins/Omnichain.sol";
 
-contract Omnibridge is Omnichain, IOmnitoken {
-    using SafeTransferLib for ERC20;
-    ERC20 public asset;
+contract ERC721Vault is ERC721, Omnichain {
+    ERC721 public asset;
+    mapping(uint256 => string) internal _tokenURI;
 
     // =============================
     // ======== PublicGood =========
@@ -23,55 +22,60 @@ contract Omnibridge is Omnichain, IOmnitoken {
         __initOmnichain(_lzEndpoint);
         __initStewarded(_steward);
 
-        asset = ERC20(_asset);
+        asset = ERC721(_asset);
     }
 
-    // ===============================
-    // ========= IOmnitoken ==========
-    // ===============================
-    function circulatingSupply()
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
-        unchecked {
-            return asset.totalSupply() - asset.balanceOf(address(this));
-        }
+    function tokenURI(uint256 id) public view override returns (string memory) {
+        return _tokenURI[id];
     }
 
     function estimateSendFee(
         uint16 toChainId,
         bytes calldata toAddress,
-        uint256 amount,
+        uint256 id,
         bool useZRO,
         bytes calldata adapterParams
-    ) external view override returns (uint256 nativeFee, uint256 lzFee) {
+    ) external view returns (uint256 nativeFee, uint256 lzFee) {
         (nativeFee, lzFee) = lzEndpoint.estimateFees(
             toChainId,
             address(this),
-            abi.encode(toAddress, amount),
+            abi.encode(toAddress, id, asset.tokenURI(id)),
             useZRO,
             adapterParams
         );
     }
 
+    event SendToChain(
+        address indexed fromAddress,
+        uint16 indexed toChainId,
+        bytes indexed toAddress,
+        uint256 id,
+        uint64 nonce
+    );
+
+    event ReceiveFromChain(
+        uint16 indexed fromChainId,
+        bytes indexed fromContractAddress,
+        address indexed toAddress,
+        uint256 id,
+        uint64 nonce
+    );
+
     function sendFrom(
         address fromAddress,
         uint16 toChainId,
         bytes memory toAddress,
-        uint256 amount,
+        uint256 id,
         // solhint-disable-next-line no-unused-vars
         address payable,
         address lzPaymentAddress,
         bytes calldata lzAdapterParams
-    ) external payable override {
-        asset.safeTransferFrom(fromAddress, address(this), amount);
+    ) external payable {
+        asset.transferFrom(fromAddress, address(this), id);
 
         lzSend(
             toChainId,
-            abi.encode(toAddress, amount),
+            abi.encode(toAddress, id, asset.tokenURI(id)),
             lzPaymentAddress,
             lzAdapterParams
         );
@@ -80,7 +84,7 @@ contract Omnibridge is Omnichain, IOmnitoken {
             fromAddress,
             toChainId,
             toAddress,
-            amount,
+            id,
             lzEndpoint.getOutboundNonce(toChainId, address(this))
         );
     }
@@ -90,20 +94,23 @@ contract Omnibridge is Omnichain, IOmnitoken {
         bytes calldata fromContractAddress,
         uint64 nonce,
         bytes calldata payload
-    ) internal virtual override {
-        (bytes memory toAddressB, uint256 amount) = abi.decode(
+    ) internal override {
+        (bytes memory toAddressB, uint256 id) = abi.decode(
             payload,
             (bytes, uint256)
         );
         address toAddress = _addressFromPackedBytes(toAddressB);
 
-        asset.safeTransferFrom(address(this), toAddress, amount);
+        asset.safeTransferFrom(address(this), toAddress, id);
+
+        _burn(id);
+        _tokenURI[id] = "";
 
         emit ReceiveFromChain(
             fromChainId,
             fromContractAddress,
             toAddress,
-            amount,
+            id,
             nonce
         );
     }
@@ -116,7 +123,7 @@ contract Omnibridge is Omnichain, IOmnitoken {
         address to,
         uint256 amount
     ) public override {
-        require(address(token) != address(asset), "Omnibridge: INVALID_TOKEN");
+        require(address(token) != address(asset), "ERC721Vault: INVALID_TOKEN");
         super.withdrawToken(token, to, amount);
     }
 }

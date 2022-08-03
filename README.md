@@ -20,44 +20,44 @@ It all begins with a `Steward` to self-custody your contracts with flexible, rol
 cast send 0xEdenDaoSteward "clone(address)" 0xOwnerAddress
 ```
 
-### Bridge your existing ERC20 to other chains with Omnibridge
+### Bridge your existing ERC20 to other chains with ERC20Vault
 
-If you already have an ERC20, you can launch a **non-custodial** Omnibridge on the source chain to link up to an Omnitoken on the new chain. Effortlessly unlock multi-chain DAO Ops and DAO2DAO collaborations.
+If you already have an ERC20, you can launch a **non-custodial** ERC20Vault on the source chain to link up to an ERC20Note on the new chain. Effortlessly unlock multi-chain DAO Ops and DAO2DAO collaborations.
 
 ```bash
-cast send 0xEdenDaoOmnibridge "clone(address,address)" \
+cast send 0xEdenDaoERC20Vault "clone(address,address)" \
   0xYourStewardAddress \
   0xYourTokenAddress
 ```
 
-To connect your Omnibridge on Chain A to an Omnitoken on Chain B, simply:
+To connect your ERC20Vault on Chain A to an ERC20Note on Chain B, simply:
 
 ```bash
 # For Chain A
-cast send 0xYourOmnibridgeOnChainA "connect(uint16,bytes)" ChainB_ID 0xYourOmnitokenOnChainB
+cast send 0xYourERC20VaultOnChainA "connect(uint16,bytes)" ChainB_ID 0xYourERC20NoteOnChainB
 # For Chain B
-cast send 0xYourOmnitokenOnChainB "connect(uint16,bytes)" ChainA_ID 0xYourOmnibridgeOnChainA
+cast send 0xYourERC20NoteOnChainB "connect(uint16,bytes)" ChainA_ID 0xYourERC20VaultOnChainA
 ```
 
-### Launch and bridge across any chain with Omnitoken
+### Launch and bridge across any chain with ERC20Note
 
-Stop wasting months deciding what chain to launch on because of lock-in and high switching costs, just launch an Omnitoken on the chain you want. If you ever need to move to another chain, launch an Omnitoken there and link the two up. Now your token is easily bridgeable across chains!
+Stop wasting months deciding what chain to launch on because of lock-in and high switching costs, just launch an ERC20Note on the chain you want. If you ever need to move to another chain, launch an ERC20Note there and link the two up. Now your token is easily bridgeable across chains!
 
 ```bash
-cast send 0xEdenDaoOmnitoken "clone(address,string,string,uint8)" \
+cast send 0xEdenDaoERC20Note "clone(address,string,string,uint8)" \
   0xYourStewardAddress \
   "Friends with Assets Under Management" \
   "FWAUM" \
   18
 ```
 
-To connect an Omnitoken on Chain A to one on Chain B, simply:
+To connect an ERC20Note on Chain A to one on Chain B, simply:
 
 ```bash
 # For Chain A
-cast send 0xYourOmnitokenOnChainA "connect(uint16,bytes)" ChainB_ID 0xYourOmnitokenOnChainB
+cast send 0xYourERC20NoteOnChainA "connect(uint16,bytes)" ChainB_ID 0xYourERC20NoteOnChainB
 # For Chain B
-cast send 0xYourOmnitokenOnChainB "connect(uint16,bytes)" ChainA_ID 0xYourOmnitokenOnChainA
+cast send 0xYourERC20NoteOnChainB "connect(uint16,bytes)" ChainA_ID 0xYourERC20NoteOnChainA
 ```
 
 ### Write on-chain messages across chains using Omnicast

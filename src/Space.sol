@@ -3,14 +3,13 @@ pragma solidity ^0.8.13;
 
 import {ERC721} from "solmate/tokens/ERC721.sol";
 
-import {IOmnitoken} from "./interfaces/IOmnitoken.sol";
 import {Stewarded} from "./mixins/Stewarded.sol";
 import {EdenDaoNS} from "./mixins/EdenDaoNS.sol";
-import {Omnichain} from "./mixins/Omnichain.sol";
+import {Stewarded} from "./mixins/Stewarded.sol";
 import {OmniTokenURI} from "./mixins/OmniTokenURI.sol";
 import {PublicGood} from "./mixins/PublicGood.sol";
 
-contract Space is ERC721, Omnichain, IOmnitoken, OmniTokenURI, EdenDaoNS {
+contract Space is ERC721, Stewarded, OmniTokenURI, EdenDaoNS {
     uint256 public circulatingSupply;
     bool public mintable;
 
@@ -19,21 +18,8 @@ contract Space is ERC721, Omnichain, IOmnitoken, OmniTokenURI, EdenDaoNS {
         address _omnicast,
         bool _mintable
     ) ERC721("Eden Dao Space", "DAO SPACE") {
-        initialize(
-            PublicGood(_steward).beneficiary(),
-            abi.encode(_steward, _omnicast, _mintable)
-        );
-    }
-
-    function _initialize(bytes memory _params) internal override {
-        (address _steward, address _omnicast, bool _mintable) = abi.decode(
-            _params,
-            (address, address, bool)
-        );
-
         __initStewarded(_steward);
         __initOmniTokenURI(_omnicast);
-        __initOmnichain(address(Omnichain(_omnicast).lzEndpoint()));
 
         mintable = _mintable;
     }
@@ -88,84 +74,5 @@ contract Space is ERC721, Omnichain, IOmnitoken, OmniTokenURI, EdenDaoNS {
         returns (address receiver, uint256 royaltyAmount)
     {
         return (address(authority), (salePrice * 10) / 100);
-    }
-
-    // =========================
-    // ======= OMNITOKEN =======
-    // =========================
-    function estimateSendFee(
-        uint16 toChainId,
-        bytes calldata toAddress,
-        uint256 id,
-        bool useZRO,
-        bytes calldata adapterParams
-    ) external view override returns (uint256 nativeFee, uint256 lzFee) {
-        (nativeFee, lzFee) = lzEndpoint.estimateFees(
-            toChainId,
-            address(this),
-            abi.encode(toAddress, id),
-            useZRO,
-            adapterParams
-        );
-    }
-
-    function sendFrom(
-        address fromAddress,
-        uint16 toChainId,
-        bytes memory toAddress,
-        uint256 id,
-        // solhint-disable-next-line no-unused-vars
-        address payable,
-        address lzPaymentAddress,
-        bytes calldata lzAdapterParams
-    ) external payable {
-        require(mintable, "INVALID_CHAIN");
-        require(
-            msg.sender == fromAddress && fromAddress == ownerOf(id),
-            "UNAUTHORIZED"
-        );
-
-        lzSend(
-            toChainId,
-            abi.encode(toAddress, id),
-            lzPaymentAddress,
-            lzAdapterParams
-        );
-
-        emit SendToChain(
-            fromAddress,
-            toChainId,
-            toAddress,
-            id,
-            lzEndpoint.getOutboundNonce(toChainId, address(this))
-        );
-    }
-
-    function receiveMessage(
-        uint16 fromChainId,
-        bytes calldata fromContractAddress,
-        uint64 nonce,
-        bytes calldata payload
-    ) internal override {
-        require(!mintable, "INVALID_CHAIN");
-
-        (bytes memory toAddressB, uint256 id) = abi.decode(
-            payload,
-            (bytes, uint256)
-        );
-        address toAddress = _addressFromPackedBytes(toAddressB);
-
-        if (_ownerOf[id] != address(0)) {
-            _burn(id);
-        }
-        _mint(toAddress, id);
-
-        emit ReceiveFromChain(
-            fromChainId,
-            fromContractAddress,
-            toAddress,
-            id,
-            nonce
-        );
     }
 }

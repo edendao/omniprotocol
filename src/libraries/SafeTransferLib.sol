@@ -6,7 +6,7 @@ import {ERC20} from "@omniprotocol/mixins/ERC20.sol";
 /// @notice Safe ETH and ERC20 transfer library that gracefully handles missing return values.
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/utils/SafeTransferLib.sol)
 /// @dev Use with caution! Some functions in this library knowingly create dirty bits at the destination of the free memory pointer.
-/// @dev Omnitoken that none of the functions in this library check that a token has code at all! That responsibility is delegated to the caller.
+/// @dev ERC20Note that none of the functions in this library check that a token has code at all! That responsibility is delegated to the caller.
 library SafeTransferLib {
     event Debug(bool one, bool two, uint256 retsize);
 
