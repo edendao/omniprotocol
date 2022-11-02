@@ -33,26 +33,26 @@ contract Space is ERC721, Stewarded, OmniTokenURI, EdenDaoNS {
         return super.tokenURI(id);
     }
 
-    function _mint(address to, string memory name)
+    function _mint(address to, string memory vanityName)
         internal
         returns (uint256 id)
     {
         circulatingSupply++;
-        id = idOf(name);
+        id = idOf(vanityName);
         _mint(to, id);
     }
 
-    function mint(address to, string memory name)
+    function mint(address to, string memory vanityName)
         external
         requiresAuth
         returns (uint256)
     {
-        return _mint(to, name);
+        return _mint(to, vanityName);
     }
 
     mapping(address => uint256) public mintsBy;
 
-    function mint(string memory name) public payable returns (uint256) {
+    function mint(string memory vanityName) public payable returns (uint256) {
         // solhint-disable-next-line avoid-tx-origin
         require(msg.sender == tx.origin, "NO_SPOOFING");
         require(mintable, "NOT_MINTABLE");
@@ -62,7 +62,7 @@ contract Space is ERC721, Stewarded, OmniTokenURI, EdenDaoNS {
         require(msg.value >= (mints + 1) * 0.05 ether, "INSUFFICIENT_VALUE");
 
         mintsBy[msg.sender] = mints + 1;
-        return _mint(msg.sender, name);
+        return _mint(msg.sender, vanityName);
     }
 
     // ======================
