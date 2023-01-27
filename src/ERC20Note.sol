@@ -53,8 +53,7 @@ contract ERC20Note is ERC20, Omnichain {
     ) public override returns (bool) {
         require(
             // transferFrom.selector
-            isAuthorized(sender, 0x23b872dd) &&
-                isAuthorized(recipient, 0x23b872dd),
+            isAuthorized(sender, msg.sig) && isAuthorized(recipient, msg.sig),
             "UNAUTHORIZED"
         );
         return super.transferFrom(sender, recipient, amount);
@@ -84,14 +83,6 @@ contract ERC20Note is ERC20, Omnichain {
         address indexed fromAddress,
         uint16 indexed toChainId,
         bytes indexed toAddress,
-        uint256 amount,
-        uint64 nonce
-    );
-
-    event ReceiveFromChain(
-        uint16 indexed fromChainId,
-        bytes indexed fromContractAddress,
-        address indexed toAddress,
         uint256 amount,
         uint64 nonce
     );
@@ -127,6 +118,14 @@ contract ERC20Note is ERC20, Omnichain {
             lzEndpoint.getOutboundNonce(toChainId, address(this))
         );
     }
+
+    event ReceiveFromChain(
+        uint16 indexed fromChainId,
+        bytes indexed fromContractAddress,
+        address indexed toAddress,
+        uint256 amount,
+        uint64 nonce
+    );
 
     function receiveMessage(
         uint16 fromChainId,

@@ -55,14 +55,6 @@ contract ERC20Vault is Omnichain {
         uint64 nonce
     );
 
-    event ReceiveFromChain(
-        uint16 indexed fromChainId,
-        bytes indexed fromContractAddress,
-        address indexed toAddress,
-        uint256 amount,
-        uint64 nonce
-    );
-
     function sendFrom(
         address fromAddress,
         uint16 toChainId,
@@ -91,6 +83,14 @@ contract ERC20Vault is Omnichain {
         );
     }
 
+    event ReceiveFromChain(
+        uint16 indexed fromChainId,
+        bytes indexed fromContractAddress,
+        address indexed toAddress,
+        uint256 amount,
+        uint64 nonce
+    );
+
     function receiveMessage(
         uint16 fromChainId,
         bytes calldata fromContractAddress,
@@ -103,7 +103,7 @@ contract ERC20Vault is Omnichain {
         );
         address toAddress = _addressFromPackedBytes(toAddressB);
 
-        asset.safeTransferFrom(address(this), toAddress, amount);
+        asset.safeTransfer(toAddress, amount);
 
         emit ReceiveFromChain(
             fromChainId,
