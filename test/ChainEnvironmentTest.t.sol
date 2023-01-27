@@ -2,19 +2,20 @@
 pragma solidity ^0.8.13;
 
 import {console} from "forge-std/console.sol";
-import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
+import {Test} from "forge-std/Test.sol";
 
-import {LZEndpointMock} from "./mocks/LZEndpointMock.sol";
-import {MockERC20} from "./mocks/MockERC20.sol";
 import {ERC20Note} from "@omniprotocol/ERC20Note.sol";
 import {ERC20Vault} from "@omniprotocol/ERC20Vault.sol";
 import {Factory} from "@omniprotocol/Factory.sol";
 import {Steward} from "@omniprotocol/Steward.sol";
 
+import {LZEndpointMock} from "./mocks/LZEndpointMock.sol";
+import {MockERC20} from "./mocks/MockERC20.sol";
+
 import {BaseDeployment} from "../script/BaseDeployment.sol";
 
-contract ChainEnvironmentTest is DSTestPlus, BaseDeployment {
-    address public beneficiary = hevm.addr(42);
+contract ChainEnvironmentTest is Test, BaseDeployment {
+    address public beneficiary = vm.addr(42);
     address public owner = address(this);
 
     function setUp() public virtual {

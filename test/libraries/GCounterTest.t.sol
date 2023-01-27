@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
+import {Test} from "forge-std/Test.sol";
 
 import {GCounter} from "@omniprotocol/libraries/GCounter.sol";
 
-contract GCounterTest is DSTestPlus {
+contract GCounterTest is Test {
     using GCounter for uint256[];
 
     uint256[] internal slots = [256, 12, 128, 0, 0];

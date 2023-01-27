@@ -37,37 +37,37 @@ contract ERC20NoteTest is ChainEnvironmentTest {
     }
 
     function testMint(address to, uint128 amount) public {
-        hevm.assume(to != address(0) && note.balanceOf(to) == 0);
+        vm.assume(to != address(0) && note.balanceOf(to) == 0);
         note.mint(to, amount);
 
         assertEq(note.balanceOf(to), amount);
     }
 
     function testMintRequiresAuth(address to, uint128 amount) public {
-        hevm.assume(
+        vm.assume(
             to != address(0) && to != address(this) && note.balanceOf(to) == 0
         );
-        hevm.expectRevert(Unauthorized.selector);
-        hevm.prank(to);
+        vm.expectRevert(Unauthorized.selector);
+        vm.prank(to);
         note.mint(to, amount);
     }
 
     function testSenderSanctions(address sender, uint128 amount) public {
-        hevm.assume(sender != address(0) && sender != address(this));
+        vm.assume(sender != address(0) && sender != address(this));
         note.mint(sender, amount);
         steward.sanction(sender, true);
 
-        hevm.expectRevert(Unauthorized.selector);
-        hevm.prank(sender);
+        vm.expectRevert(Unauthorized.selector);
+        vm.prank(sender);
         note.transfer(beneficiary, amount);
     }
 
     function testRecipientSanctions(address recipient, uint128 amount) public {
-        hevm.assume(recipient != address(0) && recipient != address(this));
+        vm.assume(recipient != address(0) && recipient != address(this));
         note.mint(address(this), amount);
         steward.sanction(recipient, true);
 
-        hevm.expectRevert(Unauthorized.selector);
+        vm.expectRevert(Unauthorized.selector);
         note.transfer(recipient, amount);
     }
 }

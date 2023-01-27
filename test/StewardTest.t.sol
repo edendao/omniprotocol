@@ -59,19 +59,19 @@ contract StewardTest is ChainEnvironmentTest {
     }
 
     function stewardTransfer(uint256 amount) internal {
-        hevm.assume(amount < address(this).balance);
+        vm.assume(amount < address(this).balance);
         payable(address(steward)).transfer(amount);
     }
 
     function testWithdrawTo(address receiver, uint256 amount) public {
-        hevm.assume(!BoringAddress.isContract(receiver));
+        vm.assume(!BoringAddress.isContract(receiver));
         stewardTransfer(amount);
         steward.withdrawTo(receiver, amount);
         assertEq(receiver.balance, amount);
     }
 
     function testWithdrawToRequiresAuth(address caller, uint256 amount) public {
-        hevm.assume(
+        vm.assume(
             !steward.canCall(
                 caller,
                 address(steward),
@@ -80,8 +80,8 @@ contract StewardTest is ChainEnvironmentTest {
         );
 
         stewardTransfer(amount);
-        hevm.expectRevert(Unauthorized.selector);
-        hevm.prank(caller);
+        vm.expectRevert(Unauthorized.selector);
+        vm.prank(caller);
         steward.withdrawTo(caller, amount);
     }
 }

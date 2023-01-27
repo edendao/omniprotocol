@@ -35,16 +35,16 @@ contract ERC20VaultTest is ChainEnvironmentTest {
     }
 
     function testCannotWithdrawAsset() public {
-        hevm.expectRevert(Unauthorized.selector);
+        vm.expectRevert(Unauthorized.selector);
         vault.withdrawToken(address(dai), address(this), 10_000);
     }
 
     function testWithdrawingAccidentalTokensRequiresAuth(address caller)
         public
     {
-        hevm.assume(caller != owner);
-        hevm.expectRevert(Unauthorized.selector);
-        hevm.prank(caller);
+        vm.assume(caller != owner);
+        vm.expectRevert(Unauthorized.selector);
+        vm.prank(caller);
         vault.withdrawToken(address(0), address(this), 10_000);
     }
 
@@ -53,7 +53,7 @@ contract ERC20VaultTest is ChainEnvironmentTest {
         address toAddress,
         uint256 amount
     ) public {
-        hevm.assume(
+        vm.assume(
             amount != 0 &&
                 toAddress != address(0) &&
                 toChainId != 0 &&
