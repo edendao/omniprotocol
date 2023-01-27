@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
+import {Unauthorized} from "@omniprotocol/mixins/Stewarded.sol";
+
 import {ChainEnvironmentTest, ERC20Note} from "./ChainEnvironmentTest.t.sol";
 
 contract ERC20NoteTest is ChainEnvironmentTest {
@@ -45,7 +47,7 @@ contract ERC20NoteTest is ChainEnvironmentTest {
         hevm.assume(
             to != address(0) && to != address(this) && note.balanceOf(to) == 0
         );
-        hevm.expectRevert("UNAUTHORIZED");
+        hevm.expectRevert(Unauthorized.selector);
         hevm.prank(to);
         note.mint(to, amount);
     }
@@ -55,7 +57,7 @@ contract ERC20NoteTest is ChainEnvironmentTest {
         note.mint(sender, amount);
         steward.sanction(sender, true);
 
-        hevm.expectRevert("UNAUTHORIZED");
+        hevm.expectRevert(Unauthorized.selector);
         hevm.prank(sender);
         note.transfer(beneficiary, amount);
     }
@@ -65,7 +67,7 @@ contract ERC20NoteTest is ChainEnvironmentTest {
         note.mint(address(this), amount);
         steward.sanction(recipient, true);
 
-        hevm.expectRevert("UNAUTHORIZED");
+        hevm.expectRevert(Unauthorized.selector);
         note.transfer(recipient, amount);
     }
 }

@@ -6,6 +6,9 @@ import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 import {ERC20} from "./mixins/ERC20.sol";
 import {Omnichain} from "./mixins/Omnichain.sol";
 
+error InvalidAsset();
+error Unauthorized();
+
 contract ERC20Vault is Omnichain {
     ERC20 public asset;
 
@@ -18,10 +21,13 @@ contract ERC20Vault is Omnichain {
             (address, address, address)
         );
 
-        __initOmnichain(_lzEndpoint);
-        __initStewarded(_steward);
+        if (_asset.code.length == 0) {
+            revert InvalidAsset();
+        }
 
         asset = ERC20(_asset);
+        __initOmnichain(_lzEndpoint);
+        __initStewarded(_steward);
     }
 
     function circulatingSupply() public view returns (uint256) {
@@ -126,7 +132,9 @@ contract ERC20Vault is Omnichain {
         address to,
         uint256 amount
     ) public override {
-        require(address(token) != address(asset), "ERC20Vault: INVALID_TOKEN");
+        if (address(token) == address(asset)) {
+            revert Unauthorized();
+        }
         super.withdrawToken(token, to, amount);
     }
 }

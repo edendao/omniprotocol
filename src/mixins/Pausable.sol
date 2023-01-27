@@ -3,11 +3,15 @@ pragma solidity ^0.8.13;
 
 import {Auth} from "./auth/Auth.sol";
 
+error Paused();
+
 abstract contract Pausable is Auth {
     bool public isPaused;
 
     modifier whenNotPaused() {
-        require(!isPaused, "Pausable: PAUSED");
+        if (isPaused) {
+            revert Paused();
+        }
         _;
     }
 

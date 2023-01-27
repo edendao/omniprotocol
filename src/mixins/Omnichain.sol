@@ -8,6 +8,10 @@ import {Stewarded} from "./Stewarded.sol";
 import {Pausable} from "./Pausable.sol";
 import {PublicGood} from "./PublicGood.sol";
 
+error InvalidConnection();
+error InvalidCaller();
+error InvalidPayload();
+
 abstract contract Omnichain is
     Stewarded,
     PublicGood,
@@ -61,7 +65,9 @@ abstract contract Omnichain is
         bytes calldata lzAdapterParams
     ) internal whenNotPaused {
         bytes memory remoteContract = connections[toChainId];
-        require(remoteContract.length != 0, "Omnichain: NOT_CONNECTED");
+        if (remoteContract.length == 0) {
+            revert InvalidConnection();
+        }
 
         // solhint-disable-next-line check-send-result
         lzEndpoint.send{value: msg.value}(
@@ -93,11 +99,12 @@ abstract contract Omnichain is
         uint64 nonce,
         bytes calldata payload
     ) external override whenNotPaused {
-        require(
-            msg.sender == address(lzEndpoint) &&
-                isConnection(fromChainId, fromContract),
-            "Omnichain: INVALID_CALLER"
-        );
+        if (msg.sender != address(lzEndpoint)) {
+            revert InvalidCaller();
+        }
+        if (!isConnection(fromChainId, fromContract)) {
+            revert InvalidConnection();
+        }
 
         try this.lzTryReceive(fromChainId, fromContract, nonce, payload) {
             this;
@@ -115,7 +122,9 @@ abstract contract Omnichain is
         uint64 nonce,
         bytes calldata payload
     ) external {
-        require(msg.sender == address(this), "Omnichain: INVALID_CALLER");
+        if (msg.sender != address(this)) {
+            revert InvalidCaller();
+        }
         receiveMessage(fromChainId, fromContract, nonce, payload);
     }
 
@@ -135,11 +144,9 @@ abstract contract Omnichain is
         bytes32 payloadHash = failedMessagesHash[fromChainId][fromContract][
             nonce
         ];
-        require(payloadHash != bytes32(0), "Omnichain: MESSAGE_NOT_FOUND");
-        require(
-            keccak256(payload) == payloadHash,
-            "Omnichain: INVALID_PAYLOAD"
-        );
+        if (payloadHash == bytes32(0) || keccak256(payload) != payloadHash) {
+            revert InvalidPayload();
+        }
         // clear the stored message
         failedMessagesHash[fromChainId][fromContract][nonce] = bytes32(0);
         // execute the message, revert if it fails again

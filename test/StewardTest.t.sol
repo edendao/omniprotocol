@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {BoringAddress} from "@boring/libraries/BoringAddress.sol";
 
+import {Unauthorized} from "@omniprotocol/mixins/auth/Auth.sol";
 import {ChainEnvironmentTest, Steward} from "./ChainEnvironmentTest.t.sol";
 
 contract StewardTest is ChainEnvironmentTest {
@@ -79,7 +80,7 @@ contract StewardTest is ChainEnvironmentTest {
         );
 
         stewardTransfer(amount);
-        hevm.expectRevert("UNAUTHORIZED");
+        hevm.expectRevert(Unauthorized.selector);
         hevm.prank(caller);
         steward.withdrawTo(caller, amount);
     }

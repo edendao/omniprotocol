@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {ChainEnvironmentTest, ERC20Note} from "./ChainEnvironmentTest.t.sol";
 
-import {ERC20Vault} from "@omniprotocol/ERC20Vault.sol";
+import {ERC20Vault, InvalidAsset, Unauthorized} from "@omniprotocol/ERC20Vault.sol";
 
 contract ERC20VaultTest is ChainEnvironmentTest {
     uint16 public currentChainId = uint16(block.chainid);
@@ -35,7 +35,7 @@ contract ERC20VaultTest is ChainEnvironmentTest {
     }
 
     function testCannotWithdrawAsset() public {
-        hevm.expectRevert("ERC20Vault: INVALID_TOKEN");
+        hevm.expectRevert(Unauthorized.selector);
         vault.withdrawToken(address(dai), address(this), 10_000);
     }
 
@@ -43,7 +43,7 @@ contract ERC20VaultTest is ChainEnvironmentTest {
         public
     {
         hevm.assume(caller != owner);
-        hevm.expectRevert("UNAUTHORIZED");
+        hevm.expectRevert(Unauthorized.selector);
         hevm.prank(caller);
         vault.withdrawToken(address(0), address(this), 10_000);
     }

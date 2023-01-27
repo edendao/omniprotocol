@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {ERC20} from "./mixins/ERC20.sol";
-import {Stewarded} from "./mixins/Stewarded.sol";
+import {Stewarded, Unauthorized} from "./mixins/Stewarded.sol";
 import {Omnichain} from "./mixins/Omnichain.sol";
 import {PublicGood} from "./mixins/PublicGood.sol";
 
@@ -51,11 +51,11 @@ contract ERC20Note is ERC20, Omnichain {
         address recipient,
         uint256 amount
     ) public override returns (bool) {
-        require(
-            // transferFrom.selector
-            isAuthorized(sender, msg.sig) && isAuthorized(recipient, msg.sig),
-            "UNAUTHORIZED"
-        );
+        if (
+            !isAuthorized(sender, msg.sig) || !isAuthorized(recipient, msg.sig)
+        ) {
+            revert Unauthorized();
+        }
         return super.transferFrom(sender, recipient, amount);
     }
 

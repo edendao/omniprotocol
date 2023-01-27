@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity >=0.8.0;
 
+error Unauthorized();
+
 /// @notice Provides a flexible and updatable auth pattern which is completely separate from application logic.
-/// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/auth/Auth.sol)
+/// @author Modified by DaoDeCyrus with custom errors and initialization
+/// @author Modified from Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/auth/Auth.sol)
 /// @author Modified from Dappsys (https://github.com/dapphub/ds-auth/blob/master/src/auth.sol)
 abstract contract Auth {
     event OwnerUpdated(address indexed user, address indexed newOwner);
@@ -25,7 +28,9 @@ abstract contract Auth {
     }
 
     modifier requiresAuth() virtual {
-        require(isAuthorized(msg.sender, msg.sig), "UNAUTHORIZED");
+        if (!isAuthorized(msg.sender, msg.sig)) {
+            revert Unauthorized();
+        }
 
         _;
     }
@@ -49,11 +54,12 @@ abstract contract Auth {
     function setAuthority(Authority newAuthority) public virtual {
         // We check if the caller is the owner first because we want to ensure they can
         // always swap out the authority even if it's reverting or using up a lot of gas.
-        require(
-            msg.sender == owner ||
-                authority.canCall(msg.sender, address(this), msg.sig),
-            "UNAUTHORIZED"
-        );
+        if (
+            msg.sender != owner ||
+            !authority.canCall(msg.sender, address(this), msg.sig)
+        ) {
+            revert Unauthorized();
+        }
 
         authority = newAuthority;
 

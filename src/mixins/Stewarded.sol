@@ -2,7 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
-import {Auth, Authority} from "./auth/Auth.sol";
+import {Auth, Authority, Unauthorized} from "./auth/Auth.sol";
+
+error InvalidToken();
 
 abstract contract Stewarded is Auth {
     function __initStewarded(address _steward) internal {
@@ -18,6 +20,9 @@ abstract contract Stewarded is Auth {
         address to,
         uint256 amount
     ) public virtual requiresAuth {
+        if (token.code.length == 0) {
+            revert InvalidToken();
+        }
         SafeTransferLib.safeTransfer(token, to, amount);
     }
 }
