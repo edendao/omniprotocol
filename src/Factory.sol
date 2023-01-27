@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
+import {LibClone} from "solady/utils/LibClone.sol";
 import {PublicGood} from "./mixins/PublicGood.sol";
 import {Stewarded} from "./mixins/Stewarded.sol";
 
 contract Factory is Stewarded {
+    using LibClone for address;
+
     address public steward;
     address public erc20note;
     address public erc20vault;
@@ -36,35 +39,21 @@ contract Factory is Stewarded {
         lzEndpoint = _lzEndpoint;
     }
 
-    function _create2ProxyFor(address implementation, bytes32 salt)
-        internal
-        returns (address cloneAddress)
-    {
-        bytes20 targetBytes = bytes20(implementation);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            let code := mload(0x40)
-            mstore(
-                code,
-                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
-            )
-            mstore(add(code, 0x14), targetBytes)
-            mstore(
-                add(code, 0x28),
-                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
-            )
-            cloneAddress := create2(0, code, 0x37, salt)
-        }
-    }
-
     event StewardCreated(address indexed steward, address indexed owner);
 
     function createSteward(address _owner) public payable returns (address s) {
         bytes memory params = abi.encode(_owner);
-        s = _create2ProxyFor(steward, keccak256(params));
+        s = steward.cloneDeterministic(keccak256(params));
 
         PublicGood(s).initialize(address(authority), params);
         emit StewardCreated(s, _owner);
+    }
+
+    function getSteward(address _owner) public view returns (address s) {
+        s = steward.predictDeterministicAddress(
+            keccak256(abi.encode(_owner)),
+            address(this)
+        );
     }
 
     event ERC20NoteCreated(
@@ -88,10 +77,30 @@ contract Factory is Stewarded {
             _symbol,
             _decimals
         );
-        note = _create2ProxyFor(erc20note, keccak256(params));
+        note = erc20note.cloneDeterministic(keccak256(params));
 
         PublicGood(note).initialize(address(authority), params);
         emit ERC20NoteCreated(_steward, note, _name, _symbol, _decimals);
+    }
+
+    function getERC20Note(
+        address _steward,
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals
+    ) public view returns (address note) {
+        note = erc20note.predictDeterministicAddress(
+            keccak256(
+                abi.encode(
+                    address(lzEndpoint),
+                    _steward,
+                    _name,
+                    _symbol,
+                    _decimals
+                )
+            ),
+            address(this)
+        );
     }
 
     event ERC20VaultCreated(
@@ -106,9 +115,20 @@ contract Factory is Stewarded {
         returns (address vault)
     {
         bytes memory params = abi.encode(address(lzEndpoint), _steward, _asset);
-        vault = _create2ProxyFor(erc20vault, keccak256(params));
+        vault = erc20vault.cloneDeterministic(keccak256(params));
 
         PublicGood(vault).initialize(address(authority), params);
         emit ERC20VaultCreated(_steward, vault, _asset);
+    }
+
+    function getERC20Vault(address _steward, address _asset)
+        public
+        view
+        returns (address vault)
+    {
+        vault = erc20vault.predictDeterministicAddress(
+            keccak256(abi.encode(address(lzEndpoint), _steward, _asset)),
+            address(this)
+        );
     }
 }
