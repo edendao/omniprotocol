@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGLP-3.0-only
 pragma solidity ^0.8.13;
 
-import {ERC20, SafeTransferLib} from "@omniprotocol/libraries/SafeTransferLib.sol";
+import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 import {Auth, Authority} from "./auth/Auth.sol";
 
 abstract contract Stewarded is Auth {
@@ -18,6 +18,6 @@ abstract contract Stewarded is Auth {
         address to,
         uint256 amount
     ) public virtual requiresAuth {
-        SafeTransferLib.safeTransfer(ERC20(token), to, amount);
+        SafeTransferLib.safeTransfer(token, to, amount);
     }
 }

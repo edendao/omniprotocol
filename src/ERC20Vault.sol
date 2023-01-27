@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.13;
 
-import {SafeTransferLib} from "./libraries/SafeTransferLib.sol";
+import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
 import {ERC20} from "./mixins/ERC20.sol";
 import {Omnichain} from "./mixins/Omnichain.sol";
 
 contract ERC20Vault is Omnichain {
-    using SafeTransferLib for ERC20;
     ERC20 public asset;
 
     // =============================
@@ -65,7 +64,12 @@ contract ERC20Vault is Omnichain {
         address lzPaymentAddress,
         bytes calldata lzAdapterParams
     ) external payable {
-        asset.safeTransferFrom(fromAddress, address(this), amount);
+        SafeTransferLib.safeTransferFrom(
+            address(asset),
+            fromAddress,
+            address(this),
+            amount
+        );
 
         lzSend(
             toChainId,
@@ -103,7 +107,7 @@ contract ERC20Vault is Omnichain {
         );
         address toAddress = _addressFromPackedBytes(toAddressB);
 
-        asset.safeTransfer(toAddress, amount);
+        SafeTransferLib.safeTransfer(address(asset), toAddress, amount);
 
         emit ReceiveFromChain(
             fromChainId,
