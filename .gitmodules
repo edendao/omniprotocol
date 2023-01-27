@@ -13,9 +13,6 @@ url = https://github.com/boringcrypto/BoringSolidity
 [submodule "lib/solmate"]
 path = lib/solmate
 url = https://github.com/Rari-Capital/solmate
-[submodule "lib/prb-proxy"]
-path = lib/prb-proxy
-url = https://github.com/paulrberg/prb-proxy
 [submodule "lib/chainlink"]
 	path = lib/chainlink
 	url = https://github.com/smartcontractkit/chainlink

@@ -64,7 +64,9 @@ contract StewardTest is ChainEnvironmentTest {
     }
 
     function testWithdrawTo(address receiver, uint256 amount) public {
-        vm.assume(!BoringAddress.isContract(receiver));
+        vm.assume(
+            !BoringAddress.isContract(receiver) && receiver != address(this)
+        );
         stewardTransfer(amount);
         steward.withdrawTo(receiver, amount);
         assertEq(receiver.balance, amount);
@@ -72,11 +74,12 @@ contract StewardTest is ChainEnvironmentTest {
 
     function testWithdrawToRequiresAuth(address caller, uint256 amount) public {
         vm.assume(
-            !steward.canCall(
-                caller,
-                address(steward),
-                steward.withdrawTo.selector
-            )
+            caller != address(this) &&
+                !steward.canCall(
+                    caller,
+                    address(steward),
+                    steward.withdrawTo.selector
+                )
         );
 
         stewardTransfer(amount);
