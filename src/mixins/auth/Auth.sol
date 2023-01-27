@@ -39,13 +39,13 @@ abstract contract Auth {
         public
         view
         virtual
-        returns (bool)
+        returns (bool authorized)
     {
         Authority auth = authority; // Memoizing authority saves us a warm SLOAD, around 100 gas.
 
         // Checking if the caller is the owner only after calling the authority saves gas in most cases, but be
         // aware that this makes protected functions uncallable even to the owner if the authority is out of order.
-        return
+        authorized =
             (address(auth) != address(0) &&
                 auth.canCall(user, address(this), functionSig)) ||
             user == owner;

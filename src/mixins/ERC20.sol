@@ -79,7 +79,9 @@ abstract contract ERC20 {
         returns (bool)
     {
         allowance[msg.sender][spender] = amount;
+
         emit Approval(msg.sender, spender, amount);
+
         return true;
     }
 
@@ -109,7 +111,9 @@ abstract contract ERC20 {
         unchecked {
             balanceOf[to] += amount;
         }
+
         emit Transfer(msg.sender, to, amount);
+
         return true;
     }
 
@@ -201,26 +205,29 @@ abstract contract ERC20 {
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function DOMAIN_SEPARATOR() public view virtual returns (bytes32) {
-        return
-            block.chainid == INITIAL_CHAIN_ID
-                ? INITIAL_DOMAIN_SEPARATOR
-                : computeDomainSeparator();
+    function DOMAIN_SEPARATOR() public view virtual returns (bytes32 h) {
+        h = block.chainid == INITIAL_CHAIN_ID
+            ? INITIAL_DOMAIN_SEPARATOR
+            : computeDomainSeparator();
     }
 
-    function computeDomainSeparator() internal view virtual returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    keccak256(
-                        "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-                    ),
-                    keccak256(bytes(name)),
-                    keccak256("1"),
-                    block.chainid,
-                    address(this)
-                )
-            );
+    function computeDomainSeparator()
+        internal
+        view
+        virtual
+        returns (bytes32 h)
+    {
+        h = keccak256(
+            abi.encode(
+                keccak256(
+                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                ),
+                keccak256(bytes(name)),
+                keccak256("1"),
+                block.chainid,
+                address(this)
+            )
+        );
     }
 
     /*//////////////////////////////////////////////////////////////

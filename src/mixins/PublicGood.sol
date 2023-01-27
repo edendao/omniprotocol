@@ -5,16 +5,18 @@ error AlreadyInitialized();
 error Unauthorized();
 
 abstract contract PublicGood {
-    bool internal isInitialized;
+    bool internal initialized;
     address public beneficiary;
 
     function initialize(address _beneficiary, bytes memory _params) public {
-        if (isInitialized) {
+        if (initialized) {
             revert AlreadyInitialized();
         }
+
         beneficiary = _beneficiary;
         _initialize(_params);
-        isInitialized = true;
+
+        initialized = true;
     }
 
     function _initialize(bytes memory _params) internal virtual;
@@ -23,6 +25,7 @@ abstract contract PublicGood {
         if (msg.sender != beneficiary) {
             revert Unauthorized();
         }
+
         _;
     }
 }

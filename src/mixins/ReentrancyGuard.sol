@@ -4,14 +4,14 @@ pragma solidity >=0.8.0;
 error Reentrant();
 
 abstract contract ReentrancyGuard {
-    bool private _reentrancyGuard;
+    bool private _inCall;
 
     modifier nonReentrant() {
-        if (_reentrancyGuard) {
+        if (_inCall) {
             revert Reentrant();
         }
-        _reentrancyGuard = true;
+        _inCall = true;
         _;
-        _reentrancyGuard = false;
+        _inCall = false;
     }
 }

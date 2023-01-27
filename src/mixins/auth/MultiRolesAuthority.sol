@@ -49,18 +49,18 @@ abstract contract MultiRolesAuthority is Auth, Authority {
         public
         view
         virtual
-        returns (bool)
+        returns (bool has)
     {
-        return (uint256(getUserRoles[user]) >> role) & 1 != 0;
+        has = (uint256(getUserRoles[user]) >> role) & 1 != 0;
     }
 
     function doesRoleHaveCapability(uint8 role, bytes4 functionSig)
         public
         view
         virtual
-        returns (bool)
+        returns (bool has)
     {
-        return (uint256(getRolesWithCapability[functionSig]) >> role) & 1 != 0;
+        has = (uint256(getRolesWithCapability[functionSig]) >> role) & 1 != 0;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -71,15 +71,14 @@ abstract contract MultiRolesAuthority is Auth, Authority {
         address user,
         address target,
         bytes4 functionSig
-    ) public view virtual returns (bool) {
+    ) public view virtual returns (bool can) {
         Authority customAuthority = getTargetCustomAuthority[target];
-        return
-            address(customAuthority) != address(0)
-                ? customAuthority.canCall(user, target, functionSig)
-                : isCapabilityPublic[functionSig]
-                ? true
-                : bytes32(0) !=
-                    getUserRoles[user] & getRolesWithCapability[functionSig];
+        can = address(customAuthority) != address(0)
+            ? customAuthority.canCall(user, target, functionSig)
+            : isCapabilityPublic[functionSig]
+            ? true
+            : bytes32(0) !=
+                getUserRoles[user] & getRolesWithCapability[functionSig];
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -27,18 +27,6 @@ contract Factory is Stewarded {
         lzEndpoint = _lzEndpoint;
     }
 
-    function setImplementations(
-        address _steward,
-        address _erc20note,
-        address _erc20vault,
-        address _lzEndpoint
-    ) external requiresAuth {
-        steward = _steward;
-        erc20note = _erc20note;
-        erc20vault = _erc20vault;
-        lzEndpoint = _lzEndpoint;
-    }
-
     event StewardCreated(address indexed steward, address indexed owner);
 
     function createSteward(address _owner) public payable returns (address s) {

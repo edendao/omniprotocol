@@ -23,6 +23,7 @@ abstract contract Stewarded is Auth {
         if (token.code.length == 0) {
             revert InvalidToken();
         }
+
         SafeTransferLib.safeTransfer(token, to, amount);
     }
 }

@@ -19,8 +19,8 @@ contract ERC20VaultTest is ChainEnvironmentTest {
         note = ERC20Note(
             factory.createERC20Note(
                 address(steward),
-                "DAI",
-                "DAI",
+                dai.name(),
+                dai.symbol(),
                 dai.decimals()
             )
         );

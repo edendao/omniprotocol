@@ -125,6 +125,7 @@ abstract contract Omnichain is
         if (msg.sender != address(this)) {
             revert InvalidCaller();
         }
+
         receiveMessage(fromChainId, fromContract, nonce, payload);
     }
 
@@ -141,12 +142,11 @@ abstract contract Omnichain is
         uint64 nonce,
         bytes calldata payload
     ) external whenNotPaused {
-        bytes32 payloadHash = failedMessagesHash[fromChainId][fromContract][
-            nonce
-        ];
-        if (payloadHash == bytes32(0) || keccak256(payload) != payloadHash) {
+        bytes32 h = failedMessagesHash[fromChainId][fromContract][nonce];
+        if (h == bytes32(0) || keccak256(payload) != h) {
             revert InvalidPayload();
         }
+
         // clear the stored message
         failedMessagesHash[fromChainId][fromContract][nonce] = bytes32(0);
         // execute the message, revert if it fails again
