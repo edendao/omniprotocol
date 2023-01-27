@@ -59,26 +59,3 @@ cast send 0xYourERC20NoteOnChainA "connect(uint16,bytes)" ChainB_ID 0xYourERC20N
 # For Chain B
 cast send 0xYourERC20NoteOnChainB "connect(uint16,bytes)" ChainA_ID 0xYourERC20NoteOnChainA
 ```
-
-### Write on-chain messages across chains using Omnicast
-
-Omnicast lets you write arbitrary bytes to a destination chain, so `abi.encode` your data on the source chain and `abi.decode` it on the receiving chain.
-
-```solidity
-// First Chain
-omnicast.writeMessage(
-  omnicast.idOf(secondChainContractAddress), // receiver
-  omnicast.idOf(firstChainContractAddress), // sender
-  bytes("Gardener of the Galaxy"),
-  4, // LayerZero Chain ID
-  address(0), // LayerZero Payment Address
-  bytes("") // LayerZero Adapter Params
-)
-
-// Second Chain
-string memory message = string(omnicast.readMessage(
-  omnicast.idOf(secondChainContractAddress),
-  omnicast.idOf(firstChainContractAddress)
-));
-assertEq(message, "Gardener of the Galaxy");
-```
